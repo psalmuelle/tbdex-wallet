@@ -2,8 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+*{
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
 :root {
-  --primary-color: 0, 0, 0;
-  --secondary-color: 214, 219, 220;
-  --tetiary-color: 255, 255, 255;
+  --primary-color: #9747FF;
+  --secondary-color: #FFCC0A;
+  --tetiary-color: #EBFFEC;
+  --white-color: white;
+  --dark-color: #333;
 }
