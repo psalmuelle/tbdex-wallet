@@ -30,8 +30,13 @@ export default function Header() {
           <Link href='/blog'>Blog</Link>
         </nav>
         <div className='max-sm:hidden space-x-2'>
-          <Button type='text'>Sign In</Button>
-          <Button type='primary' className='rounded-2xl text-semibold shadow'>
+          <Button href='/login' type='text'>
+            Sign In
+          </Button>
+          <Button
+            type='primary'
+            href='/register'
+            className='rounded-2xl text-semibold shadow'>
             Get Started
           </Button>
         </div>
@@ -56,13 +61,14 @@ export default function Header() {
               Blog
             </Link>
             <div className='flex flex-col space-y-4'>
-              <Button type='text' className='font-bold'>
+              <Button type='text' className='font-bold' href='/login'>
                 Sign In
               </Button>
               <Button
                 type='primary'
                 size='large'
-                className='rounded-2xl text-semibold shadow'>
+                className='rounded-2xl text-semibold shadow'
+                href='/register'>
                 Get Started
               </Button>
             </div>

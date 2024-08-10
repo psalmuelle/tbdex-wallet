@@ -24,7 +24,8 @@ export default function Home() {
           size='large'
           icon={<LoginOutlined />}
           type='primary'
-          className='mt-6 font-semibold'>
+          className='mt-6 font-semibold'
+          href="/register">
           Create Wallet
         </Button>
       </section>
@@ -90,7 +91,7 @@ export default function Home() {
             ipsum.
           </p>
           <div className='w-fit mx-auto mt-8 mb-12'>
-            <Button className='mx-auto font-semibold' size='large'>
+            <Button href="/register" className='mx-auto font-semibold' size='large'>
               Sign Up Now
             </Button>
           </div>
