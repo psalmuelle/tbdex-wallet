@@ -1,6 +1,8 @@
 # TBDEX WALLET
+
 Work in progress
 
+<!-- Illustration by <a href="https://icons8.com/illustrations/author/zD2oqC8lLBBA">Icons 8</a> from <a href="https://icons8.com/illustrations">Ouch!</a> -->
 
 feat: A new feature for the user.
 fix: A bug fix.

@@ -10,14 +10,6 @@ export default function Header() {
   const [openMenu, setOpenMenu] = useState(false);
   return (
     <header className='bg-white flex flex-col justify-center relative'>
-      <section className='bg-accent-dark flex justify-center items-center gap-2 text-white p-2'>
-        <Image src={"/tbd-logo.jpeg"} alt='TBD logo' width={64} height={48} />
-        <div className='flex flex-col w-fit'>
-          <h1 className='font-bold'>This project is for the TBD hackathon</h1>
-          <p>Reimagining a new world of global payments using tbDEX</p>
-        </div>
-      </section>
-
       <div className='flex justify-between items-center font-medium  px-4 py-4 md:px-6 relative'>
         <Link
           href={"/"}
@@ -37,7 +29,7 @@ export default function Header() {
             type='primary'
             href='/register'
             className='rounded-2xl text-semibold shadow'>
-            Get Started
+            Create Wallet
           </Button>
         </div>
         <Button
@@ -69,7 +61,7 @@ export default function Header() {
                 size='large'
                 className='rounded-2xl text-semibold shadow'
                 href='/register'>
-                Get Started
+                Create Wallet
               </Button>
             </div>
           </div>
