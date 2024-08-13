@@ -11,7 +11,6 @@ import {
 import Image from "next/image";
 import initWeb5 from "@/lib/web5";
 import { useRouter } from "next/navigation";
-import useAuth from "@/hooks/useAuth";
 
 type FieldType = {
   password: string;
@@ -20,7 +19,6 @@ type FieldType = {
 export default function Home() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const { setUserDID, setUserWeb5 } = useAuth();
   const [messageApi, contextHolder] = message.useMessage();
 
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
@@ -29,8 +27,7 @@ export default function Home() {
     await initWeb5({ password: values.password })
       .then((res) => {
         try {
-          setUserDID(res.userDID);
-          setUserWeb5(res.web5);
+          sessionStorage.setItem("userDID", res.userDID);
         } catch (err) {
           console.log("Error setting userDID and web5", err);
         }
