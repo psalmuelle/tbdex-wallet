@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Layout } from "antd";
-import Image from "next/image";
 import Footer from "@/components/Footer";
 import "../globals.css";
+import DashboardSider from "@/components/Sider";
+import DashboardHeader from "@/components/Header";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,26 +22,13 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className={inter.className + " max-w-[1440px] mx-auto"}>
-        <Layout>
-          <header className='bg-white flex justify-center items-center py-4 border-b'>
-            <Image
-              src={"/logo.png"}
-              width={36}
-              height={36}
-              alt={"Chain wallet"}
-            />
-            <p className='text-base font-mono font-bold tracking-widest'>
-              Chain Wallet
-            </p>
-            <Image
-              src={"/logo.png"}
-              width={36}
-              height={36}
-              alt={"Chain wallet"}
-            />
-          </header>
-          <Layout>{children}</Layout>
-          <Footer />
+        <Layout hasSider>
+          <DashboardSider />
+          <Layout>
+            <DashboardHeader />
+            {children}
+            <Footer />
+          </Layout>
         </Layout>
       </body>
     </html>

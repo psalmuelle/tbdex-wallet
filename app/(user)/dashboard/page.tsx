@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Layout } from "antd";
+
+const { Content } = Layout;
 
 export default function Dashboard() {
   const [userDID, setUserDID] = useState<string | null>(null);
@@ -17,10 +20,10 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <main>
+    <Content>
       <p>{userDID}</p>
       <h1>this is the Dashboard aod the application</h1>
       <p>this is the body of the dashboard</p>
-    </main>
+    </Content>
   );
 }
