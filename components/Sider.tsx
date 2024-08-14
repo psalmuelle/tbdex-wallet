@@ -90,7 +90,7 @@ export default function DashboardSider() {
         </div>
       )}
 
-      <Menu mode='vertical' defaultSelectedKeys={["1"]} items={items} />
+      <Menu mode='inline' defaultSelectedKeys={["1"]} items={items} />
     </Sider>
   );
 }
