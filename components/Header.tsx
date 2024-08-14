@@ -4,6 +4,7 @@ import { Button, Layout, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { UserOutlined } from "@ant-design/icons";
+import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 
 const { Header } = Layout;
 const { Paragraph } = Typography;
@@ -16,7 +17,7 @@ export default function DashboardHeader() {
   const router = useRouter();
 
   useEffect(() => {
-    const userDID = sessionStorage.getItem("userDID");
+    const userDID = decryptAndRetrieveData({ name: "userDID" });
     if (userDID) {
       const shortenedDID =
         userDID.substring(0, 12) +
@@ -38,7 +39,7 @@ export default function DashboardHeader() {
 
       <div className='flex justify-center items-center gap-2'>
         <Button type='primary' icon={<UserOutlined />} shape='circle' />
-        <Paragraph copyable={{ text: userDID.text }} className='block mt-3'>
+        <Paragraph copyable={{ text: userDID.text }} className='block mt-3.5'>
           {userDID.shortened}
         </Paragraph>
       </div>

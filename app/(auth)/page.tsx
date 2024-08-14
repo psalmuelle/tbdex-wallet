@@ -11,6 +11,7 @@ import {
 import Image from "next/image";
 import initWeb5 from "@/lib/web5";
 import { useRouter } from "next/navigation";
+import { encryptAndStoreData } from "@/lib/encrypt-info";
 
 type FieldType = {
   password: string;
@@ -27,7 +28,7 @@ export default function Home() {
     await initWeb5({ password: values.password })
       .then((res) => {
         try {
-          sessionStorage.setItem("userDID", res.userDID);
+          encryptAndStoreData({ name: "userDID", data: res.userDID });
         } catch (err) {
           console.log("Error setting userDID and web5", err);
         }

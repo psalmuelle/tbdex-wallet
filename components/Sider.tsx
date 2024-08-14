@@ -40,7 +40,7 @@ const items: MenuItem[] = [
   },
   {
     key: "5",
-    label: <Link href={"/dashboard"}>KCC</Link>,
+    label: <Link href={"/dashboard/kcc"}>KCC</Link>,
     icon: <IdcardOutlined />,
   },
   {

@@ -3,10 +3,10 @@ import CryptoJS from "crypto-js";
 interface CryptoTypes {
   name: string;
   data?: unknown;
-  password: string;
 }
 
-const encryptAndStoreData = ({ name, data, password }: CryptoTypes) => {
+const encryptAndStoreData = ({ name, data }: CryptoTypes) => {
+  const password = process.env.NEXT_PUBLIC_ENCRYPTION_PASSWORD as string;
   const stringifiedData = JSON.stringify(data);
 
   const encryptedData = CryptoJS.AES.encrypt(
@@ -18,7 +18,8 @@ const encryptAndStoreData = ({ name, data, password }: CryptoTypes) => {
   }
 };
 
-const decryptAndRetrieveData = ({ name, password }: CryptoTypes) => {
+const decryptAndRetrieveData = ({ name }: CryptoTypes) => {
+  const password = process.env.NEXT_PUBLIC_ENCRYPTION_PASSWORD as string;
   if (typeof window !== "undefined") {
     const encryptedData = sessionStorage.getItem(name);
     if (encryptedData) {
