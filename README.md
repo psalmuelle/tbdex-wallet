@@ -12,3 +12,6 @@ refactor: A code change that neither fixes a bug nor adds a feature.
 perf: A code change that improves performance.
 test: Adding missing or correcting existing tests.
 chore: Changes to the build process or auxiliary tools and libraries such as documentation generation.
+
+TODO
+-The sidebar navbar: the active nav button is not the current page when you refresh.
