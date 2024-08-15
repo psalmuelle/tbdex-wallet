@@ -1,16 +1,25 @@
 "use client";
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import Image from "next/image";
 import { Button, Spin } from "antd";
 import { LoginOutlined } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
+  const { status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status !== "loading" && status === "authenticated") {
+      router.push("/admin");
+    }
+  }, [status]);
 
   const handleLogin = async () => {
     setLoading(true);
-    await signIn("google");
+    await signIn("google", { callbackUrl: "/admin" });
   };
 
   return (
@@ -38,7 +47,7 @@ export default function Auth() {
           </Button>
         </div>
       </section>
-      <Spin spinning={loading} fullscreen size="large" />
+      <Spin spinning={loading} fullscreen size='large' />
     </main>
   );
 }

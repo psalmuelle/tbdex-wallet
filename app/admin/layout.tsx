@@ -31,7 +31,7 @@ export default function RootLayout({
                 height={36}
                 alt={"Chain wallet"}
               />
-              <p className='text-base font-mono font-bold tracking-widest'>
+              <p className='text-base font-mono font-bold text-center'>
                 Chain Wallet - Admin Dashboard
               </p>
               <Image
