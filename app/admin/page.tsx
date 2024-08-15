@@ -5,6 +5,8 @@ import type { TabsProps } from "antd";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { BankOutlined, StarOutlined, UserOutlined } from "@ant-design/icons";
+import axiosInstance from "@/lib/axios";
+
 
 const items: TabsProps["items"] = [
   {
@@ -39,6 +41,13 @@ export default function Admin() {
     if (status !== "loading" && status === "unauthenticated") {
       router.push("/admin/auth");
     }
+    // axiosInstance.post("/api/pfis", {
+    //   name: "Test PFI",
+    //   did: "did:example:123aszz",
+    // }).then(res=> console.log(res))
+
+      axiosInstance.get("/api/pfis").then(res=> console.log(res))
+      axiosInstance.delete("/api/pfis", {data: {did: 'did:example:123as'}}).then(res=> console.log(res))
   }, [status]);
 
   if (status === "loading") {
