@@ -36,6 +36,29 @@ export default function Admin() {
     console.log(key);
   };
 
+  const testApi=()=> {
+    //   axiosInstance.post("/api/pfis", {
+    //   name: "Abaru Company",
+    //   did: "did:example:1123121",
+    // }).then(res=> console.log(res))
+
+    // axiosInstance.get("/api/pfis?pfiDid=did:example:1123121").then(res=> console.log(res))
+    // axiosInstance.delete("/api/pfis", {data: {did: 'did:example:123aszz'}}).then(res=> console.log(res))
+
+    // axiosInstance.post('/api/orders', {
+    //   userDid: 'did:example:123221',
+    //   pfiDid: 'did:example:1123121',
+    //   status: 'failed',
+    //   rating: 0,
+    //   review: 'Nice!'
+    // }).then(res=> console.log(res))
+
+    //  axiosInstance.get('/api/orders?pfiDid=did:example:1123121').then(res=> console.log(res))
+    // axiosInstance.get('/api/orders').then(res=> console.log(res))
+
+  }
+
+
   useEffect(() => {
     if (status !== "loading" && status === "unauthenticated") {
       router.push("/admin/auth");

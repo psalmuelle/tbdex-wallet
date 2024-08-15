@@ -21,8 +21,9 @@ export async function POST(req: NextRequest) {
     const pfi = await db.collection("pfis").findOneAndUpdate(
       { did: pfiDid },
       {
-        orders: { $push: { orders: newOrder } },
-      }
+        $push: { orders: newOrder },
+      },
+      { returnDocument: "after" }
     );
 
     if (!pfi) {
@@ -33,6 +34,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: "Success!" }, { status: 201 });
   } catch (error) {
+    console.log("An error occured!", error);
     return NextResponse.json(
       { message: "Something went wrong." },
       { status: 500 }
@@ -57,6 +59,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ orders }, { status: 200 });
   } catch (error) {
+    console.log("An error occured!", error);
     return NextResponse.json(
       { message: "Something went wrong." },
       { status: 500 }

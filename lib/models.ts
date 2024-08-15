@@ -10,7 +10,7 @@ const OrderSchema = new Schema({
     type: String,
   },
   status: {
-    type: "success" || "failed",
+    type: String,
   },
   rating: {
     type: Number,
@@ -31,7 +31,10 @@ const PFISchema = new Schema({
     type: String,
     unique: true,
   },
-  orders: [OrderSchema],
+  orders: {
+    type: [OrderSchema],
+    default: [],
+  },
   creator: {
     type: Schema.Types.ObjectId,
     ref: "User",

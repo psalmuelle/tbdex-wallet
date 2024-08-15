@@ -47,14 +47,21 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const client = await clientPromise;
     const db = client.db();
+    const url = new URL(req.url);
+    const pfiDid = url.searchParams.get("pfiDid");
+    let pfi;
 
-    const pfis = await db.collection("pfis").find().toArray();
+    if (pfiDid) {
+      pfi = await db.collection("pfis").findOne({ did: pfiDid });
+    } else {
+      pfi = await db.collection("pfis").find().toArray();
+    }
 
-    return NextResponse.json({ pfis });
+    return NextResponse.json({ pfi }, { status: 200 });
   } catch (error) {
     console.error("MongoDB error:", error);
     return NextResponse.json(
@@ -85,7 +92,7 @@ export async function DELETE(req: NextRequest) {
         { status: 400 }
       );
     }
-    return NextResponse.json({ message: "PFI deleted!" }, { status: 201 });
+    return NextResponse.json({ message: "PFI deleted!" }, { status: 200 });
   } catch (error) {
     console.log("An error Occured", error);
     return NextResponse.json("Something went wrong", { status: 500 });
