@@ -48,7 +48,6 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-
   try {
     const client = await clientPromise;
     const db = client.db();
@@ -63,18 +62,6 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
-
-
-// Come back here
-export async function PUT(req: NextRequest) {
-    const session = await getServerSession(authOptions);
-    const reqBody = await req.json();
-    const { rating, successfulOrders, averageRating } = reqBody;
-    
-
-  
-
 }
 
 export async function DELETE(req: NextRequest) {
