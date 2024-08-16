@@ -71,6 +71,48 @@ export async function GET(req: NextRequest) {
   }
 }
 
+export async function PUT(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+
+  const reqBody = await req.json();
+
+  const { did, isActive } = reqBody;
+
+  try {
+    if (!session) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+    const client = await clientPromise;
+    const db = client.db();
+
+    const pfi = await db.collection("pfis").findOneAndUpdate(
+      { did: did },
+      {
+        $set: { isActive: isActive },
+      },
+      { returnDocument: "after" }
+    );
+
+    if (pfi) {
+      return NextResponse.json(
+        { message: "PFI has been updated!" },
+        { status: 200 }
+      );
+    } else {
+      return NextResponse.json(
+        { message: "PFI does not exist" },
+        { status: 400 }
+      );
+    }
+  } catch (error) {
+    console.error("MongoDB error:", error);
+    return NextResponse.json(
+      { message: "Something went wrong." },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(req: NextRequest) {
   const { did } = await req.json();
   const session = await getServerSession(authOptions);

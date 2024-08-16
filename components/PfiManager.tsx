@@ -97,10 +97,6 @@ export default function PfiManager() {
       <Flex gap={"middle"} wrap className='mt-8'>
         {pfis && pfis.length > 0 ? (
           pfis.map((val, id) => {
-            const shortenedDID =
-              val.did.substring(0, 12) +
-              "...." +
-              val.did.substring(val.did.length - 4);
             const successfulOrders = val.orders.filter(
               (order) => order.status === "success"
             ).length;
@@ -108,7 +104,6 @@ export default function PfiManager() {
               (order) => order.status === "failed"
             ).length;
             const successRate = (successfulOrders / val.orders.length) * 100;
-
             // Step 1: Extract all ratings
             const allRatings = val.orders.map((order) => order.rating);
             // Step 2: Sum up all the ratings
@@ -122,7 +117,7 @@ export default function PfiManager() {
               <PfiCard
                 key={id}
                 name={val.name}
-                did={shortenedDID}
+                did={val.did}
                 totalOrders={val.orders.length}
                 successfulOrders={successfulOrders}
                 failedOrders={failedOrders}
