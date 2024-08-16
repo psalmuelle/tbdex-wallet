@@ -11,7 +11,7 @@ import {
   MessageOutlined,
 } from "@ant-design/icons";
 import axiosInstance from "@/lib/axios";
-import PfiManager from "@/components/PfiManager";
+import PfiManager from "@/components/pfi/PfiManager";
 
 const items: TabsProps["items"] = [
   {
@@ -57,7 +57,7 @@ export default function Admin() {
   }
 
   return (
-    <main className='min-h-[80vh] px-4'>
+    <main className='min-h-[90vh] px-4'>
       <div className='flex justify-between items-center gap-4 p-6 max-sm:p-4'>
         <div className='flex justify-center items-center gap-2 font-semibold'>
           <Button icon={<UserOutlined />} type='dashed' shape='circle' />
