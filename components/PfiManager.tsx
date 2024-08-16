@@ -42,12 +42,15 @@ export default function PfiManager() {
   const [isSubmitLoading, setIsSubmitLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [pfis, setPfis] = useState<PfiData[]>([]);
+  const [isPfiLoading, setIsPfiLoading] = useState(false);
   const [reload, setReload] = useState(false);
 
   useEffect(() => {
+    setIsPfiLoading(true);
     const fetchPfis = async () => {
       await axiosInstance.get("api/pfis").then((res) => {
         setPfis(res.data.pfi);
+        setIsPfiLoading(false);
       });
     };
     fetchPfis();
@@ -73,6 +76,7 @@ export default function PfiManager() {
       .then((res) => {
         msg(res.data.message, "success");
         handleCloseModal();
+        setReload(!reload);
       })
       .catch((err) => {
         console.log(err);
@@ -95,7 +99,11 @@ export default function PfiManager() {
         />
       </div>
       <Flex gap={"middle"} wrap className='mt-8'>
-        {pfis && pfis.length > 0 ? (
+        {isPfiLoading && (
+          <Spin size='large' className='min-w-[300px] max-w-xs' />
+        )}
+        {!isPfiLoading &&
+          pfis.length > 0 &&
           pfis.map((val, id) => {
             const successfulOrders = val.orders.filter(
               (order) => order.status === "success"
@@ -126,11 +134,9 @@ export default function PfiManager() {
                 ratings={averageRating}
               />
             );
-          })
-        ) : pfis && pfis.length === 0 ? (
-          <Spin size='large' className='min-w-[300px] max-w-xs' />
-        ) : (
-          <Empty />
+          })}
+        {!isPfiLoading && pfis.length === 0 && (
+          <Empty className='min-w-[300px] max-w-xs' />
         )}
         <Button
           icon={<BankOutlined />}
