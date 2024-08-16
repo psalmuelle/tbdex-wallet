@@ -1,4 +1,4 @@
-import { BankOutlined } from "@ant-design/icons";
+import { BankOutlined, SyncOutlined } from "@ant-design/icons";
 import {
   Button,
   Divider,
@@ -8,10 +8,11 @@ import {
   Input,
   message,
   Modal,
+  Spin,
 } from "antd";
 import type { NoticeType } from "antd/es/message/interface";
 import type { FormProps } from "antd";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PfiCard from "./PfiCard";
 import axiosInstance from "@/lib/axios";
 
@@ -19,11 +20,41 @@ type PfiFormProps = {
   name: string;
   did: string;
 };
+type OrderTypes = {
+  pfiDid: string;
+  rating: number;
+  review: string;
+  status: string;
+  userDid: string;
+  _id: string;
+};
+type PfiData = {
+  name: string;
+  did: string;
+  creator: string;
+  _id: string;
+  orders: OrderTypes[];
+  isActive: boolean;
+};
 
 export default function PfiManager() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitLoading, setIsSubmitLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+  const [pfis, setPfis] = useState<PfiData[]>([]);
+  const [reload, setReload] = useState(false);
+
+  useEffect(() => {
+    const fetchPfis = async () => {
+      await axiosInstance.get("api/pfis").then((res) => {
+        setPfis(res.data.pfi);
+        console.log(res.data.pfi);
+        console.log(pfis);
+      });
+    };
+    console.log("ussas");
+    fetchPfis();
+  }, [reload]);
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -55,15 +86,60 @@ export default function PfiManager() {
   return (
     <section>
       {contextHolder}
-      <h1 className='font-semibold my-4'>
-        Participating Financial Institutions on Chain Wallet
-      </h1>
-      <Flex gap={"middle"} wrap>
-        {/* <Empty /> */}
-        <PfiCard />
-        <PfiCard />
-        <PfiCard />
-        <PfiCard />
+      <div className='flex justify-between my-6'>
+        <h1 className='font-semibold'>
+          Participating Financial Institutions on Chain Wallet
+        </h1>
+        <Button
+          icon={<SyncOutlined />}
+          shape='circle'
+          type='dashed'
+          onClick={() => setReload(!reload)}
+        />
+      </div>
+      <Flex gap={"middle"} wrap className='mt-8'>
+        {pfis && pfis.length > 0 ? (
+          pfis.map((val, id) => {
+            const shortenedDID =
+              val.did.substring(0, 12) +
+              "...." +
+              val.did.substring(val.did.length - 4);
+            const successfulOrders = val.orders.filter(
+              (order) => order.status === "success"
+            ).length;
+            const failedOrders = val.orders.filter(
+              (order) => order.status === "failed"
+            ).length;
+            const successRate = (successfulOrders / val.orders.length) * 100;
+
+            // Step 1: Extract all ratings
+            const allRatings = val.orders.map((order) => order.rating);
+            // Step 2: Sum up all the ratings
+            const totalRatings = allRatings.reduce(
+              (sum, rating) => sum + rating,
+              0
+            );
+            // Step 3: Calculate the average rating
+            const averageRating = totalRatings / allRatings.length;
+            return (
+              <PfiCard
+                key={id}
+                name={val.name}
+                did={shortenedDID}
+                totalOrders={val.orders.length}
+                successfulOrders={successfulOrders}
+                failedOrders={failedOrders}
+                isActive={val.isActive}
+                successRate={Math.round(successRate * 10) / 10}
+                ratings={averageRating}
+              />
+            );
+          })
+        ) : pfis && pfis.length === 0 ? (
+          <Spin size='large' className='min-w-[300px] max-w-xs' />
+        ) : (
+          <Empty />
+        )}
         <Button
           icon={<BankOutlined />}
           className='h-64 min-w-[300px] max-w-xs font-medium'

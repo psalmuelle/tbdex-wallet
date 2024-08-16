@@ -35,6 +35,10 @@ const PFISchema = new Schema({
     type: [OrderSchema],
     default: [],
   },
+  isActive : {
+    type: Boolean,
+    default: true
+  },
   creator: {
     type: Schema.Types.ObjectId,
     ref: "User",
