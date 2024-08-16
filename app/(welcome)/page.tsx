@@ -9,7 +9,7 @@ import {
   LoginOutlined,
 } from "@ant-design/icons";
 import Image from "next/image";
-import initWeb5 from "@/lib/web5";
+import initWeb5 from "@/lib/web5/web5";
 import { useRouter } from "next/navigation";
 import { encryptAndStoreData } from "@/lib/encrypt-info";
 

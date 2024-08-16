@@ -91,12 +91,16 @@ export default function PfiManager() {
         <h1 className='font-semibold'>
           Participating Financial Institutions on Chain Wallet
         </h1>
-        <Button
-          icon={<SyncOutlined />}
-          shape='circle'
-          type='dashed'
-          onClick={() => setReload(!reload)}
-        />
+        <div className='flex flex-col justify-start items-center'>
+          <Button
+            icon={<SyncOutlined />}
+            content='Refresh'
+            shape='circle'
+            type='dashed'
+            onClick={() => setReload(!reload)}
+          />
+          <p>Refresh</p>
+        </div>
       </div>
       <Flex gap={"middle"} wrap className='mt-8'>
         {isPfiLoading && (

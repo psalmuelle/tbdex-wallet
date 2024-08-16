@@ -10,7 +10,6 @@ import {
   UserOutlined,
   MessageOutlined,
 } from "@ant-design/icons";
-import axiosInstance from "@/lib/axios";
 import PfiManager from "@/components/pfi/PfiManager";
 
 const items: TabsProps["items"] = [
