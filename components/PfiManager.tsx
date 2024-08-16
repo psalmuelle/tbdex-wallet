@@ -48,11 +48,8 @@ export default function PfiManager() {
     const fetchPfis = async () => {
       await axiosInstance.get("api/pfis").then((res) => {
         setPfis(res.data.pfi);
-        console.log(res.data.pfi);
-        console.log(pfis);
       });
     };
-    console.log("ussas");
     fetchPfis();
   }, [reload]);
 
