@@ -1,13 +1,20 @@
-'use client'
+"use client";
 
-import { Layout } from "antd"
+import { useState } from "react";
+import { Button, Layout } from "antd";
+import SwapType from "@/components/swap/SwapType";
+import { useSwapType } from "@/hooks/useSwap";
 
-const {Content} = Layout 
+const { Content } = Layout;
 
-export default function Swap(){
-    return (
-        <Content className='mt-8 mx-4'>
-            This is the swap page
-        </Content>
-    )
+
+export default function Swap() {
+
+   const activeSwapType = useSwapType((state)=> state.swapType)
+
+  return (
+    <Content className='mt-8 mx-4'>
+      <SwapType />
+    </Content>
+  );
 }
