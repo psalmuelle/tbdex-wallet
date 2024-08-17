@@ -116,14 +116,11 @@ export default function PfiManager() {
               (order) => order.status === "failed"
             ).length;
             const successRate = (successfulOrders / val.orders.length) * 100;
-            // Step 1: Extract all ratings
             const allRatings = val.orders.map((order) => order.rating);
-            // Step 2: Sum up all the ratings
             const totalRatings = allRatings.reduce(
               (sum, rating) => sum + rating,
               0
             );
-            // Step 3: Calculate the average rating
             const averageRating = totalRatings / allRatings.length;
             return (
               <PfiCard
