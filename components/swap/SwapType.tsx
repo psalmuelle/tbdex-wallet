@@ -17,7 +17,7 @@ function SwapTypeButton({ active, text, info, onSelect }: SwapTypeButtonTypes) {
       <Button
         type={active ? "primary" : "default"}
         onClick={onSelect}
-        className='w-[90px]'>
+        className='w-[90px] max-sm:w-20'>
         {text}
       </Button>
     </Tooltip>
@@ -51,7 +51,7 @@ export default function SwapType() {
   };
 
   return (
-    <section className='space-x-4 border-2 p-2 rounded-xl w-fit'>
+    <section className='flex flex-wrap gap-4 max-sm:gap-2 border-2 p-2 rounded-xl w-fit'>
       {allSwapTypes.map((val) => {
         return (
           <SwapTypeButton

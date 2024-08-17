@@ -2,7 +2,7 @@
 
 import { Button, Layout, Typography } from "antd";
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { UserOutlined } from "@ant-design/icons";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 
@@ -15,7 +15,6 @@ export default function DashboardHeader() {
     shortened: "",
   });
   const router = useRouter();
-  const pathName = usePathname().split("/");
 
   useEffect(() => {
     const userDID = decryptAndRetrieveData({ name: "userDID" });
@@ -35,9 +34,7 @@ export default function DashboardHeader() {
     }
   }, []);
   return (
-    <Header className='bg-white flex justify-between items-center'>
-      <h1 className='font-bold capitalize'>{pathName[pathName.length - 1]}</h1>
-
+    <Header className='bg-white flex justify-end items-end'>
       <div className='flex justify-center items-center gap-2'>
         <Button type='primary' icon={<UserOutlined />} shape='circle' />
         <Paragraph copyable={{ text: userDID.text }} className='block mt-3.5'>
