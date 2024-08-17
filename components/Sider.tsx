@@ -13,6 +13,7 @@ import type { MenuProps } from "antd";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 const { Sider } = Layout;
 
@@ -20,12 +21,12 @@ type MenuItem = Required<MenuProps>["items"][number];
 
 const items: MenuItem[] = [
   {
-    key: "1",
+    key: "/dashboard",
     label: <Link href={"/dashboard"}>Home</Link>,
     icon: <HomeOutlined />,
   },
   {
-    key: "2",
+    key: "/dashboard/swap",
     label: <Link href={"/dashboard/swap"}>Swap</Link>,
     icon: <SwapOutlined />,
   },
@@ -45,12 +46,12 @@ const items: MenuItem[] = [
     icon: <HistoryOutlined />,
   },
   {
-    key: "6",
+    key: "/dashboard/kcc",
     label: <Link href={"/dashboard/kcc"}>KCC</Link>,
     icon: <IdcardOutlined />,
   },
   {
-    key: "7",
+    key: "/",
     label: (
       <Link href={"/"} onClick={() => sessionStorage.clear()}>
         Logout
@@ -62,6 +63,8 @@ const items: MenuItem[] = [
 
 export default function DashboardSider() {
   const [collapsed, setCollapsed] = useState(false);
+  const pathName = usePathname();
+
   return (
     <Sider
       breakpoint='sm'
@@ -96,7 +99,7 @@ export default function DashboardSider() {
         </div>
       )}
 
-      <Menu mode='inline' defaultSelectedKeys={["1"]} items={items} />
+      <Menu mode='inline' defaultSelectedKeys={[pathName]} items={items} />
     </Sider>
   );
 }
