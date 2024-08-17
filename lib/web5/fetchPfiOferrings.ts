@@ -26,7 +26,12 @@ type PfiType = {
 export default async function fetchPfiOfferings() {
     const listofPfis = await axiosInstance.get('/api/pfis')
     const pfis: PfiType[] = listofPfis.data.pfi
-   const pfiOfferings = await TbdexHttpClient.getOfferings({pfiDid: pfis[0].did})
-   console.log(pfiOfferings)
-  
+    const pfiDids = pfis.map((pfi)=>pfi.did)
+    pfiDids.map(async () => {    
+        const pfiOfferings = await TbdexHttpClient.getOfferings({pfiDid: pfis[0].did})
+        console.log(pfiOfferings)
+        return pfiOfferings
+    })
+
+
 }

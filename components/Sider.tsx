@@ -6,6 +6,7 @@ import {
   HomeOutlined,
   IdcardOutlined,
   LogoutOutlined,
+  SwapOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu } from "antd";
 import type { MenuProps } from "antd";
@@ -25,26 +26,31 @@ const items: MenuItem[] = [
   },
   {
     key: "2",
+    label: <Link href={"/dashboard/swap"}>Swap</Link>,
+    icon: <SwapOutlined />,
+  },
+  {
+    key: "3",
     label: <Link href={"/dashboard"}>Order</Link>,
     icon: <DollarOutlined />,
   },
   {
-    key: "3",
+    key: "4",
     label: <Link href={"/dashboard"}>Messages</Link>,
     icon: <CommentOutlined />,
   },
   {
-    key: "4",
+    key: "5",
     label: <Link href={"/dashboard"}>Transaction History</Link>,
     icon: <HistoryOutlined />,
   },
   {
-    key: "5",
+    key: "6",
     label: <Link href={"/dashboard/kcc"}>KCC</Link>,
     icon: <IdcardOutlined />,
   },
   {
-    key: "6",
+    key: "7",
     label: (
       <Link href={"/"} onClick={() => sessionStorage.clear()}>
         Logout
