@@ -34,7 +34,7 @@ export default function DashboardHeader() {
     }
   }, []);
   return (
-    <Header className='bg-white flex justify-end items-end'>
+    <Header className='-ml-32 bg-white z-20 flex justify-end items-end sticky left-0 top-0'>
       <div className='flex justify-center items-center gap-2'>
         <Button type='primary' icon={<UserOutlined />} shape='circle' />
         <Paragraph copyable={{ text: userDID.text }} className='block mt-3.5'>

@@ -1,5 +1,5 @@
 import { SwapOutlined } from "@ant-design/icons";
-import { Divider, InputNumber, Select } from "antd";
+import { Button, Divider, InputNumber, Select } from "antd";
 import { useSwapType } from "@/hooks/useSwap";
 import { useEffect, useState } from "react";
 
@@ -61,65 +61,69 @@ export default function SwapPairs() {
   const swapMethod = Object.entries(swapType).find(
     (key) => key[0] === activeSwapType
   );
- useEffect(()=>{
-   
-   console.log(selectedFrom, selectedTo);
- })
 
+  //CONTINUE FROM HERE!!!
+  useEffect(() => {
+    console.log(selectedFrom, selectedTo);
+  });
 
   return (
-    <section className='w-fit mt-6 flex flex-col flex-wrap gap-2 border-2 p-6 rounded-xl bg-white'>
-      <div>
-        <p className='font-medium mb-3'>Exchange from</p>
-        <InputNumber
-          key={swapMethod?.[1] === "off-ramp" ? "Token" : "Currency"}
-          size='large'
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          parser={(value) =>
-            value?.replace(/\$\s?|(,*)/g, "") as unknown as number
-          }
-          addonBefore={
-            <Select
-              key={swapMethod?.[1] === "off-ramp" ? "Token" : "Currency"}
-              placeholder={
-                swapMethod?.[1] === "off-ramp" ? "Token" : "Currency"
-              }
-              options={swapMethod?.[1] === "off-ramp" ? tokens : currencies}
-              onSelect={(value) => setSelectedFrom(value)}
-              size='large'
-              className='w-28'
-            />
-          }
-        />
-      </div>
+    <div className='w-fit'>
+      <section className='w-fit mt-6 flex flex-col flex-wrap gap-2 border-2 p-6 rounded-xl bg-white'>
+        <div>
+          <p className='font-medium mb-3'>Exchange from</p>
+          <InputNumber
+            key={swapMethod?.[1] === "off-ramp" ? "Token" : "Currency"}
+            size='large'
+            formatter={(value) =>
+              `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            }
+            parser={(value) =>
+              value?.replace(/\$\s?|(,*)/g, "") as unknown as number
+            }
+            addonBefore={
+              <Select
+                key={swapMethod?.[1] === "off-ramp" ? "Token" : "Currency"}
+                placeholder={
+                  swapMethod?.[1] === "off-ramp" ? "Token" : "Currency"
+                }
+                options={swapMethod?.[1] === "off-ramp" ? tokens : currencies}
+                onSelect={(value) => setSelectedFrom(value)}
+                size='large'
+                className='w-28'
+              />
+            }
+          />
+        </div>
 
-      <Divider style={{ borderColor: "#333" }}>
-        <SwapOutlined rotate={90} />
-      </Divider>
+        <Divider style={{ borderColor: "#333" }}>
+          <SwapOutlined rotate={90} />
+        </Divider>
 
-      <div>
-        <p className='font-medium mb-3'>Exchange to</p>
-        <InputNumber
-          key={swapMethod?.[1] === "on-ramp" ? "Token" : "Currency"}
-          size='large'
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          addonBefore={
-            <Select
-              key={swapMethod?.[1] === "on-ramp" ? "Token" : "Currency"}
-              placeholder={swapMethod?.[1] === "on-ramp" ? "Token" : "Currency"}
-              options={swapMethod?.[1] === "on-ramp" ? tokens : currencies}
-              size='large'
-              onSelect={(value) => setSelectedTo(value)}
-              className='w-28'
-            />
-          }
-          value={10000}
-        />
-      </div>
-    </section>
+        <div>
+          <p className='font-medium mb-3'>Exchange to</p>
+          <InputNumber
+            key={swapMethod?.[1] === "on-ramp" ? "Token" : "Currency"}
+            size='large'
+            disabled
+            addonBefore={
+              <Select
+                key={swapMethod?.[1] === "on-ramp" ? "Token" : "Currency"}
+                placeholder={
+                  swapMethod?.[1] === "on-ramp" ? "Token" : "Currency"
+                }
+                options={swapMethod?.[1] === "on-ramp" ? tokens : currencies}
+                size='large'
+                onSelect={(value) => setSelectedTo(value)}
+                className='w-28'
+              />
+            }
+          />
+        </div>
+      </section>
+      <Button size='large' type='primary' className='w-full my-4'>
+        Get Offerings
+      </Button>
+    </div>
   );
 }

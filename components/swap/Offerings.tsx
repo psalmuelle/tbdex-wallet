@@ -11,9 +11,9 @@ export default function Offerings() {
         Offerings
       </h1>
 
-      <div className="text-center">
+      <div className='text-center mb-96'>
         <p>Offerings from PFIs will be here!</p>
-        <Spin className="flex justify-center items-center"/>
+        <Spin className='flex justify-center items-center' />
         <p>Thank you</p>
       </div>
     </section>

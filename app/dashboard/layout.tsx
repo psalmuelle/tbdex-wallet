@@ -24,7 +24,7 @@ export default function RootLayout({
       <body className={inter.className + " max-w-[1440px] mx-auto"}>
         <Layout hasSider>
           <DashboardSider />
-          <Layout>
+          <Layout className="ms-52 max-sider:ms-20">
             <DashboardHeader />
             {children}
             <Footer />

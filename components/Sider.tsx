@@ -16,6 +16,17 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 
 const { Sider } = Layout;
+const siderStyle: React.CSSProperties = {
+  overflow: "auto",
+  height: "100vh",
+  position: "fixed",
+  insetInlineStart: 0,
+  top: 0,
+  bottom: 0,
+  scrollbarWidth: "thin",
+  scrollbarColor: "unset",
+  zIndex: 400,
+};
 
 type MenuItem = Required<MenuProps>["items"][number];
 
@@ -71,7 +82,7 @@ export default function DashboardSider() {
       collapsible
       onCollapse={(value) => setCollapsed(value)}
       theme='light'
-      className='overflow-auto min-h-screen fixed top-0 bottom-0'>
+      style={siderStyle}>
       {collapsed ? (
         <div className='bg-neutral-100 my-4 mb-8 mx-4 rounded-lg p-2 flex justify-center items-center'>
           <Image
