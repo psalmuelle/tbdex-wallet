@@ -3,6 +3,7 @@ import { Button, Divider, Form, InputNumber, Select } from "antd";
 import type { FormProps } from "antd";
 import { useSwapType } from "@/hooks/useSwap";
 import { useEffect, useState } from "react";
+import Offerings from "./Offerings";
 
 const currencies = [
   {
@@ -88,6 +89,8 @@ export default function SwapPairs() {
   };
 
   return (
+    <div>
+
     <section className='w-fit'>
       <Form
         form={form}
@@ -156,9 +159,11 @@ export default function SwapPairs() {
           size='large'
           type='primary'
           className='w-full my-4'>
-          Submit
+          Get Offerings
         </Button>
       </Form>
     </section>
+    <Offerings/>
+    </div>
   );
 }

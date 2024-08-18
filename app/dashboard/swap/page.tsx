@@ -3,7 +3,6 @@
 import { Layout } from "antd";
 import SwapType from "@/components/swap/SwapType";
 import SwapPairs from "@/components/swap/SwapPairs";
-import Offerings from "@/components/swap/Offerings";
 
 const { Content } = Layout;
 
@@ -13,7 +12,6 @@ export default function Swap() {
       <h1 className='text-base font-bold mb-4'>Swap</h1>
       <SwapType />
       <SwapPairs />
-      <Offerings />
     </Content>
   );
 }
