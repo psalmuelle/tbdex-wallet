@@ -51,10 +51,11 @@ const tokens = [
   },
 ];
 
-type SwapFormProps = {
+export type SwapFormProps = {
   from: string;
   to: string;
   amount: string;
+  swapType?: string;
 };
 
 export default function SwapPairs() {
@@ -63,6 +64,7 @@ export default function SwapPairs() {
     "1": "off-ramp",
     "2": "forex",
   };
+  const [swapInfo, setSwapInfo] = useState<SwapFormProps>();
   const activeSwapType: string = useSwapType((state) => state.swapType);
   const [form] = Form.useForm();
   const swapMethod = Object.entries(swapType).find(
@@ -79,91 +81,99 @@ export default function SwapPairs() {
   }, [swapMethod?.[1]]);
 
   const onFinish: FormProps<SwapFormProps>["onFinish"] = async (values) => {
-    const swapInfo = {
-      from: values.from,
-      to: values.to,
+    setSwapInfo({
       amount: values.amount,
+      to: values.to,
+      from: values.from,
       swapType: swapMethod?.[1],
-    };
-    console.log(swapInfo);
+    });
+    form.resetFields();
   };
 
   return (
     <div>
-
-    <section className='w-fit'>
-      <Form
-        form={form}
-        autoComplete='off'
-        name='swap-info'
-        size='large'
-        onFinish={onFinish}
-        className='w-full mt-6 flex flex-col flex-wrap gap-2 border-2 p-6 rounded-xl bg-white'>
-        <div>
-          <p className='font-medium mb-3'>Exchange from</p>
-          <Form.Item
-            className='mb-0'
-            name='amount'
-            rules={[{ required: true, message: "" }]}>
+      <section className='w-fit'>
+        <Form
+          form={form}
+          autoComplete='off'
+          name='swap-info'
+          size='large'
+          onFinish={onFinish}
+          className='w-full mt-6 flex flex-col flex-wrap gap-2 border-2 p-6 rounded-xl bg-white'>
+          <div>
+            <p className='font-medium mb-3'>Exchange from</p>
+            <Form.Item
+              className='mb-0'
+              name='amount'
+              rules={[{ required: true, message: "" }]}>
+              <InputNumber
+                formatter={(value) =>
+                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                parser={(value) =>
+                  value?.replace(/\$\s?|(,*)/g, "") as unknown as number
+                }
+                addonBefore={
+                  <Form.Item
+                    className='mb-0 w-28 -mx-[11px]'
+                    name='from'
+                    rules={[{ required: true, message: "" }]}>
+                    <Select
+                      key={
+                        swapMethod?.[1] === "off-ramp" ? "Token" : "Currency"
+                      }
+                      placeholder={
+                        swapMethod?.[1] === "off-ramp" ? "Token" : "Currency"
+                      }
+                      options={
+                        swapMethod?.[1] === "off-ramp" ? tokens : currencies
+                      }
+                    />
+                  </Form.Item>
+                }
+              />
+            </Form.Item>
+          </div>
+          <Divider style={{ borderColor: "#333" }}>
+            <SwapOutlined rotate={90} />
+          </Divider>
+          <div>
+            <p className='font-medium mb-3'>Exchange to</p>
             <InputNumber
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              parser={(value) =>
-                value?.replace(/\$\s?|(,*)/g, "") as unknown as number
-              }
+              disabled
               addonBefore={
                 <Form.Item
                   className='mb-0 w-28 -mx-[11px]'
-                  name='from'
+                  name={"to"}
                   rules={[{ required: true, message: "" }]}>
                   <Select
-                    key={swapMethod?.[1] === "off-ramp" ? "Token" : "Currency"}
+                    key={swapMethod?.[1] === "on-ramp" ? "Token" : "Currency"}
                     placeholder={
-                      swapMethod?.[1] === "off-ramp" ? "Token" : "Currency"
+                      swapMethod?.[1] === "on-ramp" ? "Token" : "Currency"
                     }
                     options={
-                      swapMethod?.[1] === "off-ramp" ? tokens : currencies
+                      swapMethod?.[1] === "on-ramp" ? tokens : currencies
                     }
                   />
                 </Form.Item>
               }
             />
-          </Form.Item>
-        </div>
-        <Divider style={{ borderColor: "#333" }}>
-          <SwapOutlined rotate={90} />
-        </Divider>
-        <div>
-          <p className='font-medium mb-3'>Exchange to</p>
-          <InputNumber
-            disabled
-            addonBefore={
-              <Form.Item
-                className='mb-0 w-28 -mx-[11px]'
-                name={"to"}
-                rules={[{ required: true, message: "" }]}>
-                <Select
-                  key={swapMethod?.[1] === "on-ramp" ? "Token" : "Currency"}
-                  placeholder={
-                    swapMethod?.[1] === "on-ramp" ? "Token" : "Currency"
-                  }
-                  options={swapMethod?.[1] === "on-ramp" ? tokens : currencies}
-                />
-              </Form.Item>
-            }
-          />
-        </div>
-        <Button
-          htmlType='submit'
-          size='large'
-          type='primary'
-          className='w-full my-4'>
-          Get Offerings
-        </Button>
-      </Form>
-    </section>
-    <Offerings/>
+          </div>
+          <Button
+            htmlType='submit'
+            size='large'
+            type='primary'
+            className='w-full my-4'>
+            Get Offerings
+          </Button>
+        </Form>
+      </section>
+      <Offerings
+        swapType={swapInfo?.swapType}
+        to={swapInfo?.to!}
+        from={swapInfo?.from!}
+        amount={swapInfo?.amount!}
+      />
     </div>
   );
 }

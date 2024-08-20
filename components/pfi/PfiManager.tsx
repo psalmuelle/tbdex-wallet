@@ -28,7 +28,7 @@ type OrderTypes = {
   userDid: string;
   _id: string;
 };
-type PfiData = {
+export type PfiDataTypes = {
   name: string;
   did: string;
   creator: string;
@@ -41,7 +41,7 @@ export default function PfiManager() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitLoading, setIsSubmitLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
-  const [pfis, setPfis] = useState<PfiData[]>([]);
+  const [pfis, setPfis] = useState<PfiDataTypes[]>([]);
   const [isPfiLoading, setIsPfiLoading] = useState(false);
   const [reload, setReload] = useState(false);
 
