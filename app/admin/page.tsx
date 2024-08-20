@@ -56,6 +56,14 @@ export default function Admin() {
     //   .then((res) => {
     //     console.log(res.data);
     //   });
+
+    // axiosInstance.put('api/pfis', {
+    //   did: 'did:dht:3fkz5ssfxbriwks3iy5nwys3q5kyx64ettp9wfn1yfekfkiguj1y',
+    //   newPair :{
+    //  type: "on-ramp",
+    //  offering: "USD/BTC"
+    //   }
+    // }).then(res=> console.log(res))
   });
   const { status } = useSession();
   const router = useRouter();
