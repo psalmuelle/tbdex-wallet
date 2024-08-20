@@ -22,6 +22,15 @@ const OrderSchema = new Schema({
   },
 });
 
+const PairSchema = new Schema({
+  type: {
+    type: String,
+  },
+  offering: {
+    type: String,
+  },
+});
+
 const PFISchema = new Schema({
   name: {
     type: String,
@@ -35,9 +44,13 @@ const PFISchema = new Schema({
     type: [OrderSchema],
     default: [],
   },
-  isActive : {
+  pairs: {
+    type: [PairSchema],
+    default: [],
+  },
+  isActive: {
     type: Boolean,
-    default: true
+    default: true,
   },
   creator: {
     type: Schema.Types.ObjectId,
@@ -49,5 +62,6 @@ const PFISchema = new Schema({
 
 const PFI = mongoose.models.PFI || mongoose.model("PFI", PFISchema);
 const Order = mongoose.models.Order || mongoose.model("Order", OrderSchema);
+const Pair = mongoose.models.Pair || mongoose.model("Pair", PairSchema);
 
-export { PFI, Order };
+export { PFI, Order, Pair };
