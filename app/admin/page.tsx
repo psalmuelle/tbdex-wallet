@@ -11,6 +11,7 @@ import {
   MessageOutlined,
 } from "@ant-design/icons";
 import PfiManager from "@/components/pfi/PfiManager";
+import axiosInstance from "@/lib/axios";
 
 const items: TabsProps["items"] = [
   {
@@ -34,6 +35,28 @@ const items: TabsProps["items"] = [
 ];
 
 export default function Admin() {
+  useEffect(() => {
+    // axiosInstance.post('api/pairs', {
+    //   type: 'on-ramp',
+    //   offering: 'USA/BTC'
+    // }).then((res)=>{
+    //   console.log(res.data)
+    // })
+
+    // axiosInstance.get('api/pairs').then((res)=>{
+    //   console.log(res.data)
+    // })
+
+    // axiosInstance
+    //   .delete("api/pairs", {
+    //     data: {
+    //       offering: "USA/BTC",
+    //     },
+    //   })
+    //   .then((res) => {
+    //     console.log(res.data);
+    //   });
+  });
   const { status } = useSession();
   const router = useRouter();
 
