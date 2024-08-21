@@ -54,10 +54,13 @@ export async function GET(req: NextRequest) {
     const db = client.db();
     const url = new URL(req.url);
     const pfiDid = url.searchParams.get("pfiDid");
+    const pair = url.searchParams.get("pair");
     let pfi;
 
     if (pfiDid) {
       pfi = await db.collection("pfis").findOne({ did: pfiDid });
+    } else if (pair) {
+      pfi = await db.collection("pfis").find({ pairs: pair }).toArray();
     } else {
       pfi = await db.collection("pfis").find().toArray();
     }

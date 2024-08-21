@@ -1,21 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
 import { BankOutlined } from "@ant-design/icons";
-import { Card, Spin } from "antd";
+import { Spin } from "antd";
 import axiosInstance from "@/lib/axios";
 import { TbdexHttpClient } from "@tbdex/http-client";
 import type { Offering } from "@tbdex/http-client";
 import { PfiDataTypes } from "../pfi/PfiManager";
 import { SwapFormProps } from "./SwapPairs";
 import { useSwapLoading } from "@/hooks/useSwap";
+import OfferingCard from "./OfferingCard";
 
 interface OfferingInfoTypes {
   offeringDetails: Offering;
   pfiDetails: PfiDataTypes;
-}
-
-function OfferingCard() {
-  return <div>This is going to be the card that will contain offer info</div>;
 }
 
 export default function Offerings({
@@ -36,7 +33,7 @@ export default function Offerings({
       try {
         setLoading(true);
         axiosInstance
-          .get("/api/pfis")
+          .get(`/api/pfis/?pair=${from}/${to}`)
           .then((response) => {
             const activePfis = response.data.pfi.filter(
               (pfi: PfiDataTypes) => pfi.isActive == true
@@ -45,11 +42,6 @@ export default function Offerings({
               const offerings = await TbdexHttpClient.getOfferings({
                 pfiDid: pfi.did,
               });
-
-
-
-
-            
 
               offerings.map((offering) => {
                 const payinCurrency = offering.data.payin.currencyCode;
@@ -87,10 +79,18 @@ export default function Offerings({
 
       <div className='text-center mb-96'>
         {loading && <Spin className='flex justify-center items-center' />}
-        {!loading && availableOfferings[0] && (
-          <p>{availableOfferings[0].offeringDetails.data.description}</p>
-        )}
-        <OfferingCard />
+        {!loading &&
+          availableOfferings &&
+          availableOfferings.map((offering, index) => {
+            return (
+              <OfferingCard
+                offeringDetails={offering.offeringDetails}
+                pfiDetails={offering.pfiDetails}
+                key={index}
+                amount={Number(amount)}
+              />
+            );
+          })}
       </div>
     </section>
   );
