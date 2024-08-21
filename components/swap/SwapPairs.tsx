@@ -59,17 +59,11 @@ export type SwapFormProps = {
 };
 
 export default function SwapPairs() {
-  const swapType = {
-    "0": "on-ramp",
-    "1": "off-ramp",
-    "2": "forex",
-  };
+
   const [swapInfo, setSwapInfo] = useState<SwapFormProps>();
   const activeSwapType: string = useSwapType((state) => state.swapType);
   const [form] = Form.useForm();
-  const swapMethod = Object.entries(swapType).find(
-    (key) => key[0] === activeSwapType
-  );
+
 
   useEffect(() => {
     const getFormValues = form.getFieldsValue();
@@ -78,14 +72,20 @@ export default function SwapPairs() {
     } else {
       form.resetFields();
     }
-  }, [swapMethod?.[1]]);
+  }, [activeSwapType]);
+  useEffect(()=>{
+
+   function fetchCurrencies(){
+
+   }
+  },[])
 
   const onFinish: FormProps<SwapFormProps>["onFinish"] = async (values) => {
     setSwapInfo({
       amount: values.amount,
       to: values.to,
       from: values.from,
-      swapType: swapMethod?.[1],
+      swapType: activeSwapType,
     });
     form.resetFields();
   };
@@ -107,6 +107,7 @@ export default function SwapPairs() {
               name='amount'
               rules={[{ required: true, message: "" }]}>
               <InputNumber
+              placeholder="Amount"
                 formatter={(value) =>
                   `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -120,13 +121,13 @@ export default function SwapPairs() {
                     rules={[{ required: true, message: "" }]}>
                     <Select
                       key={
-                        swapMethod?.[1] === "off-ramp" ? "Token" : "Currency"
+                        activeSwapType === "off-ramp" ? "Token" : "Currency"
                       }
                       placeholder={
-                        swapMethod?.[1] === "off-ramp" ? "Token" : "Currency"
+                        activeSwapType === "off-ramp" ? "Token" : "Currency"
                       }
                       options={
-                        swapMethod?.[1] === "off-ramp" ? tokens : currencies
+                        activeSwapType === "off-ramp" ? tokens : currencies
                       }
                     />
                   </Form.Item>
@@ -147,12 +148,12 @@ export default function SwapPairs() {
                   name={"to"}
                   rules={[{ required: true, message: "" }]}>
                   <Select
-                    key={swapMethod?.[1] === "on-ramp" ? "Token" : "Currency"}
+                    key={activeSwapType === "on-ramp" ? "Token" : "Currency"}
                     placeholder={
-                      swapMethod?.[1] === "on-ramp" ? "Token" : "Currency"
+                      activeSwapType === "on-ramp" ? "Token" : "Currency"
                     }
                     options={
-                      swapMethod?.[1] === "on-ramp" ? tokens : currencies
+                      activeSwapType === "on-ramp" ? tokens : currencies
                     }
                   />
                 </Form.Item>

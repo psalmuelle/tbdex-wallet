@@ -7,7 +7,7 @@ interface SwapTypeState {
 }
 
 const useSwapType = create<SwapTypeState>()((set) => ({
-  swapType: "0",
+  swapType: "on-ramp",
   setSwapType: (swapType) => set(() => ({ swapType: swapType })),
 }));
 
