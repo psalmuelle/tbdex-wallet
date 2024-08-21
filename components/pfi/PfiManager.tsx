@@ -133,6 +133,7 @@ export default function PfiManager() {
                 isActive={val.isActive}
                 successRate={Math.round(successRate * 10) / 10}
                 ratings={averageRating}
+                setReload={() => setReload(!reload)}
               />
             );
           })}
@@ -161,6 +162,7 @@ export default function PfiManager() {
           autoComplete='off'
           onFinish={onFinish}
           layout='vertical'
+          requiredMark={"optional"}
           className='max-w-xs mb-4'>
           <Form.Item<PfiFormProps>
             label='Name of PFI'

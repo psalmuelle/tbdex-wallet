@@ -26,6 +26,7 @@ export type PfiCardProps = {
   successRate: number;
   ratings: number;
   isActive: boolean;
+  setReload: () => void;
 };
 
 const { Paragraph } = Typography;
@@ -40,6 +41,7 @@ export default function PfiCard({
   failedOrders,
   isActive,
   ratings,
+  setReload,
 }: PfiCardProps) {
   const [messageApi, contextHolder] = message.useMessage();
   const [isPfiActive, setIsPfiActive] = useState(isActive);
@@ -56,6 +58,7 @@ export default function PfiCard({
         type: "success",
         content: "PFI has been deleted!",
       });
+      setReload();
     } catch (error) {
       messageApi.open({
         type: "error",

@@ -9,9 +9,11 @@ import {
   StarOutlined,
   UserOutlined,
   MessageOutlined,
+  DollarOutlined,
 } from "@ant-design/icons";
 import PfiManager from "@/components/pfi/PfiManager";
 import axiosInstance from "@/lib/axios";
+import ManageOffers from "@/components/pair-manager/ManageOfferings";
 
 const items: TabsProps["items"] = [
   {
@@ -22,12 +24,18 @@ const items: TabsProps["items"] = [
   },
   {
     key: "2",
+    label: "Available Offerings",
+    icon: <DollarOutlined />,
+    children: <ManageOffers />,
+  },
+  {
+    key: "3",
     label: "Customer Ratings",
     icon: <StarOutlined />,
     children: "Content of Tab Pane 2",
   },
   {
-    key: "3",
+    key: "4",
     label: "Messages",
     icon: <MessageOutlined />,
     children: "Content of Tab Pane 3",
@@ -35,36 +43,6 @@ const items: TabsProps["items"] = [
 ];
 
 export default function Admin() {
-  useEffect(() => {
-    // axiosInstance.post('api/pairs', {
-    //   type: 'on-ramp',
-    //   offering: 'USA/BTC'
-    // }).then((res)=>{
-    //   console.log(res.data)
-    // })
-
-    // axiosInstance.get('api/pairs').then((res)=>{
-    //   console.log(res.data)
-    // })
-
-    // axiosInstance
-    //   .delete("api/pairs", {
-    //     data: {
-    //       offering: "USA/BTC",
-    //     },
-    //   })
-    //   .then((res) => {
-    //     console.log(res.data);
-    //   });
-
-    // axiosInstance.put('api/pfis', {
-    //   did: 'did:dht:3fkz5ssfxbriwks3iy5nwys3q5kyx64ettp9wfn1yfekfkiguj1y',
-    //   newPair :{
-    //  type: "on-ramp",
-    //  offering: "USD/BTC"
-    //   }
-    // }).then(res=> console.log(res))
-  });
   const { status } = useSession();
   const router = useRouter();
 

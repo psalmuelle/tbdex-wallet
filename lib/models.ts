@@ -44,10 +44,6 @@ const PFISchema = new Schema({
     type: [OrderSchema],
     default: [],
   },
-  pairs: {
-    type: [PairSchema],
-    default: [],
-  },
   isActive: {
     type: Boolean,
     default: true,
