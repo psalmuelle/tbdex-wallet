@@ -1,21 +1,25 @@
 import {
   CloseOutlined,
+  DollarTwoTone,
   ExclamationCircleFilled,
   EyeInvisibleOutlined,
   EyeOutlined,
 } from "@ant-design/icons";
 import {
   Avatar,
+  Button,
   Card,
   Divider,
   Modal,
   Rate,
+  Select,
   Spin,
+  Tag,
   Typography,
   message,
 } from "antd";
 import axiosInstance from "@/lib/axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export type PfiCardProps = {
   name: string;
@@ -26,6 +30,7 @@ export type PfiCardProps = {
   successRate: number;
   ratings: number;
   isActive: boolean;
+  pairs: string[];
   setReload: () => void;
 };
 
@@ -41,11 +46,27 @@ export default function PfiCard({
   failedOrders,
   isActive,
   ratings,
+  pairs,
   setReload,
 }: PfiCardProps) {
   const [messageApi, contextHolder] = message.useMessage();
   const [isPfiActive, setIsPfiActive] = useState(isActive);
   const [isActionLoading, setIsActiveLoading] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [newOffering, setNewOffering] = useState<string>("");
+  const [offerOptions, setOfferOptions] = useState<
+    { _id: string; offering: string; type: string }[]
+  >([]);
+  const [offerBtnLoading, setOfferBtnLoading] = useState(false);
+
+  useEffect(() => {
+    async function fetchPairs() {
+      await axiosInstance.get("api/pairs").then((res) => {
+        setOfferOptions(res.data.pairs);
+      });
+    }
+    isModalVisible && fetchPairs();
+  }, [isModalVisible]);
 
   const deletePFI = async () => {
     try {
@@ -130,9 +151,88 @@ export default function PfiCard({
   const shortenedDid =
     did.substring(0, 12) + "...." + did.substring(did.length - 4);
 
+  const onAddOffering = () => {
+    if (newOffering) {
+      setOfferBtnLoading(true);
+      axiosInstance
+        .put(`api/pfis`, {
+          did: did,
+          pair: newOffering,
+        })
+        .then(() => {
+          messageApi.open({
+            type: "success",
+            content: "Offering has been added!",
+          });
+          setReload();
+          setOfferBtnLoading(false);
+        })
+        .catch(() => {
+          messageApi.open({
+            type: "error",
+            content: "Failed to add offering!",
+          });
+          setOfferBtnLoading(false);
+        });
+    } else {
+      messageApi.open({
+        type: "error",
+        content: "Select an offer!",
+      });
+      setOfferBtnLoading(false);
+    }
+  };
+
+  const formatSelectOptions = () => {
+    const options: { label: string; value: string }[] = [];
+    if (offerOptions) {
+      offerOptions.map((val) => {
+        const option = {
+          label: val.offering,
+          value: val.offering,
+        };
+        options.push(option);
+      });
+
+      return options;
+    }
+  };
   return (
     <Card actions={actions} className='min-w-[300px] max-w-xs'>
       {contextHolder}
+      <Modal
+        title={`Offerings From ${name}`}
+        className='max-w-sm'
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        maskClosable={false}
+        okButtonProps={{ style: { display: "none" } }}
+        destroyOnClose>
+        <div className='my-8 flex flex-wrap items-center gap-4'>
+          {pairs &&
+            pairs.map((pair, index) => {
+              return (
+                <Tag color='magenta' key={index}>
+                  {pair}
+                </Tag>
+              );
+            })}
+        </div>
+        <div className='mb-8'>
+          <Select
+            placeholder={"Add New Pair"}
+            onSelect={(e) => setNewOffering(e.toString())}
+            options={formatSelectOptions()}
+          />
+          <Button
+            loading={offerBtnLoading}
+            type='primary'
+            className='ml-2'
+            onClick={onAddOffering}>
+            Add
+          </Button>
+        </div>
+      </Modal>
       <Card.Meta
         avatar={
           <Avatar src='https://api.dicebear.com/9.x/thumbs/svg?seed=Cuddles' />
@@ -143,6 +243,12 @@ export default function PfiCard({
             <Paragraph copyable={{ text: did }}>{shortenedDid}</Paragraph>
             <Divider />
             <div className='text-gray-700 font-medium'>
+              <Button
+                icon={<DollarTwoTone />}
+                className='w-full mb-4 font-medium'
+                onClick={() => setIsModalVisible(true)}>
+                Offerings
+              </Button>
               <p>
                 Total Orders:{" "}
                 <span className='font-semibold'>{totalOrders}</span>

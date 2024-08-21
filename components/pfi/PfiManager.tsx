@@ -35,6 +35,7 @@ export type PfiDataTypes = {
   _id: string;
   orders: OrderTypes[];
   isActive: boolean;
+  pairs: string[];
 };
 
 export default function PfiManager() {
@@ -134,6 +135,7 @@ export default function PfiManager() {
                 successRate={Math.round(successRate * 10) / 10}
                 ratings={averageRating}
                 setReload={() => setReload(!reload)}
+                pairs={val.pairs}
               />
             );
           })}
@@ -142,7 +144,7 @@ export default function PfiManager() {
         )}
         <Button
           icon={<BankOutlined />}
-          className='h-64 min-w-[300px] max-w-xs font-medium'
+          className='h-[305px] min-w-[300px] max-w-xs font-medium'
           type='dashed'
           onClick={handleOpenModal}>
           Add new PFI

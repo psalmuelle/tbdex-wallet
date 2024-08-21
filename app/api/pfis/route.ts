@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import clientPromise from "@/lib/mongodb";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { PFI, Pair } from "@/lib/models";
+import { message } from "antd";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -76,8 +77,7 @@ export async function PUT(req: NextRequest) {
 
   const reqBody = await req.json();
 
-  const { did, isActive } = reqBody;
-
+  const { did, isActive, pair } = reqBody;
   try {
     if (!session) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -85,24 +85,46 @@ export async function PUT(req: NextRequest) {
     const client = await clientPromise;
     const db = client.db();
 
-    const pfi = await db.collection("pfis").findOneAndUpdate(
-      { did: did },
-      {
-        $set: { isActive: isActive },
-      },
-      { returnDocument: "after" }
-    );
+    if (pair) {
+      const addPair = await db.collection("pfis").findOneAndUpdate(
+        { did: did },
+        {
+          $addToSet: { pairs: pair },
+        },
+        { returnDocument: "after" }
+      );
 
-    if (pfi) {
-      return NextResponse.json(
-        { message: "PFI has been updated!" },
-        { status: 200 }
-      );
+      if (addPair) {
+        return NextResponse.json(
+          { message: "Pair has been added!" },
+          { status: 200 }
+        );
+      } else {
+        return NextResponse.json(
+          { message: "PFI does not exist" },
+          { status: 400 }
+        );
+      }
     } else {
-      return NextResponse.json(
-        { message: "PFI does not exist" },
-        { status: 400 }
+      const pfi = await db.collection("pfis").findOneAndUpdate(
+        { did: did },
+        {
+          $set: { isActive: isActive },
+        },
+        { returnDocument: "after" }
       );
+
+      if (pfi) {
+        return NextResponse.json(
+          { message: "PFI has been updated!" },
+          { status: 200 }
+        );
+      } else {
+        return NextResponse.json(
+          { message: "PFI does not exist" },
+          { status: 400 }
+        );
+      }
     }
   } catch (error) {
     console.error("MongoDB error:", error);
