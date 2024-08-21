@@ -87,7 +87,7 @@ export default function PfiManager() {
   return (
     <section>
       {contextHolder}
-      <div className='flex justify-between my-6'>
+      <div className='flex justify-between my-6 gap-4'>
         <h1 className='font-semibold'>
           Participating Financial Institutions on Chain Wallet
         </h1>
@@ -102,7 +102,7 @@ export default function PfiManager() {
           <p>Refresh</p>
         </div>
       </div>
-      <Flex gap={"middle"} wrap className='mt-8'>
+      <Flex gap={"middle"} wrap className='mt-8 max-md:justify-center'>
         {isPfiLoading && (
           <Spin size='large' className='min-w-[300px] max-w-xs' />
         )}

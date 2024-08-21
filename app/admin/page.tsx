@@ -66,7 +66,7 @@ export default function Admin() {
 
   return (
     <main className='min-h-[90vh] px-4'>
-      <div className='flex justify-between items-center gap-4 p-6 max-sm:p-4'>
+      <div className='flex justify-between items-center gap-4 p-6 max-sm:px-0'>
         <div className='flex justify-center items-center gap-2 font-semibold'>
           <Button icon={<UserOutlined />} type='dashed' shape='circle' />
           <p>Welcome 👋!</p>
@@ -80,7 +80,7 @@ export default function Admin() {
 
       <div>
         <Tabs
-          className='px-6'
+          className='px-6 max-sm:px-0'
           defaultActiveKey='1'
           onChange={onChange}
           items={items}

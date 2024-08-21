@@ -18,6 +18,7 @@ const TableColumn = (confirmDelete: (pair: string) => void) => {
       title: "S/N",
       dataIndex: "key",
       rowScope: "row",
+      responsive: ["md"],
     },
     {
       title: "Pair",

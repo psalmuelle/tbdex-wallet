@@ -41,11 +41,16 @@ export default function Offerings({
             const activePfis = response.data.pfi.filter(
               (pfi: PfiDataTypes) => pfi.isActive == true
             );
-
-            activePfis.forEach(async (pfi: PfiDataTypes) => {
+            activePfis.map(async (pfi: PfiDataTypes) => {
               const offerings = await TbdexHttpClient.getOfferings({
                 pfiDid: pfi.did,
               });
+
+
+
+
+            
+
               offerings.map((offering) => {
                 const payinCurrency = offering.data.payin.currencyCode;
                 const payoutCurrency = offering.data.payout.currencyCode;
