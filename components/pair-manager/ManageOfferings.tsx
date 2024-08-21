@@ -93,9 +93,9 @@ export default function ManageOffers() {
   };
 
   //Popconfirm Delete
-  const confirmDelete = (pair: string) => {
+  const confirmDelete = async (pair: string) => {
     try {
-      axiosInstance
+     await axiosInstance
         .delete("api/pairs", {
           data: {
             offering: pair,
@@ -115,8 +115,8 @@ export default function ManageOffers() {
   };
   //Fetch Pairs
   useEffect(() => {
-    function fetchData() {
-      axiosInstance.get("api/pairs").then((res) => {
+    async function fetchData() {
+     await axiosInstance.get("api/pairs").then((res) => {
         const newData = res.data.pairs.map(
           (pair: { offering: string; type: string }, i: number) => ({
             key: i + 1,
