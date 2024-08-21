@@ -4,52 +4,7 @@ import type { FormProps } from "antd";
 import { useSwapType } from "@/hooks/useSwap";
 import { useEffect, useState } from "react";
 import Offerings from "./Offerings";
-
-const currencies = [
-  {
-    label: "AUD",
-    value: "AUD",
-  },
-  {
-    label: "EUR",
-    value: "EUR",
-  },
-  {
-    label: "GBP",
-    value: "GBP",
-  },
-  {
-    label: "GHS",
-    value: "GHS",
-  },
-  {
-    label: "KES",
-    value: "KES",
-  },
-  {
-    label: "MXN",
-    value: "MXN",
-  },
-  {
-    label: "NGN",
-    value: "NGN",
-  },
-  {
-    label: "USD",
-    value: "USD",
-  },
-];
-
-const tokens = [
-  {
-    label: "BTC",
-    value: "BTC",
-  },
-  {
-    label: "USDC",
-    value: "USDC",
-  },
-];
+import axiosInstance from "@/lib/axios";
 
 export type SwapFormProps = {
   from: string;
@@ -57,13 +12,17 @@ export type SwapFormProps = {
   amount: string;
   swapType?: string;
 };
+type PairType = {
+  _id: string;
+  offering: string;
+  type: string;
+};
 
 export default function SwapPairs() {
-
+  const [pairs, setPairs] = useState<PairType[]>([]);
   const [swapInfo, setSwapInfo] = useState<SwapFormProps>();
   const activeSwapType: string = useSwapType((state) => state.swapType);
   const [form] = Form.useForm();
-
 
   useEffect(() => {
     const getFormValues = form.getFieldsValue();
@@ -73,12 +32,16 @@ export default function SwapPairs() {
       form.resetFields();
     }
   }, [activeSwapType]);
-  useEffect(()=>{
 
-   function fetchCurrencies(){
-
-   }
-  },[])
+  //Fetching all pairs
+  useEffect(() => {
+    async function fetchCurrencies() {
+      await axiosInstance.get("/api/pairs").then((res) => {
+        setPairs(res.data.pairs);
+      });
+    }
+    fetchCurrencies();
+  }, []);
 
   const onFinish: FormProps<SwapFormProps>["onFinish"] = async (values) => {
     setSwapInfo({
@@ -89,6 +52,33 @@ export default function SwapPairs() {
     });
     form.resetFields();
   };
+
+  function handleSelectOptions(currency: string, type: string) {
+    let options: { label: string; value: string }[] = [];
+    if (pairs !== undefined) {
+      pairs.map((val) => {
+        if (val.type === type) {
+          if (currency === "base") {
+            const baseOptions = {
+              label: val.offering.split("/")[0],
+              value: val.offering.split("/")[0],
+            };
+            return options.push(baseOptions);
+          } else {
+            const quoteOptions = {
+              label: val.offering.split("/")[1],
+              value: val.offering.split("/")[1],
+            };
+            return options.push(quoteOptions);
+          }
+        }
+      });
+    }
+    const uniqueOptions = options.filter((option, index, self) => {
+      return index === self.findIndex((o) => o.value === option.value);
+    });
+    return uniqueOptions;
+  }
 
   return (
     <div>
@@ -107,7 +97,7 @@ export default function SwapPairs() {
               name='amount'
               rules={[{ required: true, message: "" }]}>
               <InputNumber
-              placeholder="Amount"
+                placeholder='Amount'
                 formatter={(value) =>
                   `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
@@ -120,15 +110,11 @@ export default function SwapPairs() {
                     name='from'
                     rules={[{ required: true, message: "" }]}>
                     <Select
-                      key={
-                        activeSwapType === "off-ramp" ? "Token" : "Currency"
-                      }
+                      key={activeSwapType === "off-ramp" ? "Token" : "Currency"}
                       placeholder={
                         activeSwapType === "off-ramp" ? "Token" : "Currency"
                       }
-                      options={
-                        activeSwapType === "off-ramp" ? tokens : currencies
-                      }
+                      options={handleSelectOptions("base", activeSwapType)}
                     />
                   </Form.Item>
                 }
@@ -139,7 +125,7 @@ export default function SwapPairs() {
             <SwapOutlined rotate={90} />
           </Divider>
           <div>
-            <p className='font-medium mb-3'>Exchange to</p>
+            <p className='font-medium mb-3'>to</p>
             <InputNumber
               disabled
               addonBefore={
@@ -152,9 +138,7 @@ export default function SwapPairs() {
                     placeholder={
                       activeSwapType === "on-ramp" ? "Token" : "Currency"
                     }
-                    options={
-                      activeSwapType === "on-ramp" ? tokens : currencies
-                    }
+                    options={handleSelectOptions("quote", activeSwapType)}
                   />
                 </Form.Item>
               }
