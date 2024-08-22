@@ -77,8 +77,9 @@ export default function OfferingCard({
             {offeringDetails.data.payoutUnitsPerPayinUnit}
             {offeringDetails.data.payout.currencyCode}
           </p>
+          <Divider type='vertical' style={{height: '42px', borderColor: '#aaa'}}/>
           <p>
-            Estimated rate:
+            Estimated payout:
             <span className='font-bold block'>
               {parseFloat(
                 (
@@ -108,15 +109,21 @@ export default function OfferingCard({
       <Divider style={{ margin: "16px 0px" }} />
       <section className='flex justify-between gap-4 items-center'>
         <div className='flex justify-start gap-1 items-center'>
-          <Tooltip title={"Pay-in payment method"}>
+          <Tooltip title={offeringDetails.data.payin.methods[0].kind}>
             <p className='cursor-auto'>
-              {offeringDetails.data.payin.methods[0].kind.toLowerCase()}
+              Payin{" "}
+              <span>
+                <QuestionCircleOutlined />
+              </span>
             </p>
           </Tooltip>
           <p>|</p>
-          <Tooltip title={"Pay-out payment method"}>
+          <Tooltip title={offeringDetails.data.payout.methods[0].kind}>
             <p className='cursor-auto'>
-              {offeringDetails.data.payout.methods[0].kind.toLowerCase()}
+              Payout Method{" "}
+              <span>
+                <QuestionCircleOutlined />
+              </span>
             </p>
           </Tooltip>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { BankOutlined } from "@ant-design/icons";
-import { Spin } from "antd";
+import { Empty, Spin } from "antd";
 import axiosInstance from "@/lib/axios";
 import { TbdexHttpClient } from "@tbdex/http-client";
 import type { Offering } from "@tbdex/http-client";
@@ -32,9 +32,14 @@ export default function Offerings({
     if (isSearchable) {
       try {
         setLoading(true);
+        setAvaialableOfferings([]);
         axiosInstance
           .get(`/api/pfis/?pair=${from}/${to}`)
           .then((response) => {
+            if (response.data.pfi.length === 0) {
+              setLoading(false);
+              return;
+            }
             const activePfis = response.data.pfi.filter(
               (pfi: PfiDataTypes) => pfi.isActive == true
             );
@@ -66,7 +71,7 @@ export default function Offerings({
         setLoading(false);
       }
     }
-  }, [to]);
+  }, [to, from]);
 
   return (
     <section className='mt-8'>
@@ -77,7 +82,7 @@ export default function Offerings({
         Offerings
       </h1>
 
-      <div className='text-center mb-96'>
+      <div className='text-center flex items-center flex-wrap gap-6 mt-4 mb-14'>
         {loading && <Spin className='flex justify-center items-center' />}
         {!loading &&
           availableOfferings &&
@@ -91,6 +96,11 @@ export default function Offerings({
               />
             );
           })}
+        {!loading && availableOfferings.length === 0 && (
+          <div>
+            <Empty />
+          </div>
+        )}
       </div>
     </section>
   );

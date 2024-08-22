@@ -89,9 +89,9 @@ export default function SwapPairs() {
           name='swap-info'
           size='large'
           onFinish={onFinish}
-          className='w-full mt-6 flex flex-col flex-wrap gap-2 border-2 p-6 rounded-xl bg-white'>
+          className='w-full mt-4 flex flex-col flex-wrap gap-2 border-2 p-6 rounded-xl bg-white'>
           <div>
-            <p className='font-medium mb-3'>Exchange from</p>
+            <p className='font-medium mb-2'>Exchange from</p>
             <Form.Item
               className='mb-0'
               name='amount'
@@ -121,11 +121,11 @@ export default function SwapPairs() {
               />
             </Form.Item>
           </div>
-          <Divider style={{ borderColor: "#333" }}>
+          <Divider style={{ borderColor: "#333", margin: "12px 0" }}>
             <SwapOutlined rotate={90} />
           </Divider>
           <div>
-            <p className='font-medium mb-3'>to</p>
+            <p className='font-medium mb-2'>to</p>
             <InputNumber
               disabled
               addonBefore={
@@ -148,7 +148,7 @@ export default function SwapPairs() {
             htmlType='submit'
             size='large'
             type='primary'
-            className='w-full my-4'>
+            className='w-full my-2'>
             Get Offerings
           </Button>
         </Form>
