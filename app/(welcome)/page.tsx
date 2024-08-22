@@ -28,6 +28,7 @@ export default function Home() {
     await initWeb5({ password: values.password })
       .then((res) => {
         try {
+          encryptAndStoreData({ name: "sessionKey", data: values.password });
           encryptAndStoreData({ name: "userDID", data: res.userDID });
         } catch (err) {
           console.log("Error setting userDID and web5", err);
