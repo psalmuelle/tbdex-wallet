@@ -22,4 +22,26 @@ const useSwapLoading = create<SwapLoadingState>()((set) => ({
   setIsLoading: (isLoading) => set(() => ({ isLoading: isLoading })),
 }));
 
-export { useSwapType, useSwapLoading };
+//To Store The SwapForm values
+
+interface SwapFormState {
+  swapForm: {
+    from: string;
+    to: string;
+    amount: string;
+    swapType?: string;
+  };
+  setSwapForm: (swapForm: SwapFormState["swapForm"]) => void;
+}
+
+const useSwapForm = create<SwapFormState>((set) => ({
+  swapForm: {
+    from: "",
+    to: "",
+    amount: "",
+    swapType: "",
+  },
+  setSwapForm: (swapForm) => set(() => ({ swapForm: swapForm })),
+}));
+
+export { useSwapType, useSwapLoading, useSwapForm };

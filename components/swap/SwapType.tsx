@@ -42,11 +42,10 @@ const allSwapTypes = [
   },
 ];
 export default function SwapType() {
-  const [activeId, setActiveId] = useState("0");
+  const activeSwap = useSwapType((state) => state.swapType);
   const setSwapType = useSwapType((state) => state.setSwapType);
 
-  const handleSelect = (id: string, text: string) => {
-    setActiveId(id);
+  const handleSelect = (text: string) => {
     setSwapType(text.toLowerCase());
   };
 
@@ -56,10 +55,10 @@ export default function SwapType() {
         return (
           <SwapTypeButton
             key={val.id}
-            active={val.id === activeId}
+            active={val.text.toLowerCase() === activeSwap}
             text={val.text}
             info={val.info}
-            onSelect={() => handleSelect(val.id, val.text)}
+            onSelect={() => handleSelect(val.text)}
           />
         );
       })}

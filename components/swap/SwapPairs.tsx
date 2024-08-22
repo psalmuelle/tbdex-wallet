@@ -1,9 +1,8 @@
 import { SwapOutlined } from "@ant-design/icons";
 import { Button, Divider, Form, InputNumber, Select } from "antd";
 import type { FormProps } from "antd";
-import { useSwapType } from "@/hooks/useSwap";
+import { useSwapType, useSwapForm } from "@/hooks/useSwap";
 import { useEffect, useState } from "react";
-import Offerings from "./Offerings";
 import axiosInstance from "@/lib/axios";
 
 export type SwapFormProps = {
@@ -18,10 +17,14 @@ type PairType = {
   type: string;
 };
 
-export default function SwapPairs() {
+export default function SwapPairs({
+  setNextStep,
+}: {
+  setNextStep: () => void;
+}) {
   const [pairs, setPairs] = useState<PairType[]>([]);
-  const [swapInfo, setSwapInfo] = useState<SwapFormProps>();
   const activeSwapType: string = useSwapType((state) => state.swapType);
+  const setSwapFormValues = useSwapForm((state) => state.setSwapForm);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -44,13 +47,14 @@ export default function SwapPairs() {
   }, []);
 
   const onFinish: FormProps<SwapFormProps>["onFinish"] = async (values) => {
-    setSwapInfo({
-      amount: values.amount,
-      to: values.to,
+    setSwapFormValues({
       from: values.from,
+      to: values.to,
+      amount: values.amount,
       swapType: activeSwapType,
     });
-    form.resetFields();
+    setNextStep();
+    //form.resetFields();
   };
 
   function handleSelectOptions(currency: string, type: string) {
@@ -153,12 +157,6 @@ export default function SwapPairs() {
           </Button>
         </Form>
       </section>
-      <Offerings
-        swapType={swapInfo?.swapType}
-        to={swapInfo?.to!}
-        from={swapInfo?.from!}
-        amount={swapInfo?.amount!}
-      />
     </div>
   );
 }
