@@ -157,7 +157,7 @@ export default function PfiManager() {
         footer={null}
         maskClosable={false}
         destroyOnClose
-        className='max-w-xs'>
+        className='max-w-[350px]'>
         <h1 className='font-semibold'>Add a new PFI</h1>
         <Divider />
         <Form
@@ -165,7 +165,7 @@ export default function PfiManager() {
           onFinish={onFinish}
           layout='vertical'
           requiredMark={"optional"}
-          className='max-w-xs mb-4'>
+          className='mb-4'>
           <Form.Item<PfiFormProps>
             label='Name of PFI'
             name='name'

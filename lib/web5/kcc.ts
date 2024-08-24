@@ -1,25 +1,28 @@
 import initWeb5 from "./web5";
-import { Web5 } from "@web5/api";
 
 type KCCTypes = {
-    password?: string;
+    password: string;
+    vcJwt?: string;
+    issuerDID?: string;
   };
 
-export async function ManageKnownCustomerCredentials({ password }: KCCTypes) {
-    const { web5, userDID } = await initWeb5({ password: password || "" });
+export async function ManageKnownCustomerCredentials({ password, vcJwt, issuerDID }: KCCTypes) {
+    const { web5, userDID } = await initWeb5({ password: password });
     
    
     //Save KCC into dwn
-    const save = async (vcJwt: string) => {
-      const dwn = web5.dwn;
-      const { record, status } = await dwn.records.create({
+    const save = async () => {
+      if(!vcJwt) return;
+
+      const { record, status } = await web5.dwn.records.create({
         data: vcJwt,
         message: {
           schema: "KnownCustomerCredential",
           dataFormat: "application/vc+jwt",
         },
       });
-      if (status.code === 200) {
+
+      if (status.code === 202) {
         console.log("KCC saved sucessfully!");
         return { record, status };
       }
@@ -28,8 +31,8 @@ export async function ManageKnownCustomerCredentials({ password }: KCCTypes) {
     //Retrieve KCC from dwn
     const get = async () => {
       const dwn = web5.dwn;
-      const { records, status } = await dwn.records.query({
-        from: '',
+      const response = await dwn.records.query({
+        from: userDID,
         message: {
           filter: {
             schema: "KnownCustomerCredential",
@@ -37,9 +40,10 @@ export async function ManageKnownCustomerCredentials({ password }: KCCTypes) {
           },
         },
       });
-      if (status.code === 200) {
+
+      if (response.status.code === 200) {
         console.log("KCC retrieved sucessfully!");
-        return { records, status };
+        return response;
       }
     };
   
@@ -47,12 +51,5 @@ export async function ManageKnownCustomerCredentials({ password }: KCCTypes) {
       save,
       get,
     };
-  }
-  
-  export function KnownCustomerCredential() {}
-
-  export async function sample(){
-    const {web5, did:userDID} = await Web5.connect()
-    console.log(userDID)
   }
   

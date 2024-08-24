@@ -53,7 +53,7 @@ export default function CreatePairModal({
       footer={null}
       maskClosable={false}
       destroyOnClose
-      className='max-w-xs'>
+      className='max-w-[350px]'>
       <h1 className='font-semibold'>Create Pair</h1>
       <Divider />
 
@@ -62,7 +62,7 @@ export default function CreatePairModal({
         onFinish={onFinish}
         layout='vertical'
         requiredMark={"optional"}
-        className='max-w-xs mb-4'>
+        className='mb-4'>
         <div className='flex justify-between items-center gap-4'>
           <Form.Item<FormTypes>
             label='Base'

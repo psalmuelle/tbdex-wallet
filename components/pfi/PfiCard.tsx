@@ -202,7 +202,7 @@ export default function PfiCard({
       {contextHolder}
       <Modal
         title={`Offerings From ${name}`}
-        className='max-w-sm'
+        className='max-w-[350px]'
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         maskClosable={false}
