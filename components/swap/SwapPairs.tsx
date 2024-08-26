@@ -25,6 +25,7 @@ export default function SwapPairs({
   const [pairs, setPairs] = useState<PairType[]>([]);
   const activeSwapType: string = useSwapType((state) => state.swapType);
   const setSwapFormValues = useSwapForm((state) => state.setSwapForm);
+  const [baseCurrency, setBaseCurrency] = useState("");
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -54,10 +55,13 @@ export default function SwapPairs({
       swapType: activeSwapType,
     });
     setNextStep();
-    //form.resetFields();
   };
 
-  function handleSelectOptions(currency: string, type: string) {
+  function handleSelectOptions(
+    currency: string,
+    type: string,
+    baseCurrency?: string
+  ) {
     let options: { label: string; value: string }[] = [];
     if (pairs !== undefined) {
       pairs.map((val) => {
@@ -69,11 +73,13 @@ export default function SwapPairs({
             };
             return options.push(baseOptions);
           } else {
-            const quoteOptions = {
-              label: val.offering.split("/")[1],
-              value: val.offering.split("/")[1],
-            };
-            return options.push(quoteOptions);
+            if (val.offering.split("/")[0] == baseCurrency) {
+              const quoteOptions = {
+                label: val.offering.split("/")[1],
+                value: val.offering.split("/")[1],
+              };
+              return options.push(quoteOptions);
+            }
           }
         }
       });
@@ -114,6 +120,7 @@ export default function SwapPairs({
                     name='from'
                     rules={[{ required: true, message: "" }]}>
                     <Select
+                      onChange={(e) => setBaseCurrency(e)}
                       key={activeSwapType === "off-ramp" ? "Token" : "Currency"}
                       placeholder={
                         activeSwapType === "off-ramp" ? "Token" : "Currency"
@@ -142,7 +149,12 @@ export default function SwapPairs({
                     placeholder={
                       activeSwapType === "on-ramp" ? "Token" : "Currency"
                     }
-                    options={handleSelectOptions("quote", activeSwapType)}
+                    disabled={!baseCurrency}
+                    options={handleSelectOptions(
+                      "quote",
+                      activeSwapType,
+                      baseCurrency
+                    )}
                   />
                 </Form.Item>
               }

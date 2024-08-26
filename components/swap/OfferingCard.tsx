@@ -8,14 +8,23 @@ import {
   Tooltip,
   Button,
 } from "antd";
-import type { Offering } from "@tbdex/http-client";
+import { Offering } from "@tbdex/http-client";
 import { PfiDataTypes } from "../pfi/PfiManager";
-import { IdcardOutlined, QuestionCircleOutlined } from "@ant-design/icons";
+import {
+  CheckCircleFilled,
+  IdcardOutlined,
+  QuestionCircleFilled,
+  QuestionCircleOutlined,
+} from "@ant-design/icons";
+import { useRouter } from "next/navigation";
 
 interface OfferingInfoTypes {
   offeringDetails: Offering;
   pfiDetails: PfiDataTypes;
+  validCredentials: boolean;
   amount: number;
+  from: string;
+  to: string;
 }
 
 const { Paragraph } = Typography;
@@ -24,12 +33,15 @@ export default function OfferingCard({
   offeringDetails,
   pfiDetails,
   amount,
+  from,
+  to,
+  validCredentials,
 }: OfferingInfoTypes) {
   const shortenedDid =
     pfiDetails.did.substring(0, 12) +
     "...." +
     pfiDetails.did.substring(pfiDetails.did.length - 4);
-
+  const router = useRouter();
   const successfulOrders = pfiDetails.orders.filter(
     (order) => order.status === "success"
   ).length;
@@ -42,7 +54,10 @@ export default function OfferingCard({
     <div className='bg-white rounded-xl max-w-sm p-6 max-sm:p-4 shadow'>
       <section className='flex justify-between gap-4'>
         <div className='flex justify-start items-center gap-2 w-fit'>
-          <Avatar src='https://api.dicebear.com/9.x/glass/svg?seed=Shadow' />
+          <Avatar
+            src='https://img.icons8.com/emoji/48/bank-emoji.png'
+            alt='bank-emoji'
+          />
           <div className='text-left flex items-start flex-col gap-0.5'>
             <h1 className='font-medium'>{pfiDetails.name}</h1>
             <Paragraph
@@ -77,7 +92,10 @@ export default function OfferingCard({
             {offeringDetails.data.payoutUnitsPerPayinUnit}
             {offeringDetails.data.payout.currencyCode}
           </p>
-          <Divider type='vertical' style={{height: '42px', borderColor: '#aaa'}}/>
+          <Divider
+            type='vertical'
+            style={{ height: "42px", borderColor: "#aaa" }}
+          />
           <p>
             Estimated payout:
             <span className='font-bold block'>
@@ -93,13 +111,45 @@ export default function OfferingCard({
         <div className='mt-4'>
           <Popover
             title='Known Customer Credentials'
-            content={<div>Info about the required claims</div>}>
+            content={
+              validCredentials ? (
+                <p>
+                  You meet the requirements <br /> for this offering
+                </p>
+              ) : (
+                <>
+                  <p>
+                    You do not meet the requirements <br /> for this offering
+                  </p>
+                  <Button
+                    className='mt-4'
+                    onClick={() => {
+                      const offering = {
+                        amount: amount,
+                        to: to,
+                        from: from,
+                      };
+                      localStorage.setItem(
+                        "offering",
+                        JSON.stringify(offering)
+                      );
+                      router.push(`/dashboard/kcc`);
+                    }}>
+                    Submit A KCC
+                  </Button>
+                </>
+              )
+            }>
             <div className='font-semibold flex gap-2 items-center w-fit cursor-pointer'>
               <IdcardOutlined />
               <p>
                 Required Claims{" "}
                 <span>
-                  <QuestionCircleOutlined />
+                  {validCredentials ? (
+                    <CheckCircleFilled style={{ color: "green" }} />
+                  ) : (
+                    <QuestionCircleFilled style={{ color: "red" }} />
+                  )}
                 </span>
               </p>
             </div>
@@ -108,26 +158,10 @@ export default function OfferingCard({
       </section>
       <Divider style={{ margin: "16px 0px" }} />
       <section className='flex justify-between gap-4 items-center'>
-        <div className='flex justify-start gap-1 items-center'>
-          <Tooltip title={offeringDetails.data.payin.methods[0].kind}>
-            <p className='cursor-auto'>
-              Payin{" "}
-              <span>
-                <QuestionCircleOutlined />
-              </span>
-            </p>
-          </Tooltip>
-          <p>|</p>
-          <Tooltip title={offeringDetails.data.payout.methods[0].kind}>
-            <p className='cursor-auto'>
-              Payout Method{" "}
-              <span>
-                <QuestionCircleOutlined />
-              </span>
-            </p>
-          </Tooltip>
-        </div>
-        <Button type='primary'>Accept Offer</Button>
+        <div />
+        <Button type='primary' disabled={!validCredentials}>
+          Accept Offer
+        </Button>
       </section>
     </div>
   );

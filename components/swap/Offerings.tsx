@@ -7,13 +7,19 @@ import type { Offering } from "@tbdex/http-client";
 import { PfiDataTypes } from "../pfi/PfiManager";
 import { useSwapLoading, useSwapForm } from "@/hooks/useSwap";
 import OfferingCard from "./OfferingCard";
+import { PresentationExchange } from "@web5/credentials";
 
 interface OfferingInfoTypes {
   offeringDetails: Offering;
   pfiDetails: PfiDataTypes;
+  validCredentials: boolean;
 }
 
-export default function Offerings() {
+type OfferingsProps = {
+  credentials: string[];
+};
+
+export default function Offerings({ credentials }: OfferingsProps) {
   const [availableOfferings, setAvaialableOfferings] = useState<
     OfferingInfoTypes[]
   >([]);
@@ -26,6 +32,7 @@ export default function Offerings() {
       try {
         setLoading(true);
         setAvaialableOfferings([]);
+
         await axiosInstance
           .get(`/api/pfis/?pair=${swapFormValues.from}/${swapFormValues.to}`)
           .then((response) => {
@@ -49,13 +56,33 @@ export default function Offerings() {
                   payinCurrency === swapFormValues.from &&
                   payoutCurrency === swapFormValues.to
                 ) {
-                  const offeringInfo: OfferingInfoTypes = {
-                    offeringDetails: offering,
-                    pfiDetails: pfi,
-                  };
+                  const presentationDefinition = offering.data.requiredClaims;
 
-                  allOfferings.push(offeringInfo);
-                  setAvaialableOfferings((_prev) => [...allOfferings]);
+                  console.log(presentationDefinition);
+                  console.log(credentials);
+
+                  try {
+                    PresentationExchange.satisfiesPresentationDefinition({
+                      vcJwts: credentials,
+                      presentationDefinition: presentationDefinition!,
+                    });
+
+                    const offeringInfo: OfferingInfoTypes = {
+                      offeringDetails: offering,
+                      pfiDetails: pfi,
+                      validCredentials: true,
+                    };
+                    allOfferings.push(offeringInfo);
+                    setAvaialableOfferings((_prev) => [...allOfferings]);
+                  } catch (err) {
+                    const offeringInfo: OfferingInfoTypes = {
+                      offeringDetails: offering,
+                      pfiDetails: pfi,
+                      validCredentials: false,
+                    };
+                    allOfferings.push(offeringInfo);
+                    setAvaialableOfferings((_prev) => [...allOfferings]);
+                  }
                   setLoading(false);
                 }
               });
@@ -74,8 +101,8 @@ export default function Offerings() {
   }, []);
 
   return (
-    <section className='mt-10'>
-      <div>
+    <section className='mt-8'>
+      <div className='w-fit p-2 px-4 font-semibold bg-white rounded-r-xl border-l'>
         {swapFormValues.amount} {swapFormValues.from} ➩ {swapFormValues.to}
       </div>
       <div className='text-center flex items-center justify-center flex-wrap gap-6 mt-4 mb-14'>
@@ -87,7 +114,10 @@ export default function Offerings() {
               <OfferingCard
                 offeringDetails={offering.offeringDetails}
                 pfiDetails={offering.pfiDetails}
+                validCredentials={offering.validCredentials}
                 key={index}
+                from={swapFormValues.from}
+                to={swapFormValues.to}
                 amount={Number(swapFormValues.amount)}
               />
             );
