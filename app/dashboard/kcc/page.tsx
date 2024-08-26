@@ -1,7 +1,17 @@
 "use client";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 import CredentialCard from "@/components/credentials/CredentialCard";
-import { Button, Divider, Form, Input, Layout, Modal, Select } from "antd";
+import {
+  Button,
+  Divider,
+  Empty,
+  Form,
+  Input,
+  Layout,
+  Modal,
+  Select,
+  Spin,
+} from "antd";
 import type { FormProps } from "antd";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -15,6 +25,13 @@ type KccFormProps = {
   customerName: string;
 };
 
+type KccInfoProps = {
+  name: string;
+  countryCode: string;
+  issuer: string;
+  expiresAt: string;
+};
+
 export default function KCC() {
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
   const userDID = decryptAndRetrieveData({ name: "userDID" });
@@ -23,6 +40,9 @@ export default function KCC() {
   const [countries, setCountries] = useState<
     { label: string; value: string }[]
   >([]);
+  const [kccInfo, setKccInfo] = useState<KccInfoProps>();
+  const [kccLoading, setKccLoading] = useState(false);
+  const [reload, setReload] = useState(false);
 
   useEffect(() => {
     //Fetch all countries
@@ -39,14 +59,48 @@ export default function KCC() {
 
           setCountries(filteredData);
         });
-      // (await ManageKnownCustomerCredentials({password: sessionKey})).get().then(res=>{
-      //   if (res?.records) {
-      //     console.log(res.records[0].data.text());
-      //   }
-      // })
     }
     getCountries();
   }, []);
+
+  useEffect(() => {
+    setKccLoading(true);
+    async function fetchKCC() {
+      //Get Known Customer Credential
+      (await ManageKnownCustomerCredentials({ password: sessionKey }))
+        .get()
+        .then((res) => {
+          if (res?.records && res.records.length > 0) {
+            res.records[0].data.text().then((data: string) => {
+              const vc: any = VerifiableCredential.parseJwt({ vcJwt: data });
+              const shortIssuerDid: string =
+                vc.issuer.substring(0, 12) +
+                "...." +
+                vc.issuer.substring(userDID.length - 4);
+              const name: string = vc.vcDataModel.credentialSubject.name;
+              const country: string =
+                vc.vcDataModel.credentialSubject.countryOfResidence;
+              const dateTimeString: string = vc.vcDataModel.expirationDate;
+              const date = new Date(dateTimeString!);
+              const expiresAt: string = date.toISOString().split("T")[0];
+
+              const info = {
+                name,
+                countryCode: country,
+                expiresAt,
+                issuer: shortIssuerDid,
+              };
+              setKccLoading(false);
+              setKccInfo(info);
+            });
+          } else {
+            setKccLoading(false);
+            return;
+          }
+        });
+    }
+    fetchKCC();
+  }, [reload]);
 
   function handleCloseModal() {
     setIsModalOpen(false);
@@ -67,6 +121,10 @@ export default function KCC() {
         ).save();
         setIsSubmitLoading(false);
         setIsModalOpen(false);
+        setReload(!reload);
+      })
+      .catch((error) => {
+        console.log(error);
       });
   };
 
@@ -77,13 +135,27 @@ export default function KCC() {
       </div>
 
       <section className='min-h-[75vh] mt-12'>
-        <CredentialCard
-          name='John Doe'
-          country='NGN'
-          email='psalmuelle1@gmail.com'
-          issuedBy='did:dht:2162...2123'
-          expires='24-10-2024'
-        />
+        {kccLoading && <Spin fullscreen />}
+        {kccInfo && (
+          <CredentialCard
+            name={kccInfo.name}
+            country={kccInfo.countryCode}
+            issuedBy={kccInfo.issuer}
+            expires={kccInfo.expiresAt}
+          />
+        )}
+        {!kccLoading && !kccInfo && (
+          <>
+            <Empty description={"No verified Known Customer Credential"} />
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              type='primary'
+              size='large'
+              className='block mt-8 mx-auto'>
+              Apply for a KCC
+            </Button>
+          </>
+        )}
         <Modal
           open={isModalOpen}
           onCancel={handleCloseModal}

@@ -3,10 +3,9 @@ import initWeb5 from "./web5";
 type KCCTypes = {
     password: string;
     vcJwt?: string;
-    issuerDID?: string;
   };
 
-export async function ManageKnownCustomerCredentials({ password, vcJwt, issuerDID }: KCCTypes) {
+export async function ManageKnownCustomerCredentials({ password, vcJwt }: KCCTypes) {
     const { web5, userDID } = await initWeb5({ password: password });
     
    
