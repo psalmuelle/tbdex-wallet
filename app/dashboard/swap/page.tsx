@@ -33,6 +33,7 @@ export default function Swap() {
               const { to, from, amount } = JSON.parse(swapInfo!);
               setSwapForm({ to: to, from: from, amount: amount });
               setCurrent(1);
+              localStorage.removeItem("offering");
             });
           }
         });
@@ -42,18 +43,18 @@ export default function Swap() {
   }, []);
 
   return (
-    <Content className='mt-8 mx-4'>
+    <Content className='mt-8 mx-4 w-fit'>
       <h1 className='text-base font-bold mb-4'>Swap</h1>
       <Steps
         progressDot
         current={current}
-        className='max-w-2xl mt-8'
+        className='mt-8'
         items={[
           {
-            title: "",
+            title: "Select Pair",
           },
           {
-            title: "",
+            title: "Choose Offering",
           },
           {
             title: "",
@@ -61,13 +62,13 @@ export default function Swap() {
         ]}
       />
       {current === 0 && (
-        <div className='flex flex-col justify-center items-center p-8 max-w-2xl mt-6 mb-24 rounded-xl border shadow'>
+        <div className='flex flex-col justify-center items-center p-8 max-w-2xl mt-6 mb-24 rounded-xl border shadow bg-neutral-50'>
           <SwapType />
           <SwapPairs setNextStep={() => setCurrent(1)} />
         </div>
       )}
       {current === 1 && (
-        <div className='p-8 max-w-[800px] mt-6 mb-24 rounded-xl border shadow'>
+        <div className='p-8 mt-6 mb-24 rounded-xl bg-neutral-50 border shadow'>
           <div className='flex justify-between items-center mb-6'>
             <Button
               icon={<ArrowLeftOutlined />}

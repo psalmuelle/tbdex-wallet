@@ -52,7 +52,7 @@ export default function OfferingCard({
 
   return (
     <div className='bg-white rounded-xl max-w-sm p-6 max-sm:p-4 shadow'>
-      <section className='flex justify-between gap-4'>
+      <section className='flex justify-between gap-4 max-sm:flex-col max-sm:justify-center'>
         <div className='flex justify-start items-center gap-2 w-fit'>
           <Avatar
             src='https://img.icons8.com/emoji/48/bank-emoji.png'
