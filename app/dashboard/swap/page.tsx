@@ -8,6 +8,7 @@ import Offerings from "@/components/swap/Offerings";
 import { ArrowLeftOutlined, BankOutlined } from "@ant-design/icons";
 import { ManageKnownCustomerCredentials } from "@/lib/web5/kcc";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
+import { useSwapForm } from "@/hooks/useSwap";
 
 const { Content } = Layout;
 
@@ -15,6 +16,7 @@ export default function Swap() {
   const [current, setCurrent] = useState(0);
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
   const [credentials, setCredentials] = useState<string[]>([]);
+  const setSwapForm = useSwapForm((state) => state.setSwapForm);
 
   useEffect(() => {
     async function fetchCredentials() {
@@ -24,10 +26,18 @@ export default function Swap() {
           if (res?.records && res.records.length > 0) {
             res.records[0].data.text().then((data: string) => {
               setCredentials([data]);
+
+              //Scenario: User has completed KYC and has offerings in local storage
+              const swapInfo = localStorage.getItem("offering");
+              if (swapInfo === null) return;
+              const { to, from, amount } = JSON.parse(swapInfo!);
+              setSwapForm({ to: to, from: from, amount: amount });
+              setCurrent(1);
             });
           }
         });
     }
+
     fetchCredentials();
   }, []);
 

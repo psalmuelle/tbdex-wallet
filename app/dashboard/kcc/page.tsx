@@ -9,6 +9,7 @@ import {
   Input,
   Layout,
   Modal,
+  Result,
   Select,
   Spin,
 } from "antd";
@@ -17,6 +18,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { ManageKnownCustomerCredentials } from "@/lib/web5/kcc";
 import { VerifiableCredential } from "@web5/credentials";
+import { SmileOutlined } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
 
 const { Content } = Layout;
 
@@ -42,7 +45,9 @@ export default function KCC() {
   >([]);
   const [kccInfo, setKccInfo] = useState<KccInfoProps>();
   const [kccLoading, setKccLoading] = useState(false);
+  const [formStep, setFormStep] = useState(0);
   const [reload, setReload] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     //Fetch all countries
@@ -90,12 +95,18 @@ export default function KCC() {
                 expiresAt,
                 issuer: shortIssuerDid,
               };
+              localStorage.removeItem("offering");
               setKccLoading(false);
               setKccInfo(info);
             });
           } else {
             setKccLoading(false);
-            return;
+            const info = localStorage.getItem("offering");
+            if (info === null) {
+              return;
+            } else {
+              setIsModalOpen(true);
+            }
           }
         });
     }
@@ -104,6 +115,7 @@ export default function KCC() {
 
   function handleCloseModal() {
     setIsModalOpen(false);
+    localStorage.removeItem("offering");
   }
 
   const onFinish: FormProps<KccFormProps>["onFinish"] = async (values) => {
@@ -120,13 +132,20 @@ export default function KCC() {
           })
         ).save();
         setIsSubmitLoading(false);
-        setIsModalOpen(false);
-        setReload(!reload);
+        setFormStep(1);
       })
       .catch((error) => {
         console.log(error);
       });
   };
+  function handleOk() {
+    if (localStorage.getItem("offering")) {
+      router.push("/dashboard/swap");
+    } else {
+      setIsModalOpen(false);
+      setReload(!reload);
+    }
+  }
 
   return (
     <Content className='mt-8 mx-4'>
@@ -167,40 +186,52 @@ export default function KCC() {
             Create your Known Customer Credential
           </h1>
           <Divider />
-          <Form
-            autoComplete='off'
-            onFinish={onFinish}
-            layout='vertical'
-            requiredMark={"optional"}
-            className='mb-4'>
-            <Form.Item<KccFormProps>
-              label='Your Full Name'
-              name='customerName'
-              rules={[{ required: true, message: "PFI name is required!" }]}>
-              <Input size='large' />
-            </Form.Item>
+          {formStep === 0 ? (
+            <Form
+              autoComplete='off'
+              onFinish={onFinish}
+              layout='vertical'
+              requiredMark={"optional"}
+              className='mb-4'>
+              <Form.Item<KccFormProps>
+                label='Your Full Name'
+                name='customerName'
+                rules={[{ required: true, message: "PFI name is required!" }]}>
+                <Input size='large' />
+              </Form.Item>
 
-            <Form.Item<KccFormProps>
-              label='Country'
-              name='countryCode'
-              rules={[{ required: true, message: "DID is required!" }]}>
-              <Select
-                showSearch
-                optionFilterProp='label'
+              <Form.Item<KccFormProps>
+                label='Country'
+                name='countryCode'
+                rules={[{ required: true, message: "DID is required!" }]}>
+                <Select
+                  showSearch
+                  optionFilterProp='label'
+                  size='large'
+                  options={countries}
+                />
+              </Form.Item>
+
+              <Button
+                type='primary'
+                htmlType='submit'
+                loading={isSubmitLoading}
                 size='large'
-                options={countries}
-              />
-            </Form.Item>
-
-            <Button
-              type='primary'
-              htmlType='submit'
-              loading={isSubmitLoading}
-              size='large'
-              className='w-full'>
-              Submit
-            </Button>
-          </Form>
+                className='w-full'>
+                Submit
+              </Button>
+            </Form>
+          ) : (
+            <Result
+              icon={<SmileOutlined />}
+              title='Great, you have Completed your KYC process!'
+              extra={
+                <Button type='primary' onClick={handleOk}>
+                  Done
+                </Button>
+              }
+            />
+          )}
         </Modal>
       </section>
     </Content>
