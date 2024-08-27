@@ -43,48 +43,60 @@ export default function Swap() {
   }, []);
 
   return (
-    <Content className='mt-8 mx-4 w-fit'>
+    <Content className='mt-8 mx-4'>
       <h1 className='text-base font-bold mb-4'>Swap</h1>
-      <Steps
-        progressDot
-        current={current}
-        className='mt-8'
-        items={[
-          {
-            title: "Select Pair",
-          },
-          {
-            title: "Choose Offering",
-          },
-          {
-            title: "",
-          },
-        ]}
-      />
-      {current === 0 && (
-        <div className='flex flex-col justify-center items-center p-8 max-w-2xl mt-6 mb-24 rounded-xl border shadow bg-neutral-50'>
-          <SwapType />
-          <SwapPairs setNextStep={() => setCurrent(1)} />
-        </div>
-      )}
-      {current === 1 && (
-        <div className='p-8 mt-6 mb-24 rounded-xl bg-neutral-50 border shadow'>
-          <div className='flex justify-between items-center mb-6'>
-            <Button
-              icon={<ArrowLeftOutlined />}
-              onClick={() => setCurrent(0)}
-            />
-            <h1 className='font-semibold text-center'>
-              <span>
-                <BankOutlined className='text-xl' />{" "}
-              </span>
-              Offerings
-            </h1>
-            <div />
+      <div className='w-fit mx-auto'>
+        <Steps
+          progressDot
+          current={current}
+          className='mt-8'
+          items={[
+            {
+              title: "Select Pair",
+            },
+            {
+              title: "Choose Offering",
+            },
+            {
+              title: "Payment Details",
+            },
+            {
+              title: "Order",
+            },
+          ]}
+        />
+        {current === 0 && (
+          <div className='flex flex-col justify-center items-center p-8 max-w-2xl mt-6 mb-24 rounded-xl border shadow bg-neutral-50'>
+            <SwapType />
+            <SwapPairs setNextStep={() => setCurrent(1)} />
           </div>
-          <Offerings credentials={credentials} />
-        </div>
-      )}
+        )}
+        {current === 1 && (
+          <div className='p-8 mt-6 mb-24 rounded-xl bg-neutral-50 border shadow'>
+            <div className='flex justify-between items-center mb-6'>
+              <Button
+                icon={<ArrowLeftOutlined />}
+                onClick={() => setCurrent(0)}
+              />
+              <h1 className='font-semibold text-center'>
+                <span>
+                  <BankOutlined className='text-xl' />{" "}
+                </span>
+                Offerings
+              </h1>
+              <div />
+            </div>
+            <Offerings
+              credentials={credentials}
+              setNextStep={() => setCurrent(2)}
+            />
+          </div>
+        )}
+
+        {current === 2 && (
+          <div>This is the another page that has to be done by today</div>
+        )}
+      </div>
     </Content>
   );
 }

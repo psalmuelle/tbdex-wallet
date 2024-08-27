@@ -17,9 +17,13 @@ interface OfferingInfoTypes {
 
 type OfferingsProps = {
   credentials: string[];
+  setNextStep: () => void;
 };
 
-export default function Offerings({ credentials }: OfferingsProps) {
+export default function Offerings({
+  credentials,
+  setNextStep,
+}: OfferingsProps) {
   const [availableOfferings, setAvaialableOfferings] = useState<
     OfferingInfoTypes[]
   >([]);
@@ -35,58 +39,62 @@ export default function Offerings({ credentials }: OfferingsProps) {
 
         await axiosInstance
           .get(`/api/pfis/?pair=${swapFormValues.from}/${swapFormValues.to}`)
-          .then((response) => {
+          .then(async (response) => {
             if (response.data.pfi.length === 0) {
               setLoading(false);
               return;
             }
-            const activePfis = response.data.pfi.filter(
+            const activePfis: PfiDataTypes[] = response.data.pfi.filter(
               (pfi: PfiDataTypes) => pfi.isActive == true
             );
-            const allOfferings: OfferingInfoTypes[] = [];
-            activePfis.map(async (pfi: PfiDataTypes) => {
+            const allOfferings: Offering[] = [];
+
+            for (const pfi of activePfis) {
               const offerings = await TbdexHttpClient.getOfferings({
                 pfiDid: pfi.did,
               });
+              if (offerings.length === 0) {
+                setLoading(false);
+                return;
+              }
+              allOfferings.push(...offerings);
+            }
 
-              offerings.map((offering) => {
-                const payinCurrency = offering.data.payin.currencyCode;
-                const payoutCurrency = offering.data.payout.currencyCode;
-                if (
-                  payinCurrency === swapFormValues.from &&
-                  payoutCurrency === swapFormValues.to
-                ) {
-                  const presentationDefinition = offering.data.requiredClaims;
+            const availableOfferings: OfferingInfoTypes[] = [];
+            allOfferings.map((offering) => {
+              const payinCurrency = offering.data.payin.currencyCode;
+              const payoutCurrency = offering.data.payout.currencyCode;
+              if (
+                payinCurrency === swapFormValues.from &&
+                payoutCurrency === swapFormValues.to
+              ) {
+                const presentationDefinition = offering.data.requiredClaims;
 
-                  console.log(presentationDefinition);
-                  console.log(credentials);
-
-                  try {
-                    PresentationExchange.satisfiesPresentationDefinition({
-                      vcJwts: credentials,
-                      presentationDefinition: presentationDefinition!,
-                    });
-
-                    const offeringInfo: OfferingInfoTypes = {
-                      offeringDetails: offering,
-                      pfiDetails: pfi,
-                      validCredentials: true,
-                    };
-                    allOfferings.push(offeringInfo);
-                    setAvaialableOfferings((_prev) => [...allOfferings]);
-                  } catch (err) {
-                    const offeringInfo: OfferingInfoTypes = {
-                      offeringDetails: offering,
-                      pfiDetails: pfi,
-                      validCredentials: false,
-                    };
-                    allOfferings.push(offeringInfo);
-                    setAvaialableOfferings((_prev) => [...allOfferings]);
-                  }
-                  setLoading(false);
+                const pfi = activePfis.find((val) => val.did === offering.from);
+                try {
+                  PresentationExchange.satisfiesPresentationDefinition({
+                    vcJwts: credentials,
+                    presentationDefinition: presentationDefinition!,
+                  });
+                  const offeringInfo: OfferingInfoTypes = {
+                    offeringDetails: offering,
+                    pfiDetails: pfi!,
+                    validCredentials: true,
+                  };
+                  availableOfferings.push(offeringInfo);
+                  setAvaialableOfferings((_prev) => [...availableOfferings]);
+                } catch (err) {
+                  const offeringInfo: OfferingInfoTypes = {
+                    offeringDetails: offering,
+                    pfiDetails: pfi!,
+                    validCredentials: false,
+                  };
+                  availableOfferings.push(offeringInfo);
+                  setAvaialableOfferings((_prev) => [...availableOfferings]);
                 }
-              });
+              }
             });
+            setLoading(false);
           })
           .catch((error) => {
             console.log(error);
@@ -119,6 +127,7 @@ export default function Offerings({ credentials }: OfferingsProps) {
                 from={swapFormValues.from}
                 to={swapFormValues.to}
                 amount={Number(swapFormValues.amount)}
+                setNextStep={setNextStep}
               />
             );
           })}

@@ -1,3 +1,4 @@
+import type { Offering } from "@tbdex/http-client";
 import { create } from "zustand";
 
 //To Set The Swap Type To (On-ramp, Off-ramp, Forex)
@@ -44,4 +45,16 @@ const useSwapForm = create<SwapFormState>((set) => ({
   setSwapForm: (swapForm) => set(() => ({ swapForm: swapForm })),
 }));
 
-export { useSwapType, useSwapLoading, useSwapForm };
+// To store Offering Details
+
+interface OfferingInfoTypes {
+  offering: Offering | null;
+  setOffering: (offering: Offering) => void;
+}
+
+const useOfferingDetails = create<OfferingInfoTypes>((set) => ({
+  offering: null,
+  setOffering: (offering) => set(() => ({ offering: offering })),
+}));
+
+export { useSwapType, useSwapLoading, useSwapForm, useOfferingDetails };

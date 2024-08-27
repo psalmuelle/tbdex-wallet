@@ -17,6 +17,7 @@ import {
   QuestionCircleOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
+import { useOfferingDetails } from "@/hooks/useSwap";
 
 interface OfferingInfoTypes {
   offeringDetails: Offering;
@@ -25,6 +26,7 @@ interface OfferingInfoTypes {
   amount: number;
   from: string;
   to: string;
+  setNextStep: () => void;
 }
 
 const { Paragraph } = Typography;
@@ -36,6 +38,7 @@ export default function OfferingCard({
   from,
   to,
   validCredentials,
+  setNextStep,
 }: OfferingInfoTypes) {
   const shortenedDid =
     pfiDetails.did.substring(0, 12) +
@@ -49,6 +52,12 @@ export default function OfferingCard({
   const allRatings = pfiDetails.orders.map((order) => order.rating);
   const totalRatings = allRatings.reduce((sum, rating) => sum + rating, 0);
   const averageRating = totalRatings / allRatings.length;
+  const setOfferingDetails = useOfferingDetails((state) => state.setOffering);
+
+  const handleAcceptOffer = () => {
+    setOfferingDetails(offeringDetails);
+    setNextStep();
+  };
 
   return (
     <div className='bg-white rounded-xl max-w-sm p-6 max-sm:p-4 shadow'>
@@ -159,7 +168,10 @@ export default function OfferingCard({
       <Divider style={{ margin: "16px 0px" }} />
       <section className='flex justify-between gap-4 items-center'>
         <div />
-        <Button type='primary' disabled={!validCredentials}>
+        <Button
+          type='primary'
+          disabled={!validCredentials}
+          onClick={handleAcceptOffer}>
           Accept Offer
         </Button>
       </section>
