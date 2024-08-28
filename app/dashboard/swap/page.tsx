@@ -117,7 +117,7 @@ export default function Swap() {
               <h2 className='font-medium mb-2'>
                 Choose a payment method to complete the swap
               </h2>
-              <PaymentDetails />
+              <PaymentDetails credentials={credentials}/>
             </div>
           </div>
         )}
