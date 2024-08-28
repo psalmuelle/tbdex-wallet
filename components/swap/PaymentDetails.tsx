@@ -8,19 +8,24 @@ import { withTheme } from "@rjsf/core";
 import { Theme as AntDTheme } from "@rjsf/antd";
 import validator from "@rjsf/validator-ajv8";
 import { CheckCircleFilled } from "@ant-design/icons";
-import { Rfq } from "@tbdex/http-client";
+import { Rfq, TbdexHttpClient } from "@tbdex/http-client";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 import { useSwapForm } from "@/hooks/useSwap";
 import { PresentationExchange } from "@web5/credentials";
-import { BearerDid, DidDht } from "@web5/dids";
+import initWeb5 from "@/lib/web5/web5";
+import { Web5PlatformAgent } from "@web5/agent";
 
 const Form = withTheme(AntDTheme);
 
 interface PaymentDetailsProps {
   credentials: string[];
+  setNext: () => void;
 }
 
-export default function PaymentDetails({ credentials }: PaymentDetailsProps) {
+export default function PaymentDetails({
+  credentials,
+  setNext,
+}: PaymentDetailsProps) {
   const offering = useOfferingDetails((state) => state.offering);
   const [paymentChecked, setPaymentChecked] = useState({
     payin: false,
@@ -35,7 +40,7 @@ export default function PaymentDetails({ credentials }: PaymentDetailsProps) {
     payout: {},
   });
   const [formComplete, setFormComplete] = useState(false);
-  const userDID = decryptAndRetrieveData({ name: "userDID" });
+  const userDID: string = decryptAndRetrieveData({ name: "userDID" });
   const swapForm = useSwapForm((state) => state.swapForm);
 
   useEffect(() => {
@@ -70,16 +75,26 @@ export default function PaymentDetails({ credentials }: PaymentDetailsProps) {
 
       //Verify the offering requirements
       try {
-        await rfq.verifyOfferingRequirements(offering!)
+        await rfq.verifyOfferingRequirements(offering!);
       } catch (error) {
         console.log(error);
       }
 
       //Sign RFQ
-      
- 
-      
+      const { web5 } = await initWeb5({
+        password: decryptAndRetrieveData({ name: "sessionKey" }),
+      });
+      const agent = web5.agent as Web5PlatformAgent;
+      const identities = await agent.identity.list();
+      await rfq.sign(identities[0].did);
 
+      //Create an Exchange and redirect to next step
+      try {
+        TbdexHttpClient.createExchange(rfq);
+        setNext();
+      } catch (err) {
+        console.log("Failed to create exchange:", err);
+      }
     }
 
     //Triggers if all Payment details have been filled

@@ -117,8 +117,13 @@ export default function Swap() {
               <h2 className='font-medium mb-2'>
                 Choose a payment method to complete the swap
               </h2>
-              <PaymentDetails credentials={credentials}/>
+              <PaymentDetails credentials={credentials} setNext={()=> setCurrent(3)} />
             </div>
+          </div>
+        )}
+        {current === 3 && (
+          <div className='p-8 mt-6 mb-24 rounded-xl bg-neutral-50 border shadow'>
+            You are done. Carry yourself and go to the Order Page
           </div>
         )}
       </div>
