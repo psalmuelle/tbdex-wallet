@@ -50,15 +50,15 @@ export default function Home() {
           Welcome to ChainWallet! Experience seamless access to on- and off-ramp
           exchanges and cutting-edge security.
         </p>
-        <div className='flex justify-center items-center mt-4 mb-2'>
+        <div className='flex justify-center items-center mt-4'>
           <Image
             src={"/onboard-pic.png"}
-            width={200}
-            height={200}
+            width={130}
+            height={130}
             alt='Access your wallet'
           />
         </div>
-        <div className='my-8'>
+        <div className='mb-8 mt-2'>
           <Form
             name='create account'
             layout='vertical'

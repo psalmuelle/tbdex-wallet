@@ -12,7 +12,7 @@ import { Layout, Menu } from "antd";
 import type { MenuProps } from "antd";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 const { Sider } = Layout;
@@ -42,8 +42,8 @@ const items: MenuItem[] = [
     icon: <SwapOutlined />,
   },
   {
-    key: "3",
-    label: <Link href={"/dashboard"}>Order</Link>,
+    key: "/dashboard/orders",
+    label: <Link href={"/dashboard/orders"}>Orders</Link>,
     icon: <DollarOutlined />,
   },
   {
