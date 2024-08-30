@@ -91,7 +91,29 @@ export default function PaymentDetails({
       //Create an Exchange and redirect to next step
       try {
         TbdexHttpClient.createExchange(rfq);
+
+        // Save Offering Details to DWN
+        const { record } = await web5.dwn.records.create({
+          data: {
+            offeringId: offering?.metadata.id,
+            pfiDID: offering?.metadata.from,
+            exchange: `${offering?.data.payin.currencyCode}/${offering?.data.payout.currencyCode}`,
+            payinAmount: swapForm.amount.toString(),
+            payout: "0",
+            date: new Date().toISOString(),
+            status: "pending",
+          },
+          message: {
+            schema: "Offerings",
+            tags: {
+              status: "pending",
+            },
+            dataFormat: "application/json",
+          },
+        });
         setNext();
+        console.log("Exchange created:", record);
+        return record;
       } catch (err) {
         console.log("Failed to create exchange:", err);
       }
