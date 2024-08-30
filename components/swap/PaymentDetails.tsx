@@ -19,11 +19,13 @@ const Form = withTheme(AntDTheme);
 
 interface PaymentDetailsProps {
   credentials: string[];
+  setRfqId: (rfqId: string) => void;
   setNext: () => void;
 }
 
 export default function PaymentDetails({
   credentials,
+  setRfqId,
   setNext,
 }: PaymentDetailsProps) {
   const offering = useOfferingDetails((state) => state.offering);
@@ -90,30 +92,21 @@ export default function PaymentDetails({
 
       //Create an Exchange and redirect to next step
       try {
-        TbdexHttpClient.createExchange(rfq);
+        await TbdexHttpClient.createExchange(rfq);
 
         // Save Offering Details to DWN
-        const { record } = await web5.dwn.records.create({
+        await web5.dwn.records.create({
           data: {
-            offeringId: offering?.metadata.id,
+            exchangeId: rfq.id,
             pfiDID: offering?.metadata.from,
-            exchange: `${offering?.data.payin.currencyCode}/${offering?.data.payout.currencyCode}`,
-            payinAmount: swapForm.amount.toString(),
-            payout: "0",
-            date: new Date().toISOString(),
-            status: "pending",
           },
           message: {
-            schema: "Offerings",
-            tags: {
-              status: "pending",
-            },
+            schema: "UserExchange",
             dataFormat: "application/json",
           },
         });
+        setRfqId(rfq.id);
         setNext();
-        console.log("Exchange created:", record);
-        return record;
       } catch (err) {
         console.log("Failed to create exchange:", err);
       }

@@ -24,6 +24,7 @@ export default function Swap() {
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
   const [credentials, setCredentials] = useState<string[]>([]);
   const setSwapForm = useSwapForm((state) => state.setSwapForm);
+  const [rfqId, setRfqId] = useState('')
   const router = useRouter();
 
   useEffect(() => {
@@ -123,6 +124,7 @@ export default function Swap() {
               <PaymentDetails
                 credentials={credentials}
                 setNext={() => setCurrent(3)}
+                setRfqId={(id: string)=> setRfqId(id)}
               />
             </div>
           </div>
@@ -145,7 +147,7 @@ export default function Swap() {
               </p>
               <div className='mx-auto my-8 w-full flex justify-center items-center'>
                 <Button
-                  onClick={() => router.push("/dashboard/orders")}
+                  onClick={() => router.push(`/dashboard/orders?id=${rfqId}`)}
                   type='primary'
                   size='large'
                   className='w-full max-w-xs'>
