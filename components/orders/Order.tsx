@@ -1,11 +1,14 @@
+import axiosInstance from "@/lib/axios";
 import {
+  FireFilled,
+  FireOutlined,
   FullscreenOutlined,
   RetweetOutlined,
   RightOutlined,
 } from "@ant-design/icons";
 import type { Message } from "@tbdex/http-client";
-import { Avatar, Badge, Button, Modal, Tag, Typography } from "antd";
-import { useState } from "react";
+import { Avatar, Badge, Button, Divider, Modal, Rate, Tag, Typography } from "antd";
+import { useEffect, useState } from "react";
 
 function formatTo12HourTime(dateTimeString: string) {
   const date = new Date(dateTimeString);
@@ -29,6 +32,7 @@ const { Paragraph } = Typography;
 
 export default function Order({ order, date }: OrderProps) {
   const [open, setOpen] = useState(false);
+  const [pfiName, setPfiName] = useState("");
   const statusColor: { [key: string]: string } = {
     success: "green",
     pending: "yellow",
@@ -43,6 +47,17 @@ export default function Order({ order, date }: OrderProps) {
     order[1].from.substring(order[1].from.length - 8);
 
   const status = "pending";
+
+  useEffect(() => {
+    axiosInstance
+      .get(`/api/pfis?pfiDid=${order[1].from}`)
+      .then((res) => {
+        setPfiName(res.data.pfi.name);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
   return (
     <>
       <div
@@ -110,13 +125,20 @@ export default function Order({ order, date }: OrderProps) {
           </div>
         }>
         <div className='my-4'>
-          <p className='font-medium'>From</p>
+          <p>PFI Name</p>
           <div className='flex items-center gap-2'>
             <Avatar
               size={"small"}
               src='https://api.dicebear.com/9.x/shapes/svg?seed=Sassy&backgroundColor=0a5b83,1c799f,69d2e7,f1f4dc,f88c49,b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&backgroundType=gradientLinear&shape2=ellipseFilled,line,polygonFilled,rectangleFilled,ellipse,polygon,rectangle'
               alt='avatar'
             />
+            <p>{pfiName}</p>
+          </div>
+        </div>
+
+        <div className='mb-4'>
+          <p>PFI Did</p>
+          <div className='flex items-center gap-2'>
             <Paragraph
               style={{ marginBottom: 0 }}
               copyable={{ text: order[1].from }}>
@@ -124,7 +146,64 @@ export default function Order({ order, date }: OrderProps) {
             </Paragraph>
           </div>
         </div>
-        <div className='flex justify-between items-center gap-4'></div>
+        <div className='flex justify-between items-center gap-4'>
+          <div>
+            <p>From</p>
+            <p className='font-medium'>
+              {orderData.payin.amount} {orderData.payin.currencyCode}
+            </p>
+          </div>
+
+          <Button
+            size='small'
+            icon={<RetweetOutlined rotate={90} shape='circle' />}
+          />
+
+          <div>
+            <p>To</p>
+            <p className='font-medium'>
+              {orderData.payout.amount} {orderData.payout.currencyCode}
+            </p>
+          </div>
+        </div>
+
+        <Divider style={{ margin: "20px 0" }} />
+
+        <div>
+          <p className='font-medium'>Transaction Details</p>
+          <div className='mt-2'>
+            <div className='flex justify-between items-center gap-4'>
+              <p>Status</p>
+              <Tag color='orange' icon={<FireOutlined />}>
+                Pending
+              </Tag>
+            </div>
+
+            <div className='flex justify-between items-center gap-4 my-2'>
+              <p>Rating</p>
+              <Rate disabled defaultValue={0}/>
+            </div>
+
+            <div className='flex justify-between items-center gap-4'>
+              <p>Timestamp</p>
+             <p className="font-medium">{order[1].createdAt}</p>
+            </div>
+
+            <div className='mt-4 mb-2'>
+              <p className="underline cursor-pointer">Payment</p>
+            </div>
+
+            <div className='flex justify-between items-center gap-4'>
+              <p>Amount To Pay</p>
+               <p className="font-medium">{orderData.payin.amount} {orderData.payin.currencyCode}</p>
+            </div>
+
+            <div className='flex justify-between items-center gap-4 my-2'>
+              <p>Transaction Fees</p>
+              <p className="font-medium">1% <span className="font-semibold">in BTC</span></p>
+            </div>
+          </div>
+        </div>
       </Modal>
     </>
   );
