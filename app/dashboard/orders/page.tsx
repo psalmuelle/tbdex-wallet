@@ -120,7 +120,9 @@ export default function Orders() {
               const year = date.getFullYear();
               return (
                 <div className='my-4' key={i}>
-                  <p className='font-semibold mx-4 mb-2'>{`${month} ${day}, ${year}`}</p>
+                  <p className='font-semibold mx-4 mb-2'>
+                    {`${month} ${day}, ${year}`}
+                  </p>
                   {orders
                     .sort(
                       (a, b) =>
@@ -134,7 +136,11 @@ export default function Orders() {
                           .split("T")[0] === val
                       ) {
                         return (
-                          <Order order={order} key={order[1].metadata.id} />
+                          <Order
+                            date={`${month.slice(0, 3)} ${day}, ${year}`}
+                            order={order}
+                            key={order[1].metadata.id}
+                          />
                         );
                       }
                     })}
