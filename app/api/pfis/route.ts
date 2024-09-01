@@ -2,8 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import clientPromise from "@/lib/mongodb";
 import { authOptions } from "../auth/[...nextauth]/route";
-import { PFI, Pair } from "@/lib/models";
-import { message } from "antd";
+import { PFI } from "@/lib/models";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
