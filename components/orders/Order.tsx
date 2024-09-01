@@ -7,7 +7,16 @@ import {
   RightOutlined,
 } from "@ant-design/icons";
 import type { Message } from "@tbdex/http-client";
-import { Avatar, Badge, Button, Divider, Modal, Rate, Tag, Typography } from "antd";
+import {
+  Avatar,
+  Badge,
+  Button,
+  Divider,
+  Modal,
+  Rate,
+  Tag,
+  Typography,
+} from "antd";
 import { useEffect, useState } from "react";
 
 function formatTo12HourTime(dateTimeString: string) {
@@ -33,6 +42,7 @@ const { Paragraph } = Typography;
 export default function Order({ order, date }: OrderProps) {
   const [open, setOpen] = useState(false);
   const [pfiName, setPfiName] = useState("");
+  const [status, setStatus] = useState("");
   const statusColor: { [key: string]: string } = {
     success: "green",
     pending: "yellow",
@@ -46,7 +56,7 @@ export default function Order({ order, date }: OrderProps) {
     "...." +
     order[1].from.substring(order[1].from.length - 8);
 
-  const status = "pending";
+  console.log(order);
 
   useEffect(() => {
     axiosInstance
@@ -57,6 +67,12 @@ export default function Order({ order, date }: OrderProps) {
       .catch((err) => {
         console.log(err);
       });
+
+    if (order[1].validNext.has("order")) {
+      setStatus("pending");
+    } else {
+      setStatus("success");
+    }
   }, []);
   return (
     <>
@@ -181,26 +197,47 @@ export default function Order({ order, date }: OrderProps) {
 
             <div className='flex justify-between items-center gap-4 my-2'>
               <p>Rating</p>
-              <Rate disabled defaultValue={0}/>
+              <Rate disabled defaultValue={0} />
             </div>
 
             <div className='flex justify-between items-center gap-4'>
               <p>Timestamp</p>
-             <p className="font-medium">{order[1].createdAt}</p>
+              <p className='font-medium'>{order[1].createdAt}</p>
             </div>
 
             <div className='mt-4 mb-2'>
-              <p className="underline cursor-pointer">Payment</p>
+              <p className='underline cursor-pointer'>Payment</p>
             </div>
 
             <div className='flex justify-between items-center gap-4'>
               <p>Amount To Pay</p>
-               <p className="font-medium">{orderData.payin.amount} {orderData.payin.currencyCode}</p>
+              <p className='font-medium'>
+                {orderData.payin.amount} {orderData.payin.currencyCode}
+              </p>
             </div>
 
             <div className='flex justify-between items-center gap-4 my-2'>
-              <p>Transaction Fees</p>
-              <p className="font-medium">1% <span className="font-semibold">in BTC</span></p>
+              <p>Transaction Fee</p>
+              <p className='font-medium'>
+                {Number(orderData.payin.amount) / 100}{" "}
+                {orderData.payin.currencyCode}{" "}
+                <span className='font-semibold'>in BTC</span>
+              </p>
+            </div>
+
+            {/*  The CTA */}
+
+            <div className='mt-12 mb-4 flex justify-between gap-4 items-center'>
+              {order[1].validNext.has("close") && (
+                <Button size='large' danger>
+                  Cancel Order
+                </Button>
+              )}
+              {order[1].validNext.has("order") && (
+                <Button size='large' type='primary' className='w-48'>
+                  Pay Now
+                </Button>
+              )}
             </div>
           </div>
         </div>
