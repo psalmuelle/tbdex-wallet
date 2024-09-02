@@ -124,10 +124,17 @@ export default function OrderInfo({
         console.log(err);
       });
 
-    if (order[1].validNext.has("order")) {
+    if (order[order.length - 1].kind === "quote") {
       setStatus("pending");
+    } else if (order[order.length - 1].kind === "close") {
+      const lastOrderMsg: any = order[order.length - 1].data;
+      if (lastOrderMsg.reason === "SUCCESS") {
+        setStatus("success");
+      } else {
+        setStatus("failed");
+      }
     } else {
-      setStatus("success");
+      setStatus("processing");
     }
   }, []);
   return (
