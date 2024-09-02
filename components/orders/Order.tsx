@@ -1,18 +1,24 @@
 import axiosInstance from "@/lib/axios";
 import {
-  FireFilled,
   FireOutlined,
   FullscreenOutlined,
   RetweetOutlined,
   RightOutlined,
 } from "@ant-design/icons";
-import type { Message } from "@tbdex/http-client";
+import {
+  Close,
+  Order,
+  TbdexHttpClient,
+  type Message,
+} from "@tbdex/http-client";
+import type { BearerDid } from "@web5/dids";
 import {
   Avatar,
   Badge,
   Button,
   Divider,
   Modal,
+  Popconfirm,
   Rate,
   Tag,
   Typography,
@@ -35,11 +41,12 @@ function formatTo12HourTime(dateTimeString: string) {
 type OrderProps = {
   order: Message[];
   date: string;
+  userDid: BearerDid;
 };
 
 const { Paragraph } = Typography;
 
-export default function Order({ order, date }: OrderProps) {
+export default function OrderInfo({ order, date, userDid }: OrderProps) {
   const [open, setOpen] = useState(false);
   const [pfiName, setPfiName] = useState("");
   const [status, setStatus] = useState("");
@@ -57,6 +64,41 @@ export default function Order({ order, date }: OrderProps) {
     order[1].from.substring(order[1].from.length - 8);
 
   console.log(order);
+
+  const handleOrder = async () => {
+    const tbdOrder = Order.create({
+      metadata: {
+        from: order[1].metadata.to,
+        to: order[1].metadata.from,
+        exchangeId: order[1].exchangeId,
+        protocol: "1.0",
+      },
+    });
+
+    await tbdOrder.sign(userDid);
+    await TbdexHttpClient.submitOrder(tbdOrder);
+
+    setOpen(false);
+  };
+
+  const handleCloseQuote = async () => {
+    const tbdOrder = Close.create({
+      metadata: {
+        from: order[1].metadata.to,
+        to: order[1].metadata.from,
+        exchangeId: order[1].exchangeId,
+        protocol: "1.0",
+      },
+      data: {
+        reason: "User requested to close the order",
+      },
+    });
+
+    await tbdOrder.sign(userDid);
+    await TbdexHttpClient.submitClose(tbdOrder);
+
+    setOpen(false);
+  };
 
   useEffect(() => {
     axiosInstance
@@ -89,7 +131,7 @@ export default function Order({ order, date }: OrderProps) {
           </div>
         </div>
         <div>
-          <Tag>{order[1].metadata.id}</Tag>
+          <Tag>{order[1].metadata.exchangeId}</Tag>
         </div>
         <div className='max-w-[185px] flex justify-center items-center gap-4'>
           <div className='w-fit flex gap-2.5 justify-center items-center'>
@@ -220,8 +262,7 @@ export default function Order({ order, date }: OrderProps) {
               <p>Transaction Fee</p>
               <p className='font-medium'>
                 {Number(orderData.payin.amount) / 100}{" "}
-                {orderData.payin.currencyCode}{" "}
-                <span className='font-semibold'>in BTC</span>
+                {orderData.payin.currencyCode} in BTC
               </p>
             </div>
 
@@ -229,12 +270,23 @@ export default function Order({ order, date }: OrderProps) {
 
             <div className='mt-12 mb-4 flex justify-between gap-4 items-center'>
               {order[1].validNext.has("close") && (
-                <Button size='large' danger>
-                  Cancel Order
-                </Button>
+                <Popconfirm
+                  title='Delete the task'
+                  description='Are you sure to cancel this order?'
+                  onConfirm={handleCloseQuote}
+                  okText='Yes'
+                  cancelText='No'>
+                  <Button size={"middle"} danger className='py-2'>
+                    Cancel Order
+                  </Button>
+                </Popconfirm>
               )}
               {order[1].validNext.has("order") && (
-                <Button size='large' type='primary' className='w-48'>
+                <Button
+                  size={"middle"}
+                  type='primary'
+                  className='w-48 py-2'
+                  onClick={handleOrder}>
                   Pay Now
                 </Button>
               )}

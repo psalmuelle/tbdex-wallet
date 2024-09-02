@@ -137,6 +137,7 @@ export default function Orders() {
                       ) {
                         return (
                           <Order
+                            userDid={userDid!}
                             date={`${month.slice(0, 3)} ${day}, ${year}`}
                             order={order}
                             key={order[1].metadata.id}
