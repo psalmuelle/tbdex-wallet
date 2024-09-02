@@ -5,7 +5,7 @@ import { NextResponse, NextRequest } from "next/server";
 export async function POST(req: NextRequest) {
   const reqBody = await req.json();
 
-  const { userDid, pfiDid, status, rating, review } = reqBody;
+  const { userDid, pfiDid, exchangeId, status, rating, review } = reqBody;
 
   try {
     const client = await clientPromise;
@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
     const newOrder = new Order({
       userDid,
       pfiDid,
+      exchangeId,
       status,
       rating,
       review,
@@ -49,10 +50,13 @@ export async function GET(req: NextRequest) {
 
     const url = new URL(req.url);
     const pfiDid = url.searchParams.get("pfiDid");
+    const exchangeId = url.searchParams.get('exchangeId');
     let orders;
 
     if (pfiDid) {
       orders = await db.collection("orders").find({ pfiDid: pfiDid }).toArray();
+    }else if(exchangeId){
+      orders = await db.collection("orders").findOne({ exchangeId: exchangeId})
     } else {
       orders = await db.collection("orders").find().toArray();
     }

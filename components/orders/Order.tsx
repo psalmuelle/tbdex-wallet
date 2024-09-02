@@ -1,5 +1,6 @@
 import axiosInstance from "@/lib/axios";
 import {
+  CheckCircleFilled,
   FireOutlined,
   FullscreenOutlined,
   RetweetOutlined,
@@ -25,6 +26,7 @@ import {
 } from "antd";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 function formatTo12HourTime(dateTimeString: string) {
   const date = new Date(dateTimeString);
@@ -57,6 +59,7 @@ export default function OrderInfo({
   const [open, setOpen] = useState(false);
   const [pfiName, setPfiName] = useState("");
   const [status, setStatus] = useState("");
+  const [orderRating, setOrderRating] = useState(0);
   const router = useRouter();
   const statusColor: { [key: string]: string } = {
     success: "green",
@@ -71,7 +74,6 @@ export default function OrderInfo({
     "...." +
     order[1].from.substring(order[1].from.length - 8);
 
-  console.log(order);
 
   const handleOrder = async () => {
     const tbdOrder = Order.create({
@@ -88,6 +90,21 @@ export default function OrderInfo({
 
     setOpen(false);
   };
+
+  //Create an order rating
+
+  // const createRating = () => {
+  //   axiosInstance
+  //     .post("/api/orders", {
+  //       userDid: userDid.uri,
+  //       pfiDid: order[1].from,
+  //       exchangeId: order[1].exchangeId,
+  //       status: "success",
+  //       rating: 4.5,
+  //       review: " Great Service",
+  //     })
+  //     .then((res) => console.log(res.data));
+  // };
 
   const handleCloseQuote = async () => {
     const tbdOrder = Close.create({
@@ -114,15 +131,7 @@ export default function OrderInfo({
       setOpen(true);
     }
 
-    axiosInstance
-      .get(`/api/pfis?pfiDid=${order[1].from}`)
-      .then((res) => {
-        setPfiName(res.data.pfi.name);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-
+    // Set Status of Order
     if (order[order.length - 1].kind === "quote") {
       setStatus("pending");
     } else if (order[order.length - 1].kind === "close") {
@@ -134,6 +143,27 @@ export default function OrderInfo({
       }
     } else {
       setStatus("processing");
+    }
+
+    // Get name of PFI
+    axiosInstance
+      .get(`/api/pfis?pfiDid=${order[1].from}`)
+      .then((res) => {
+        setPfiName(res.data.pfi.name);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    // Get Order Rating If Any
+    if (status !== "pending" && status !== "processing") {
+      axiosInstance
+        .get(`/api/orders?exchangeId=${order[1].exchangeId}`)
+        .then((res) => {
+          if (res.data.orders) {
+            setOrderRating(res.data.orders.rating);
+          }
+        });
     }
   }, []);
   return (
@@ -263,27 +293,46 @@ export default function OrderInfo({
             </div>
 
             <div className='flex justify-between items-center gap-4 my-2'>
-              <p>Rating</p>
-              <Rate className='text-base' allowHalf disabled defaultValue={0} />
+              <p>Message ID</p>
+              <p className='font-medium'>{order[order.length - 1].id}</p>
+            </div>
+
+            <div className='flex justify-between items-center gap-4 mb-2'>
+              <p>Exchange ID</p>
+              <p className='font-medium'>
+                {order[order.length - 1].exchangeId}
+              </p>
             </div>
 
             <div className='flex justify-between items-center gap-4'>
               <p>Timestamp</p>
-              <p className='font-medium'>{order[1].createdAt}</p>
+              <p className='font-medium'>{order[order.length - 1].createdAt}</p>
             </div>
 
-            <div className='mt-4 mb-2'>
+            {status === "success" && (
+              <div className='flex justify-between items-center gap-4 mt-2'>
+                <p>Rating</p>
+                <Rate
+                  className='text-base'
+                  allowHalf
+                  disabled
+                  defaultValue={orderRating}
+                />
+              </div>
+            )}
+
+            <div className='mt-4 my-2'>
               <p className='underline cursor-pointer'>Payment</p>
             </div>
 
             <div className='flex justify-between items-center gap-4'>
-              <p>Amount To Pay</p>
+              <p>Payin Amount</p>
               <p className='font-medium'>
                 {orderData.payin.amount} {orderData.payin.currencyCode}
               </p>
             </div>
 
-            <div className='flex justify-between items-center gap-4 my-2'>
+            <div className='flex justify-between items-center gap-4 mt-2 mb-12'>
               <p>Transaction Fee</p>
               <p className='font-medium'>
                 {Number(orderData.payin.amount) / 100}{" "}
@@ -291,31 +340,58 @@ export default function OrderInfo({
               </p>
             </div>
 
-            {/*  The CTA */}
+            {/* The CTA */}
 
-            <div className='mt-12 mb-4 flex justify-between gap-4 items-center'>
-              {order[1].validNext.has("close") && (
-                <Popconfirm
-                  title='Delete the task'
-                  description='Are you sure to cancel this order?'
-                  onConfirm={handleCloseQuote}
-                  okText='Yes'
-                  cancelText='No'>
-                  <Button size={"middle"} danger className='py-2'>
-                    Cancel Order
+            {status === "pending" && (
+              <div className='mb-4 flex justify-between gap-4 items-center'>
+                {order[1].validNext.has("close") && (
+                  <Popconfirm
+                    title='Delete the task'
+                    description='Are you sure to cancel this order?'
+                    onConfirm={handleCloseQuote}
+                    okText='Yes'
+                    cancelText='No'>
+                    <Button size={"middle"} danger className='py-2'>
+                      Cancel Order
+                    </Button>
+                  </Popconfirm>
+                )}
+                {order[1].validNext.has("order") && (
+                  <Button
+                    size={"middle"}
+                    type='primary'
+                    className='w-48 py-2'
+                    onClick={handleOrder}>
+                    Pay Now
                   </Button>
-                </Popconfirm>
-              )}
-              {order[1].validNext.has("order") && (
+                )}
+              </div>
+            )}
+
+            {status === "processing" && (
+              <div className='mb-4 '>
+                <Button type="primary" loading className='py-2 w-full'>Processing</Button>
+              </div>
+            )}
+
+            {status === "success" && (
+              <div className='mb-4'>
                 <Button
-                  size={"middle"}
-                  type='primary'
-                  className='w-48 py-2'
-                  onClick={handleOrder}>
-                  Pay Now
+                  type='text'
+                  className='py-2 w-full bg-green-500 hover:bg-green-500 text-white'
+                  icon={<CheckCircleFilled />}>
+                  Success
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
+
+            {status !== "pending" && (
+              <Link
+                className='underline text-blue-500'
+                href={"/dashboard/messages"}>
+                Report a problem
+              </Link>
+            )}
           </div>
         </div>
       </Modal>

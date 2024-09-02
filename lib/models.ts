@@ -9,6 +9,9 @@ const OrderSchema = new Schema({
   pfiDid: {
     type: String,
   },
+  exchangeId: {
+    type: String,
+  },
   status: {
     type: String,
   },
