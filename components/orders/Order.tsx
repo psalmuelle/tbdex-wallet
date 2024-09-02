@@ -17,7 +17,12 @@ import {
   Avatar,
   Badge,
   Button,
+  Checkbox,
   Divider,
+  Form,
+  type FormProps,
+  Input,
+  message,
   Modal,
   Popconfirm,
   Rate,
@@ -27,6 +32,7 @@ import {
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 
 function formatTo12HourTime(dateTimeString: string) {
   const date = new Date(dateTimeString);
@@ -50,6 +56,11 @@ type OrderProps = {
 
 const { Paragraph } = Typography;
 
+type FieldType = {
+  password: string;
+  agree: boolean;
+};
+
 export default function OrderInfo({
   order,
   date,
@@ -60,6 +71,10 @@ export default function OrderInfo({
   const [pfiName, setPfiName] = useState("");
   const [status, setStatus] = useState("");
   const [orderRating, setOrderRating] = useState(0);
+  const [messageApi, contextHolder] = message.useMessage();
+  const [confirmOrder, setConfirmOrder] = useState(false);
+  const [isConfirmLoading, setIsConfirmLoading] = useState(false);
+  const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
   const router = useRouter();
   const statusColor: { [key: string]: string } = {
     success: "green",
@@ -74,21 +89,27 @@ export default function OrderInfo({
     "...." +
     order[1].from.substring(order[1].from.length - 8);
 
+  const handleOrder: FormProps<FieldType>["onFinish"] = async (e) => {
+    if (e.password === sessionKey) {
+      setIsConfirmLoading(true);
+      const tbdOrder = Order.create({
+        metadata: {
+          from: order[1].metadata.to,
+          to: order[1].metadata.from,
+          exchangeId: order[1].exchangeId,
+          protocol: "1.0",
+        },
+      });
+      await tbdOrder.sign(userDid);
+      await TbdexHttpClient.submitOrder(tbdOrder);
 
-  const handleOrder = async () => {
-    const tbdOrder = Order.create({
-      metadata: {
-        from: order[1].metadata.to,
-        to: order[1].metadata.from,
-        exchangeId: order[1].exchangeId,
-        protocol: "1.0",
-      },
-    });
-
-    await tbdOrder.sign(userDid);
-    await TbdexHttpClient.submitOrder(tbdOrder);
-
-    setOpen(false);
+      if (searchParamsId === order[1].exchangeId) {
+        router.replace("/dashboard/orders");
+      }
+      setOpen(false);
+    } else {
+      messageApi.error("Password is incorrect");
+    }
   };
 
   //Create an order rating
@@ -171,6 +192,7 @@ export default function OrderInfo({
       <div
         onClick={() => setOpen(true)}
         className='flex justify-between items-center py-2 px-4 border-y cursor-pointer transition-transform transform hover:scale-[1.005] hover:bg-neutral-50'>
+        {contextHolder}
         <div className='w-fit flex gap-2.5 justify-center items-center'>
           <Badge dot color={statusColor[status]}>
             <Avatar icon={<RetweetOutlined rotate={90} />} />
@@ -223,9 +245,6 @@ export default function OrderInfo({
         open={open}
         onCancel={() => {
           setOpen(false);
-          if (searchParamsId === order[1].exchangeId) {
-            router.replace("/dashboard/orders");
-          }
         }}
         footer={null}
         className='max-w-md'
@@ -361,16 +380,75 @@ export default function OrderInfo({
                     size={"middle"}
                     type='primary'
                     className='w-48 py-2'
-                    onClick={handleOrder}>
+                    onClick={() => {
+                      setConfirmOrder(true);
+                    }}>
                     Pay Now
                   </Button>
                 )}
+                <Modal
+                  className='max-w-sm'
+                  styles={{ mask: { backgroundColor: "grey", opacity: 0.95 } }}
+                  footer={null}
+                  destroyOnClose
+                  open={confirmOrder}
+                  onCancel={() => setConfirmOrder(false)}
+                  title={
+                    <p className='pr-12'>
+                      You are about to pay {orderData.payin.amount} in{" "}
+                      {orderData.payin.currencyCode} to {pfiName}.
+                    </p>
+                  }>
+                  <p className='mt-4'>
+                    Transaction fee will be deducted from your Bitcoin wallet.
+                    1% of your payin amount will be deducted in BTC.
+                    <br /> By clicking on the `Confirm Payment` button, you
+                    agree to the deduction.
+                  </p>
+                  <Form
+                    name='confirmPayment'
+                    className='mt-4'
+                    layout={"vertical"}
+                    onFinish={handleOrder}>
+                    <Form.Item<FieldType>
+                      name={"password"}
+                      rules={[
+                        {
+                          required: true,
+                          message: "",
+                        },
+                      ]}
+                      label={"Password"}>
+                      <Input.Password placeholder='Enter your password' />
+                    </Form.Item>
+
+                    <Form.Item<FieldType>
+                      name={"agree"}
+                      valuePropName='checked'>
+                      <Checkbox required className='text-gray-700 underline'>
+                        I agree to terms and conditions
+                      </Checkbox>
+                    </Form.Item>
+
+                    <Form.Item>
+                      <Button
+                        loading={isConfirmLoading}
+                        className='w-full'
+                        type='primary'
+                        htmlType='submit'>
+                        Confirm Payment
+                      </Button>
+                    </Form.Item>
+                  </Form>
+                </Modal>
               </div>
             )}
 
             {status === "processing" && (
               <div className='mb-4 '>
-                <Button type="primary" loading className='py-2 w-full'>Processing</Button>
+                <Button type='primary' loading className='py-2 w-full'>
+                  Processing
+                </Button>
               </div>
             )}
 
