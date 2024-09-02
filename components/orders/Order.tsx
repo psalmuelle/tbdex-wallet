@@ -60,7 +60,7 @@ export default function OrderInfo({
   const router = useRouter();
   const statusColor: { [key: string]: string } = {
     success: "green",
-    pending: "yellow",
+    pending: "orange",
     processing: "blue",
     failed: "red",
   };
@@ -110,7 +110,6 @@ export default function OrderInfo({
 
   useEffect(() => {
     //use SearchparamsId to get open Modal
-
     if (searchParamsId === order[1].exchangeId) {
       setOpen(true);
     }
@@ -258,14 +257,14 @@ export default function OrderInfo({
           <div className='mt-2'>
             <div className='flex justify-between items-center gap-4'>
               <p>Status</p>
-              <Tag color='orange' icon={<FireOutlined />}>
-                Pending
+              <Tag color={statusColor[status]} icon={<FireOutlined />}>
+                {status}
               </Tag>
             </div>
 
             <div className='flex justify-between items-center gap-4 my-2'>
               <p>Rating</p>
-              <Rate disabled defaultValue={0} />
+              <Rate className='text-base' allowHalf disabled defaultValue={0} />
             </div>
 
             <div className='flex justify-between items-center gap-4'>
