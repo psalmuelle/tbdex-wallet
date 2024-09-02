@@ -8,6 +8,7 @@ import { Web5PlatformAgent } from "@web5/agent";
 import { Message, TbdexHttpClient } from "@tbdex/http-client";
 import { BearerDid } from "@web5/dids";
 import axiosInstance from "@/lib/axios";
+import { useSearchParams } from "next/navigation";
 
 const { Content } = Layout;
 
@@ -18,8 +19,15 @@ export default function Orders() {
   const [userDid, setUserDid] = useState<BearerDid>();
   const [isOrderLoading, setIsOrderLoading] = useState(false);
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
+  const [searchParamsId, setSearchParamsId] = useState<string>("");
+  const searchParams = useSearchParams();
 
   useEffect(() => {
+    const id = searchParams.get("id");
+
+    if (id) {
+      setSearchParamsId(id);
+    }
     async function getQuotes() {
       try {
         setIsOrderLoading(true);
@@ -137,6 +145,7 @@ export default function Orders() {
                       ) {
                         return (
                           <Order
+                            searchParamsId={searchParamsId}
                             userDid={userDid!}
                             date={`${month.slice(0, 3)} ${day}, ${year}`}
                             order={order}

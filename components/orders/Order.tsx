@@ -24,6 +24,7 @@ import {
   Typography,
 } from "antd";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 function formatTo12HourTime(dateTimeString: string) {
   const date = new Date(dateTimeString);
@@ -42,14 +43,21 @@ type OrderProps = {
   order: Message[];
   date: string;
   userDid: BearerDid;
+  searchParamsId: string;
 };
 
 const { Paragraph } = Typography;
 
-export default function OrderInfo({ order, date, userDid }: OrderProps) {
+export default function OrderInfo({
+  order,
+  date,
+  userDid,
+  searchParamsId,
+}: OrderProps) {
   const [open, setOpen] = useState(false);
   const [pfiName, setPfiName] = useState("");
   const [status, setStatus] = useState("");
+  const router = useRouter();
   const statusColor: { [key: string]: string } = {
     success: "green",
     pending: "yellow",
@@ -101,6 +109,12 @@ export default function OrderInfo({ order, date, userDid }: OrderProps) {
   };
 
   useEffect(() => {
+    //use SearchparamsId to get open Modal
+
+    if (searchParamsId === order[1].exchangeId) {
+      setOpen(true);
+    }
+
     axiosInstance
       .get(`/api/pfis?pfiDid=${order[1].from}`)
       .then((res) => {
@@ -171,7 +185,12 @@ export default function OrderInfo({ order, date, userDid }: OrderProps) {
       <Modal
         destroyOnClose
         open={open}
-        onCancel={() => setOpen(false)}
+        onCancel={() => {
+          setOpen(false);
+          if (searchParamsId === order[1].exchangeId) {
+            router.replace("/dashboard/orders");
+          }
+        }}
         footer={null}
         className='max-w-md'
         title={

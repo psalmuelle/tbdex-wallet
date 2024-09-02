@@ -12,7 +12,7 @@ import { Layout, Menu } from "antd";
 import type { MenuProps } from "antd";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 
 const { Sider } = Layout;
