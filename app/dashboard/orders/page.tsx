@@ -9,102 +9,115 @@ import { Message, TbdexHttpClient } from "@tbdex/http-client";
 import { BearerDid } from "@web5/dids";
 import axiosInstance from "@/lib/axios";
 import { useSearchParams } from "next/navigation";
+import { SyncOutlined } from "@ant-design/icons";
+import type { Web5 } from "@web5/api";
 
 const { Content } = Layout;
 
 export default function Orders() {
   const [orders, setOrders] = useState<Message[][]>([]);
   const [orderDates, setOrderDates] = useState<Set<string>>();
-  const [polledOrders, setPolledOrders] = useState();
   const [userDid, setUserDid] = useState<BearerDid>();
+  const [web5, setWeb5] = useState<Web5>();
+  const [reload, setReload] = useState(false);
+  const [pfis, setPfis] = useState([]);
   const [isOrderLoading, setIsOrderLoading] = useState(false);
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
   const [searchParamsId, setSearchParamsId] = useState<string>("");
   const searchParams = useSearchParams();
 
-  useEffect(() => {
-    const id = searchParams.get("id");
+  const handleReloadClick = () => {
+    setReload(!reload);
+  };
 
+  useEffect(() => {
+    // Get search Params from URI
+    const id = searchParams.get("id");
     if (id) {
       setSearchParamsId(id);
     }
+
+    async function initweb5() {
+      // Initialize web5
+      const { web5, userDID } = await initWeb5({ password: sessionKey });
+      const userAgent = web5.agent as Web5PlatformAgent;
+      const identities = await userAgent.identity.list();
+
+      setUserDid(identities[0].did);
+      setWeb5(web5);
+
+      // Get Pfi Info From Backend
+      await axiosInstance.get("/api/pfis").then((res) => {
+        setPfis(res.data.pfi);
+      });
+    }
+    initweb5();
+  }, []);
+
+  useEffect(() => {
     async function getQuotes() {
       try {
         setIsOrderLoading(true);
 
-        // Initialize web5
-        const { web5, userDID } = await initWeb5({ password: sessionKey });
-        const userAgent = web5.agent as Web5PlatformAgent;
-        const identities = await userAgent.identity.list();
+        // Get all Exchange data
+        const allExchanges: Message[][] = [];
+        if (userDid && web5) {
+          const { records } = await web5.dwn.records.query({
+            message: {
+              filter: {
+                schema: "UserExchange",
+                dataFormat: "application/json",
+              },
+            },
+          });
 
-        setUserDid(identities[0].did);
-
-        // Get Dids of Pfis from backend
-        await axiosInstance
-          .get("/api/pfis")
-          .then(async (res) => {
-            if (res.data.pfi.length === 0) {
-              setIsOrderLoading(false);
-              return;
-            }
-
-            // Get all Exchange data
-            const allExchanges: Message[][] = [];
-            for (const pfi of res.data.pfi) {
-              const exchanges = await TbdexHttpClient.getExchanges({
-                pfiDid: pfi.did,
-                did: identities[0].did,
+          for (const record of records ?? []) {
+            await record.data.json().then(async (res) => {
+              const exchange = await TbdexHttpClient.getExchange({
+                exchangeId: res.exchangeId,
+                pfiDid: res.pfiDID,
+                did: userDid,
               });
 
-              if (exchanges.length > 0) {
-                allExchanges.push(...exchanges);
-              }
-            }
-
-            // Get the Dates Exchanges were carried out
-            const orderDates = new Set<string>();
-            allExchanges.map((order) => {
-              const orderDate = order[1].metadata.createdAt;
-              const date = new Date(orderDate);
-              const formattedDate = date.toISOString().split("T")[0];
-              setOrderDates(() => orderDates.add(formattedDate));
+              allExchanges.push(exchange);
             });
+          }
 
-            //Set orders
-            setOrders(() => [...allExchanges]);
-            setIsOrderLoading(false);
-          })
-          .catch((err) => {
-            console.log("An error occured", err);
+          // Get the Dates Exchanges were carried out
+          const orderDates = new Set<string>();
+          allExchanges.map((order) => {
+            const orderDate = order[1].metadata.createdAt;
+            const date = new Date(orderDate);
+            const formattedDate = date.toISOString().split("T")[0];
+            setOrderDates(() => orderDates.add(formattedDate));
           });
+
+          //Set orders
+          setOrders(() => [...allExchanges]);
+          setIsOrderLoading(false);
+        }
       } catch (err) {
         console.log(err);
       }
     }
 
     getQuotes();
-  }, []);
-
-  // useEffect(() => {
-  //   // Get Exchanges from Tbdex
-  //   const getExchanges = async () => {
-  //     try {
-  //       console.log("Successful Indeed");
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   };
-
-  //   const intervalId = setInterval(getExchanges, 5000);
-
-  //   return () => clearInterval(intervalId);
-  // }, []);
+  }, [userDid, reload]);
 
   return (
     <Content className='mt-8 mx-4'>
-      <h1 className='text-base font-bold mb-4'>Orders</h1>
+      <div className='flex justify-between gap-4 items-center'>
+        <h1 className='text-base font-bold mb-4'>Orders</h1>
+        <Button
+          className='md:mr-8'
+          onClick={handleReloadClick}
+          shape={"circle"}
+          icon={<SyncOutlined spin={isOrderLoading} />}
+        />
+      </div>
       <div className='mt-12 bg-white py-4 rounded-xl'>
         {orderDates &&
+          !isOrderLoading &&
           Array.from(orderDates)
             .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
             .map((val, i) => {
@@ -145,10 +158,12 @@ export default function Orders() {
                       ) {
                         return (
                           <Order
+                            pfis={pfis}
                             searchParamsId={searchParamsId}
                             userDid={userDid!}
                             date={`${month.slice(0, 3)} ${day}, ${year}`}
                             order={order}
+                            setReload={() => setReload(true)}
                             key={order[1].metadata.id}
                           />
                         );

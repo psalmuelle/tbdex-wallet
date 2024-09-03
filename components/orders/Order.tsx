@@ -52,6 +52,8 @@ type OrderProps = {
   order: Message[];
   date: string;
   userDid: BearerDid;
+  setReload: () => void;
+  pfis: any;
   searchParamsId: string;
 };
 
@@ -70,6 +72,8 @@ export default function OrderInfo({
   date,
   userDid,
   searchParamsId,
+  pfis,
+  setReload,
 }: OrderProps) {
   const [open, setOpen] = useState(false);
   const [pfiName, setPfiName] = useState("");
@@ -134,6 +138,7 @@ export default function OrderInfo({
       .then(() => {
         setRatingModalLoading(false);
         setShowRatingModal(false);
+        messageApi.success("Rating submitted successfully");
       })
       .catch(() => {
         setRatingModalLoading(false);
@@ -158,11 +163,16 @@ export default function OrderInfo({
     await TbdexHttpClient.submitClose(tbdOrder);
 
     setOpen(false);
+    setReload();
   };
 
   useEffect(() => {
-    //use SearchparamsId to get open Modal
-    if (searchParamsId === order[1].exchangeId) {
+    
+    // Use SearchparamsId to get open Modal
+    if (
+      searchParamsId === order[1].exchangeId &&
+      order[order.length - 1].kind === "quote"
+    ) {
       setOpen(true);
     }
 
@@ -181,30 +191,27 @@ export default function OrderInfo({
     }
 
     // Get name of PFI
-    axiosInstance
-      .get(`/api/pfis?pfiDid=${order[1].from}`)
-      .then((res) => {
-        setPfiName(res.data.pfi.name);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+
+    pfis.map((pfi: { did: string; name: string }) => {
+      if (pfi.did === order[1].from) {
+        setPfiName(pfi.name);
+      }
+    });
 
     // Get Order Rating If Any
-    if (
-      status !== "pending" &&
-      status !== "processing" &&
-      status !== "failed"
-    ) {
-      axiosInstance
-        .get(`/api/orders?exchangeId=${order[1].exchangeId}`)
-        .then((res) => {
-          if (res.data.orders) {
-            setOrderRating(res.data.orders.rating);
-          } else {
-            setShowRatingModal(true);
-          }
-        });
+    if (order[order.length - 1].kind === "close") {
+      const lastOrderMsg: any = order[order.length - 1].data;
+      if (lastOrderMsg.reason === "SUCCESS") {
+        axiosInstance
+          .get(`/api/orders?exchangeId=${order[1].exchangeId}`)
+          .then((res) => {
+            if (res.data.orders) {
+              setOrderRating(res.data.orders.rating);
+            } else {
+              setShowRatingModal(true);
+            }
+          });
+      }
     }
   }, []);
   return (
