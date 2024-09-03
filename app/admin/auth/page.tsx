@@ -29,7 +29,7 @@ export default function Auth() {
 
         <div className='flex justify-center items-center mt-4 mb-2'>
           <Image
-            src={"/onboard-pic.png"}
+            src={"/3d-picture.png"}
             width={200}
             height={200}
             alt='Access your wallet'

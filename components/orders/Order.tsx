@@ -33,6 +33,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
+import Image from "next/image";
 
 function formatTo12HourTime(dateTimeString: string) {
   const date = new Date(dateTimeString);
@@ -60,7 +61,10 @@ type FieldType = {
   password: string;
   agree: boolean;
 };
-
+type RateFieldType = {
+  rating: number;
+  review: string;
+};
 export default function OrderInfo({
   order,
   date,
@@ -72,6 +76,8 @@ export default function OrderInfo({
   const [status, setStatus] = useState("");
   const [orderRating, setOrderRating] = useState(0);
   const [messageApi, contextHolder] = message.useMessage();
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [ratingModalLoading, setRatingModalLoading] = useState(false);
   const [confirmOrder, setConfirmOrder] = useState(false);
   const [isConfirmLoading, setIsConfirmLoading] = useState(false);
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
@@ -114,18 +120,26 @@ export default function OrderInfo({
 
   //Create an order rating
 
-  // const createRating = () => {
-  //   axiosInstance
-  //     .post("/api/orders", {
-  //       userDid: userDid.uri,
-  //       pfiDid: order[1].from,
-  //       exchangeId: order[1].exchangeId,
-  //       status: "success",
-  //       rating: 4.5,
-  //       review: " Great Service",
-  //     })
-  //     .then((res) => console.log(res.data));
-  // };
+  const handleRating: FormProps<RateFieldType>["onFinish"] = async (e) => {
+    setRatingModalLoading(true);
+    await axiosInstance
+      .post("/api/orders", {
+        userDid: userDid.uri,
+        pfiDid: order[1].from,
+        exchangeId: order[1].exchangeId,
+        status: "success",
+        rating: e.rating,
+        review: e.review,
+      })
+      .then(() => {
+        setRatingModalLoading(false);
+        setShowRatingModal(false);
+      })
+      .catch(() => {
+        setRatingModalLoading(false);
+        messageApi.error("An error occured!");
+      });
+  };
 
   const handleCloseQuote = async () => {
     const tbdOrder = Close.create({
@@ -177,12 +191,18 @@ export default function OrderInfo({
       });
 
     // Get Order Rating If Any
-    if (status !== "pending" && status !== "processing") {
+    if (
+      status !== "pending" &&
+      status !== "processing" &&
+      status !== "failed"
+    ) {
       axiosInstance
         .get(`/api/orders?exchangeId=${order[1].exchangeId}`)
         .then((res) => {
           if (res.data.orders) {
             setOrderRating(res.data.orders.rating);
+          } else {
+            setShowRatingModal(true);
           }
         });
     }
@@ -472,6 +492,52 @@ export default function OrderInfo({
             )}
           </div>
         </div>
+      </Modal>
+
+      <Modal
+        footer={null}
+        width={350}
+        title={"Order Successful"}
+        open={showRatingModal}
+        onCancel={() => setShowRatingModal(false)}>
+        <div className='mt-6 w-fit mx-auto'>
+          <Image
+            src={"/order-successful.png"}
+            alt='order successful'
+            width={200}
+            height={150}
+          />
+        </div>
+        <p className='my-4 text-center'>
+          Your order has been successfully completed. Please rate your
+          experience with <span className='font-medium'>{pfiName}</span>.
+        </p>
+
+        <Form name={order[1].exchangeId} onFinish={handleRating}>
+          <Form.Item<RateFieldType>
+            label={"Rate"}
+            name={"rating"}
+            rules={[
+              {
+                required: true,
+                message: "",
+              },
+            ]}>
+            <Rate allowHalf />
+          </Form.Item>
+          <Form.Item<RateFieldType> name={"review"}>
+            <Input.TextArea placeholder='Write a review' />
+          </Form.Item>
+          <Form.Item>
+            <Button
+              loading={ratingModalLoading}
+              htmlType={"submit"}
+              type='primary'
+              className='w-full'>
+              Submit
+            </Button>
+          </Form.Item>
+        </Form>
       </Modal>
     </>
   );
