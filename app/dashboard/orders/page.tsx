@@ -61,7 +61,7 @@ export default function Orders() {
 
         // Get all Exchange data
         const allExchanges: Message[][] = [];
-        if (userDid && web5) {
+        if (userDid && web5 && orders.length === 0) {
           const { records } = await web5.dwn.records.query({
             message: {
               filter: {
@@ -94,6 +94,23 @@ export default function Orders() {
 
           //Set orders
           setOrders(() => [...allExchanges]);
+          setIsOrderLoading(false);
+        } else if (web5 && userDid && orders.length > 0) {
+          const updatedOrders = await Promise.all(
+            orders.map(async (order) => {
+              if (order[order.length - 1].kind === "close") {
+                return order;
+              } else {
+                const exchange = await TbdexHttpClient.getExchange({
+                  exchangeId: order[1].metadata.exchangeId,
+                  pfiDid: order[1].metadata.from,
+                  did: userDid,
+                });
+                return exchange;
+              }
+            })
+          );
+          setOrders(updatedOrders);
           setIsOrderLoading(false);
         }
       } catch (err) {
