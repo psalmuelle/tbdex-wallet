@@ -9,7 +9,6 @@ type initWebTypes = {
 export default async function initWeb5({ password }: initWebTypes) {
   const { web5, did: userDID } = await Web5.connect({
     password: password,
-    sync: '1s'
   });
   return {
     web5,

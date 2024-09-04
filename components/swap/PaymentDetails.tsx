@@ -95,7 +95,7 @@ export default function PaymentDetails({
         await TbdexHttpClient.createExchange(rfq);
 
         // Save Offering Details to DWN
-        await web5.dwn.records.create({
+        const { record } = await web5.dwn.records.create({
           data: {
             exchangeId: rfq.id,
             pfiDID: offering?.metadata.from,
@@ -105,6 +105,7 @@ export default function PaymentDetails({
             dataFormat: "application/json",
           },
         });
+        await record?.send(userDID);
         setRfqId(rfq.id);
         setNext();
       } catch (err) {
