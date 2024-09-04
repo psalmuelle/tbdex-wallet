@@ -2,15 +2,19 @@
 import { useEffect, useState } from "react";
 import { Button, Divider, Input, message, Modal, Spin, Typography } from "antd";
 import { CreateBitcoinWallet, CreateMnemonic } from "@/lib/web3/wallet.bitcoin";
+import { encryptData } from "@/lib/encrypt-info";
+import type { Web5 } from "@web5/api";
 import Image from "next/image";
 
 type CreateBTCAccoutProps = {
   open: boolean;
   closeModal: () => void;
+  web5: Web5;
 };
 
 export default function CreateBTCModal({
   open,
+  web5,
   closeModal,
 }: CreateBTCAccoutProps) {
   // 0 is create wallet, 1 is import wallet
@@ -49,12 +53,27 @@ export default function CreateBTCModal({
             passPhrase: passPhrase,
             network: "testnet",
           });
-          console.log(wallet);
-          setInterval(() => setLoading(false), 1000);
-          return wallet;
+
+          const selectedInfo = {
+            address: wallet.address,
+            privateKey: wallet.privateKey,
+          };
+          const stringifiedData = JSON.stringify(selectedInfo);
+          const encryptedWallet = encryptData({ data: stringifiedData });
+          const { record } = await web5.dwn.records.create({
+            data: {
+              wallet: encryptedWallet,
+            },
+            message: {
+              schema: "BtcAddress",
+              dataFormat: "application/json",
+            },
+          });
+          await record?.send();
+          setLoading(false);
         } catch (err) {
           messageApi.error("Error creating wallet");
-          setInterval(() => setLoading(false), 1000);
+          setLoading(false);
         }
       } else {
         return;

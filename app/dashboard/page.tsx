@@ -1,10 +1,9 @@
 "use client";
 
 import { Button, Layout, Skeleton } from "antd";
-import { CreateBitcoinWallet, CreateMnemonic } from "@/lib/web3/wallet.bitcoin";
 import { useEffect, useState } from "react";
 import initWeb5 from "@/lib/web5/web5";
-import { decryptAndRetrieveData, decryptData, encryptData } from "@/lib/encrypt-info";
+import { decryptAndRetrieveData, decryptData } from "@/lib/encrypt-info";
 import type { Web5 } from "@web5/api";
 import CreateBTCModal from "@/components/dashboard/CreateBTCAcct";
 import { getAddressFromDwn } from "@/lib/web3/getAddressFromDwn";
@@ -16,17 +15,22 @@ const { Content } = Layout;
 export default function Dashboard() {
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
   const [web5, setWeb5] = useState<Web5>();
+  const [wallet, setWallet] = useState<{
+    address: string;
+    privateKey: string;
+  }>();
   const [accountLoading, setAccountLoading] = useState(false);
-  const [balance, setBalance] = useState("");
+  const [balance, setBalance] = useState<string>();
   const [balanceVisible, setBalanceVisible] = useState(false);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    setAccountLoading(true);
     async function connectToWeb5() {
       const { web5: userWeb5 } = await initWeb5({ password: sessionKey });
       setWeb5(userWeb5);
     }
-   // connectToWeb5();
+    connectToWeb5();
   }, []);
 
   useEffect(() => {
@@ -34,13 +38,20 @@ export default function Dashboard() {
       if (web5) {
         try {
           const response = await getAddressFromDwn({ web5 });
+          const data = await response![0].data.json();
+          const decryptWalletInfo = decryptData({ data: data.wallet });
+          setWallet(JSON.parse(decryptWalletInfo));
         } catch (err) {
           console.log(err);
         }
+        setAccountLoading(false);
       }
     };
-    // fetchWalletFromDwn();
-  }, []);
+    fetchWalletFromDwn();
+  }, [web5]);
+
+  console.log(wallet);
+
   return (
     <Content className='mt-8 mx-4'>
       <h1 className='text-base font-bold mb-4'>Dashboard</h1>
@@ -57,7 +68,7 @@ export default function Dashboard() {
             />
           </div>
         )}
-        {balance.length > 0 && (
+        {wallet && (
           <div className='flex items-center gap-1.5 w-fit'>
             <div className='w-fit'>
               <p className='text-3xl font-bold'>
@@ -79,17 +90,21 @@ export default function Dashboard() {
             />
           </div>
         )}
-        {
+        {wallet === undefined && !accountLoading && (
           <Button type='primary' className='mt-2' onClick={() => setOpen(true)}>
             Create BTC Account
           </Button>
-        }
+        )}
       </div>
 
       <div>
         <DashboardTab />
       </div>
-      <CreateBTCModal open={open} closeModal={() => setOpen(false)} />
+      <CreateBTCModal
+        web5={web5!}
+        open={open}
+        closeModal={() => setOpen(false)}
+      />
     </Content>
   );
 }
