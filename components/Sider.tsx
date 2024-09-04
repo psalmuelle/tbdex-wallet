@@ -47,11 +47,6 @@ const items: MenuItem[] = [
     icon: <DollarOutlined />,
   },
   {
-    key: "5",
-    label: <Link href={"/dashboard"}>Transaction History</Link>,
-    icon: <HistoryOutlined />,
-  },
-  {
     key: "/dashboard/kcc",
     label: <Link href={"/dashboard/kcc"}>KCC</Link>,
     icon: <IdcardOutlined />,

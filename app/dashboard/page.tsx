@@ -1,15 +1,16 @@
 "use client";
 
-import { Button, Divider, Layout, Skeleton, Typography } from "antd";
+import { Button, Layout, Skeleton, Typography } from "antd";
 import { useEffect, useState } from "react";
 import initWeb5 from "@/lib/web5/web5";
 import { decryptAndRetrieveData, decryptData } from "@/lib/encrypt-info";
 import type { Web5 } from "@web5/api";
 import CreateBTCModal from "@/components/dashboard/CreateBTCAcct";
 import { getAddressFromDwn } from "@/lib/web3/getAddressFromDwn";
-import { EyeFilled, EyeInvisibleFilled, SendOutlined } from "@ant-design/icons";
+import { EyeFilled, EyeInvisibleFilled } from "@ant-design/icons";
 import DashboardTab from "@/components/dashboard/DashboardTab";
 import QuickAction from "@/components/dashboard/QuickActions";
+import { useRouter } from "next/navigation";
 
 const { Content } = Layout;
 
@@ -20,6 +21,7 @@ export default function Dashboard() {
     address: string;
     privateKey: string;
   }>();
+  const router = useRouter();
   const [accountLoading, setAccountLoading] = useState(false);
   const [balance, setBalance] = useState<string>();
   const [balanceVisible, setBalanceVisible] = useState(true);
@@ -130,13 +132,17 @@ export default function Dashboard() {
             title='Swap'
             description='Swap between crypto, fiat, and forex seamlessly for onramp, offramp transactions.'
             imageSrc='/bill.svg'
-            onClick={() => {}}
+            onClick={() => {
+              router.push("/dashboard/swap");
+            }}
           />
           <QuickAction
             title='Orders'
             description='View your complete history of onramp, offramp, and transaction orders.'
             imageSrc='/receipt.svg'
-            onClick={() => {}}
+            onClick={() => {
+              router.push("/dashboard/orders");
+            }}
           />
         </div>
       </div>

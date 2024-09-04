@@ -15,7 +15,7 @@ export default function QuickAction({
 }: QuickActionProps) {
   return (
     <div
-      className='max-w-[300px] min-h-[190px] border rounded-xl p-4 pb-6'
+      className='max-w-[300px] min-h-[190px] border rounded-xl p-4 pb-6 cursor-pointer'
       onClick={onClick}>
       <Image
         src={imageSrc}
