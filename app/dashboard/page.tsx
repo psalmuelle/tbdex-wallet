@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Layout, Skeleton } from "antd";
+import { Button, Divider, Layout, Skeleton, Typography } from "antd";
 import { useEffect, useState } from "react";
 import initWeb5 from "@/lib/web5/web5";
 import { decryptAndRetrieveData, decryptData } from "@/lib/encrypt-info";
@@ -21,8 +21,13 @@ export default function Dashboard() {
   }>();
   const [accountLoading, setAccountLoading] = useState(false);
   const [balance, setBalance] = useState<string>();
-  const [balanceVisible, setBalanceVisible] = useState(false);
+  const [balanceVisible, setBalanceVisible] = useState(true);
   const [open, setOpen] = useState(false);
+
+  const walletAddress =
+    wallet?.address.substring(0, 6) +
+    "...." +
+    wallet?.address.substring(wallet.address.length - 6);
 
   useEffect(() => {
     setAccountLoading(true);
@@ -50,8 +55,6 @@ export default function Dashboard() {
     fetchWalletFromDwn();
   }, [web5]);
 
-  console.log(wallet);
-
   return (
     <Content className='mt-8 mx-4'>
       <h1 className='text-base font-bold mb-4'>Dashboard</h1>
@@ -69,26 +72,37 @@ export default function Dashboard() {
           </div>
         )}
         {wallet && (
-          <div className='flex items-center gap-1.5 w-fit'>
-            <div className='w-fit'>
-              <p className='text-3xl font-bold'>
-                {balanceVisible ? `${"$100.32"}` : "******"}
-              </p>
+          <>
+            <div className='flex items-center gap-1.5 w-fit'>
+              <div className='w-fit'>
+                <p className='text-3xl font-bold max-sm:text-xl'>
+                  {balanceVisible ? `${"$100.32"}` : "******"}
+                </p>
+              </div>
+
+              <Button
+                type='text'
+                className='mt-1'
+                onClick={() => setBalanceVisible(!balanceVisible)}
+                icon={
+                  balanceVisible ? (
+                    <EyeInvisibleFilled className='text-4xl' />
+                  ) : (
+                    <EyeFilled className='text-4xl' />
+                  )
+                }
+              />
             </div>
 
-            <Button
-              type='text'
-              className='mt-1'
-              onClick={() => setBalanceVisible(!balanceVisible)}
-              icon={
-                balanceVisible ? (
-                  <EyeInvisibleFilled className='text-4xl' />
-                ) : (
-                  <EyeFilled className='text-4xl' />
-                )
-              }
-            />
-          </div>
+            <div className='mt-4'>
+              <p className='text-sm text-gray-500 mb-2 pl-2'>Wallet Address</p>
+              <Typography.Text
+                copyable={{ text: wallet.address }}
+                className='bg-white rounded-xl px-2 py-1'>
+                {walletAddress}
+              </Typography.Text>
+            </div>
+          </>
         )}
         {wallet === undefined && !accountLoading && (
           <Button type='primary' className='mt-2' onClick={() => setOpen(true)}>
@@ -97,6 +111,7 @@ export default function Dashboard() {
         )}
       </div>
 
+      <Divider className='mt-12' />
       <div>
         <DashboardTab />
       </div>
