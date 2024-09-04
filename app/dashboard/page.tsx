@@ -7,8 +7,9 @@ import { decryptAndRetrieveData, decryptData } from "@/lib/encrypt-info";
 import type { Web5 } from "@web5/api";
 import CreateBTCModal from "@/components/dashboard/CreateBTCAcct";
 import { getAddressFromDwn } from "@/lib/web3/getAddressFromDwn";
-import { EyeFilled, EyeInvisibleFilled } from "@ant-design/icons";
+import { EyeFilled, EyeInvisibleFilled, SendOutlined } from "@ant-design/icons";
 import DashboardTab from "@/components/dashboard/DashboardTab";
+import QuickAction from "@/components/dashboard/QuickActions";
 
 const { Content } = Layout;
 
@@ -23,6 +24,7 @@ export default function Dashboard() {
   const [balance, setBalance] = useState<string>();
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [open, setOpen] = useState(false);
+  const [reload, setReload] = useState(false);
 
   const walletAddress =
     wallet?.address.substring(0, 6) +
@@ -32,11 +34,15 @@ export default function Dashboard() {
   useEffect(() => {
     setAccountLoading(true);
     async function connectToWeb5() {
-      const { web5: userWeb5 } = await initWeb5({ password: sessionKey });
-      setWeb5(userWeb5);
+      try {
+        const { web5: userWeb5 } = await initWeb5({ password: sessionKey });
+        setWeb5(userWeb5);
+      } catch (err) {
+        console.log(err);
+      }
     }
     connectToWeb5();
-  }, []);
+  }, [reload]);
 
   useEffect(() => {
     const fetchWalletFromDwn = async () => {
@@ -57,7 +63,7 @@ export default function Dashboard() {
 
   return (
     <Content className='mt-8 mx-4'>
-      <h1 className='text-base font-bold mb-4'>Dashboard</h1>
+      <h1 className='text-base font-bold mb-4'>Hi, Welcome 👋</h1>
 
       <div>
         <h2 className='font-medium mb-4'>Decentralized Account</h2>
@@ -111,14 +117,39 @@ export default function Dashboard() {
         )}
       </div>
 
-      <Divider className='mt-12' />
+      <div className='bg-white rounded-xl p-6 mt-12'>
+        <h2 className='font-semibold mb-6'>Quick Actions</h2>
+        <div className='flex items-center gap-4'>
+          <QuickAction
+            title='Send Crypto'
+            description='Send crypto tokens instantly and securely to anyone, anywhere.'
+            imageSrc='/send.svg'
+            onClick={() => {}}
+          />
+          <QuickAction
+            title='Swap'
+            description='Swap between crypto, fiat, and forex seamlessly for onramp, offramp transactions.'
+            imageSrc='/bill.svg'
+            onClick={() => {}}
+          />
+          <QuickAction
+            title='Orders'
+            description='View your complete history of onramp, offramp, and transaction orders.'
+            imageSrc='/receipt.svg'
+            onClick={() => {}}
+          />
+        </div>
+      </div>
       <div>
         <DashboardTab />
       </div>
       <CreateBTCModal
         web5={web5!}
         open={open}
-        closeModal={() => setOpen(false)}
+        closeModal={() => {
+          setOpen(false);
+          setReload(!reload);
+        }}
       />
     </Content>
   );
