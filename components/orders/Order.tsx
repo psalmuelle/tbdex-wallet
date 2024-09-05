@@ -117,6 +117,7 @@ export default function OrderInfo({
         router.replace("/dashboard/orders");
       }
       setOpen(false);
+      setReload();
     } else {
       messageApi.error("Password is incorrect");
     }
@@ -167,7 +168,6 @@ export default function OrderInfo({
   };
 
   useEffect(() => {
-    
     // Use SearchparamsId to get open Modal
     if (
       searchParamsId === order[1].exchangeId &&

@@ -2,7 +2,6 @@
 
 import { fetchBitcoinInfo, fetchBitcoinTnx } from "@/lib/web3/tnx.bitcoin";
 import { Empty } from "antd";
-import axios from "axios";
 import { useEffect, useState } from "react";
 
 interface DashboardTabProps {
