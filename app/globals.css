@@ -2,16 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-*{
+* {
   padding: 0;
   margin: 0;
   box-sizing: border-box;
 }
 
 :root {
-  --primary-color: #9747FF;
-  --secondary-color: #FFCC0A;
-  --tetiary-color: #EBFFEC;
+  --primary-color: #9747ff;
+  --secondary-color: #ffcc0a;
+  --tetiary-color: #ebffec;
   --white-color: white;
   --dark-color: #333;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
 }

@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [wallet, setWallet] = useState<{
     address: string;
     privateKey: string;
+    xpub: string;
   }>();
   const router = useRouter();
   const [accountLoading, setAccountLoading] = useState(false);
@@ -121,7 +122,7 @@ export default function Dashboard() {
 
       <div className='bg-white rounded-xl p-6 mt-12'>
         <h2 className='font-semibold mb-6'>Quick Actions</h2>
-        <div className='flex items-center gap-4'>
+        <div className='flex items-center gap-4 bg-white w-full overflow-x-auto hide-scrollbar'>
           <QuickAction
             title='Send Crypto'
             description='Send crypto tokens instantly and securely to anyone, anywhere.'
@@ -146,8 +147,9 @@ export default function Dashboard() {
           />
         </div>
       </div>
+
       <div>
-        <DashboardTab />
+        <DashboardTab wallet={wallet!} />
       </div>
       <CreateBTCModal
         web5={web5!}

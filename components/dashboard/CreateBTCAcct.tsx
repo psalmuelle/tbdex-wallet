@@ -55,6 +55,7 @@ export default function CreateBTCModal({
           });
 
           const selectedInfo = {
+            xpub: wallet.xpub,
             address: wallet.address,
             privateKey: wallet.privateKey,
           };
