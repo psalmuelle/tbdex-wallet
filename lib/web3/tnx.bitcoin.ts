@@ -12,27 +12,31 @@ async function sendBitcoin() {
 }
 
 async function fetchBitcoinTnx({ address }: BitcoinTnxTypes) {
+  let data;
   try {
     await axios
       .get(`https://blockstream.info/testnet/api/address/${address}/txs`)
       .then((res) => {
-        console.log(res.data);
+        data = res.data;
       });
   } catch (err) {
     console.log(err);
   }
+  return data;
 }
 
 async function fetchBitcoinInfo({ address }: BitcoinTnxTypes) {
+  let data;
   try {
     await axios
       .get(`https://blockstream.info/testnet/api/address/${address}`)
       .then((res) => {
-        console.log(res.data);
+        data = res.data;
       });
   } catch (err) {
     console.log(err);
   }
+  return data;
 }
 
 export { fetchBitcoinTnx, fetchBitcoinInfo, sendBitcoin };

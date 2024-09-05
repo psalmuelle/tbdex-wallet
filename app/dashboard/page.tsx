@@ -11,6 +11,8 @@ import { EyeFilled, EyeInvisibleFilled } from "@ant-design/icons";
 import DashboardTab from "@/components/dashboard/DashboardTab";
 import QuickAction from "@/components/dashboard/QuickActions";
 import { useRouter } from "next/navigation";
+import { fetchBitcoinInfo } from "@/lib/web3/tnx.bitcoin";
+import Image from "next/image";
 
 const { Content } = Layout;
 
@@ -24,7 +26,7 @@ export default function Dashboard() {
   }>();
   const router = useRouter();
   const [accountLoading, setAccountLoading] = useState(false);
-  const [balance, setBalance] = useState<string>();
+  const [balance, setBalance] = useState<number>();
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [open, setOpen] = useState(false);
   const [reload, setReload] = useState(false);
@@ -54,13 +56,20 @@ export default function Dashboard() {
           const response = await getAddressFromDwn({ web5 });
           const data = await response![0].data.json();
           const decryptWalletInfo = decryptData({ data: data.wallet });
-          setWallet(JSON.parse(decryptWalletInfo));
+          const parsedWalletInfo = JSON.parse(decryptWalletInfo);
+          setWallet(parsedWalletInfo);
+          fetchBitcoinInfo({ address: parsedWalletInfo.address }).then(
+            (res: any) => {
+             res && setBalance(res.chain_stats.funded_txo_sum / 100000000);
+            }
+          );
         } catch (err) {
           console.log(err);
         }
         setAccountLoading(false);
       }
     };
+
     fetchWalletFromDwn();
   }, [web5]);
 
@@ -69,7 +78,10 @@ export default function Dashboard() {
       <h1 className='text-base font-bold mb-4'>Hi, Welcome 👋</h1>
 
       <div>
-        <h2 className='font-medium mb-4'>Decentralized Account</h2>
+        <div className="mb-4 flex items-center gap-2">
+        <Image alt="bitcoin" src="/btc.svg" width={38} height={38} />
+        <h2 className='font-medium'> Decentralized Account</h2>
+        </div>
         {accountLoading && (
           <div>
             <Skeleton.Button
@@ -84,8 +96,8 @@ export default function Dashboard() {
           <>
             <div className='flex items-center gap-1.5 w-fit'>
               <div className='w-fit'>
-                <p className='text-3xl font-bold max-sm:text-xl'>
-                  {balanceVisible ? `${"$100.32"}` : "******"}
+                <p className='text-2xl font-bold max-sm:text-xl'>
+                  {balanceVisible ? `${balance} BTC` : "******"}
                 </p>
               </div>
 
