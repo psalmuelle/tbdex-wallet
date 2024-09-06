@@ -88,6 +88,7 @@ export default function CreateBTCModal({
       open={open}
       onCancel={closeModal}
       footer={null}
+      maskClosable={false}
       title={"Create A BTC Wallet"}>
       <div className='my-8'>
         {steps === 0 && (

@@ -13,6 +13,8 @@ import QuickAction from "@/components/dashboard/QuickActions";
 import { useRouter } from "next/navigation";
 import { fetchBitcoinInfo, sendBitcoin } from "@/lib/web3/tnx.bitcoin";
 import Image from "next/image";
+import SendBtcModal from "@/components/dashboard/SendBtcModal";
+import axios from "axios";
 
 const { Content } = Layout;
 
@@ -27,9 +29,11 @@ export default function Dashboard() {
   const router = useRouter();
   const [accountLoading, setAccountLoading] = useState(false);
   const [balance, setBalance] = useState<number>();
+  const [balanceInUsd, setBalanceInUsd] = useState<number>();
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [open, setOpen] = useState(false);
   const [reload, setReload] = useState(false);
+  const [sendModalOpen, setSendModalOpen] = useState(false);
 
   const walletAddress =
     wallet?.address.substring(0, 6) +
@@ -59,8 +63,22 @@ export default function Dashboard() {
           const parsedWalletInfo = JSON.parse(decryptWalletInfo);
           setWallet(parsedWalletInfo);
           fetchBitcoinInfo({ address: parsedWalletInfo.address }).then(
-            (res: any) => {
-              res && setBalance(res.chain_stats.funded_txo_sum / 100000000);
+            async (res: any) => {
+              if (res) {
+                setBalance(res.chain_stats.funded_txo_sum / 100000000);
+
+                //Api to get the current price of btc
+                await axios
+                  .get(
+                    "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
+                  )
+                  .then((rate) => {
+                    setBalanceInUsd(
+                      (res.chain_stats.funded_txo_sum / 100000000) *
+                        rate.data.bitcoin.usd
+                    );
+                  });
+              }
             }
           );
         } catch (err) {
@@ -76,8 +94,8 @@ export default function Dashboard() {
   const handleSendBitcoin = async () => {
     try {
       await sendBitcoin({
-        receiverAddress: "my582nh4k72gTHQqfQ5EcFpY7EGcYezPG2",
-        amountToSend: 0.00005,
+        receiverAddress: "mfcCYZrefb66Fpd6byNDyDMWmCGYqT8DT7",
+        amountToSend: 0.00002,
         privateKey: wallet?.privateKey!,
         payerAddress: wallet?.address!,
       }).then((res: any) => {
@@ -109,11 +127,20 @@ export default function Dashboard() {
         )}
         {wallet && (
           <>
-            <div className='flex items-center gap-1.5 w-fit'>
+            <div className='flex gap-1.5 w-fit'>
               <div className='w-fit'>
-                <p className='text-2xl font-bold max-sm:text-xl'>
-                  {balanceVisible ? `${balance} BTC` : "******"}
-                </p>
+                {balance && (
+                  <>
+                    <h2 className='text-2xl font-bold max-sm:text-xl'>
+                      {balanceVisible ? `${balance} BTC` : "******"}
+                    </h2>
+                    <h3 className='text-base font-medium'>
+                      {balanceVisible && balanceInUsd
+                        ? `$${parseFloat(balanceInUsd.toFixed(2))}`
+                        : "******"}
+                    </h3>
+                  </>
+                )}
               </div>
 
               <Button
@@ -151,10 +178,10 @@ export default function Dashboard() {
         <h2 className='font-semibold mb-6'>Quick Actions</h2>
         <div className='flex items-center gap-4 bg-white w-full overflow-x-auto hide-scrollbar'>
           <QuickAction
-            title='Send Crypto'
-            description='Send crypto tokens instantly and securely to anyone, anywhere.'
+            title='Send Bitcoin'
+            description='Send btc tokens instantly and securely to anyone, anywhere.'
             imageSrc='/send.svg'
-            onClick={handleSendBitcoin}
+            onClick={() => setSendModalOpen(true)}
           />
           <QuickAction
             title='Swap'
@@ -185,6 +212,11 @@ export default function Dashboard() {
           setOpen(false);
           setReload(!reload);
         }}
+      />
+      <SendBtcModal
+        amountAvailable={balance!}
+        open={sendModalOpen}
+        setClose={() => setSendModalOpen(false)}
       />
     </Content>
   );
