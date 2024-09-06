@@ -11,7 +11,7 @@ import { EyeFilled, EyeInvisibleFilled } from "@ant-design/icons";
 import DashboardTab from "@/components/dashboard/DashboardTab";
 import QuickAction from "@/components/dashboard/QuickActions";
 import { useRouter } from "next/navigation";
-import { fetchBitcoinInfo, sendBitcoin } from "@/lib/web3/tnx.bitcoin";
+import { fetchBitcoinInfo } from "@/lib/web3/tnx.bitcoin";
 import Image from "next/image";
 import SendBtcModal from "@/components/dashboard/SendBtcModal";
 import axios from "axios";
@@ -91,20 +91,6 @@ export default function Dashboard() {
     fetchWalletFromDwn();
   }, [web5]);
 
-  const handleSendBitcoin = async () => {
-    try {
-      await sendBitcoin({
-        receiverAddress: "mfcCYZrefb66Fpd6byNDyDMWmCGYqT8DT7",
-        amountToSend: 0.00002,
-        privateKey: wallet?.privateKey!,
-        payerAddress: wallet?.address!,
-      }).then((res: any) => {
-        console.log(res);
-      });
-    } catch (err) {
-      console.log(err);
-    }
-  };
 
   return (
     <Content className='mt-8 mx-4'>
@@ -214,6 +200,7 @@ export default function Dashboard() {
         }}
       />
       <SendBtcModal
+        wallet={wallet!}
         amountAvailable={balance!}
         open={sendModalOpen}
         setClose={() => setSendModalOpen(false)}

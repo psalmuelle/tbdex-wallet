@@ -53,14 +53,16 @@ async function sendBitcoin({
     };
     const encryptedData = encryptData({ data });
 
-    axios
-      .post(`https://sendbitcoin-1.onrender.com/api/sendBtc`, {
+    const response = await axios.post(
+      `https://sendbitcoin-1.onrender.com/api/sendBtc`,
+      {
         data: encryptedData,
-      })
-      .then((res) => {
-        console.log(res);
-      });
-  } catch (err) {}
+      }
+    );
+    return response;
+  } catch (err) {
+    console.log(err);
+  }
 }
 
 export { fetchBitcoinTnx, fetchBitcoinInfo, sendBitcoin };
