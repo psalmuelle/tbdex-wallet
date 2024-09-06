@@ -2,18 +2,20 @@
 
 import { useState, useEffect } from "react";
 import type { RadioChangeEvent } from "antd";
-import { Divider, Radio, Spin } from "antd";
+import { Button, Divider, Radio, Spin } from "antd";
 import { useOfferingDetails } from "@/hooks/useSwap";
 import { withTheme } from "@rjsf/core";
 import { Theme as AntDTheme } from "@rjsf/antd";
 import validator from "@rjsf/validator-ajv8";
 import { CheckCircleFilled } from "@ant-design/icons";
 import { Rfq, TbdexHttpClient } from "@tbdex/http-client";
-import { decryptAndRetrieveData } from "@/lib/encrypt-info";
+import type { Web5 } from "@web5/api";
+import { decryptAndRetrieveData, decryptData } from "@/lib/encrypt-info";
 import { useSwapForm } from "@/hooks/useSwap";
 import { PresentationExchange } from "@web5/credentials";
 import initWeb5 from "@/lib/web5/web5";
 import { Web5PlatformAgent } from "@web5/agent";
+import { getAddressFromDwn } from "@/lib/web3/getAddressFromDwn";
 
 const Form = withTheme(AntDTheme);
 
@@ -42,8 +44,19 @@ export default function PaymentDetails({
     payout: {},
   });
   const [formComplete, setFormComplete] = useState(false);
+  const [web5, setWeb5] = useState<Web5>();
   const userDID: string = decryptAndRetrieveData({ name: "userDID" });
   const swapForm = useSwapForm((state) => state.swapForm);
+
+  useEffect(() => {
+    async function initialize() {
+      const { web5 } = await initWeb5({
+        password: decryptAndRetrieveData({ name: "sessionKey" }),
+      });
+      setWeb5(web5);
+    }
+    initialize();
+  }, []);
 
   useEffect(() => {
     //Select credentials based on the presentation definition
@@ -83,33 +96,34 @@ export default function PaymentDetails({
       }
 
       //Sign RFQ
-      const { web5 } = await initWeb5({
-        password: decryptAndRetrieveData({ name: "sessionKey" }),
-      });
-      const agent = web5.agent as Web5PlatformAgent;
-      const identities = await agent.identity.list();
-      await rfq.sign(identities[0].did);
+      if (web5) {
+        const agent = web5.agent as Web5PlatformAgent;
+        const identities = await agent.identity.list();
+        await rfq.sign(identities[0].did);
 
-      //Create an Exchange and redirect to next step
-      try {
-        await TbdexHttpClient.createExchange(rfq);
+        //Create an Exchange and redirect to next step
+        try {
+          await TbdexHttpClient.createExchange(rfq);
 
-        // Save Offering Details to DWN
-        const { record } = await web5.dwn.records.create({
-          data: {
-            exchangeId: rfq.id,
-            pfiDID: offering?.metadata.from,
-          },
-          message: {
-            schema: "UserExchange",
-            dataFormat: "application/json",
-          },
-        });
-        await record?.send(userDID);
-        setRfqId(rfq.id);
-        setNext();
-      } catch (err) {
-        console.log("Failed to create exchange:", err);
+          // Save Offering Details to DWN
+          const { record } = await web5.dwn.records.create({
+            data: {
+              exchangeId: rfq.id,
+              pfiDID: offering?.metadata.from,
+            },
+            message: {
+              schema: "UserExchange",
+              dataFormat: "application/json",
+            },
+          });
+          await record?.send(userDID);
+          setRfqId(rfq.id);
+          setNext();
+        } catch (err) {
+          console.log("Failed to create exchange:", err);
+        }
+      } else {
+        console.log("Failed to initialize web5");
       }
     }
 
@@ -146,6 +160,21 @@ export default function PaymentDetails({
       return kind.replace(/_/g, " ");
     }
   };
+
+  // Handle Swap to wallet address
+  const handleSwapToWallet = async () => {
+    // Swap to wallet address
+    await getAddressFromDwn({ web5: web5! }).then(async (records) => {
+      const data = await records![0].data.json();
+      const decryptWalletInfo = decryptData({ data: data.wallet });
+      const parsedWalletInfo = JSON.parse(decryptWalletInfo);
+      setPaymentApproved((prev) => ({ ...prev, payout: true }));
+      setPaymentDetails((prev) => ({
+        ...prev,
+        payout: { address: parsedWalletInfo.address },
+      }));
+    });
+  };
   return (
     <section>
       <Spin spinning={formComplete}>
@@ -166,6 +195,11 @@ export default function PaymentDetails({
                   </div>
                 ) : (
                   <Form
+                    children={
+                      <Button htmlType='submit' type='primary'>
+                        Submit
+                      </Button>
+                    }
                     className='max-w-md'
                     schema={
                       offering?.data.payin.methods[0].requiredPaymentDetails!
@@ -195,14 +229,29 @@ export default function PaymentDetails({
                     />
                   </div>
                 ) : (
-                  <Form
-                    className='max-w-md'
-                    schema={
-                      offering?.data.payout.methods[0].requiredPaymentDetails!
-                    }
-                    validator={validator}
-                    onSubmit={handlePayoutSubmit}
-                  />
+                  <>
+                    {offering?.data.payout.currencyCode === "BTC" && (
+                      <Button
+                        onClick={handleSwapToWallet}
+                        type='primary'
+                        className='mb-4 w-full'>
+                        Swap to your wallet address
+                      </Button>
+                    )}
+                    <Form
+                      children={
+                        <Button htmlType='submit' type='primary'>
+                          Submit
+                        </Button>
+                      }
+                      className='max-w-md'
+                      schema={
+                        offering?.data.payout.methods[0].requiredPaymentDetails!
+                      }
+                      validator={validator}
+                      onSubmit={handlePayoutSubmit}
+                    />
+                  </>
                 )}
               </div>
             )}
