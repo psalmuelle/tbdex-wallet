@@ -1,7 +1,6 @@
 "use client";
 
 import { fetchBitcoinTnx } from "@/lib/web3/tnx.bitcoin";
-import { SendOutlined } from "@ant-design/icons";
 import {
   Avatar,
   Empty,

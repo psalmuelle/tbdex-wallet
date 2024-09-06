@@ -1,10 +1,14 @@
 import axiosInstance from "@/lib/axios";
 import {
+  BlockOutlined,
   CheckCircleFilled,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
   FireOutlined,
   FullscreenOutlined,
   RetweetOutlined,
   RightOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
 import {
   Close,
@@ -216,57 +220,58 @@ export default function OrderInfo({
   }, []);
   return (
     <>
-      <div
-        onClick={() => setOpen(true)}
-        className='flex justify-between items-center py-2 px-4 border-y cursor-pointer transition-transform transform hover:scale-[1.005] hover:bg-neutral-50'>
+      <div className='flex justify-between items-center p-4 mx-4 mb-4 rounded-xl border cursor-pointer transition-transform transform hover:scale-[1.005]'>
         {contextHolder}
         <div className='w-fit flex gap-2.5 justify-center items-center'>
-          <Badge dot color={statusColor[status]}>
-            <Avatar icon={<RetweetOutlined rotate={90} />} />
-          </Badge>
+          <Avatar
+            className='bg-violet-700'
+            icon={<RetweetOutlined rotate={90} />}
+          />
           <div>
-            <p className='font-semibold'>Exchange</p>
-            <p>{formatTo12HourTime(order[1].metadata.createdAt)}</p>
+            <p className='font-semibold'>
+              {orderData.payin.currencyCode} 🔁 {orderData.payout.currencyCode}
+            </p>
+            <p className='text-xs font-medium'>
+              {formatTo12HourTime(order[1].metadata.createdAt)}
+            </p>
           </div>
         </div>
         <div className='max-lg:hidden'>
-          <Tag>{order[1].metadata.exchangeId}</Tag>
+          <Typography.Text
+            className='text-neutral-800'
+            copyable={{ text: order[1].metadata.exchangeId }}>
+            {order[1].metadata.exchangeId}
+          </Typography.Text>
         </div>
-        <div className='max-w-[185px] flex justify-center items-center gap-4'>
-          <div className='w-fit flex gap-2.5 justify-center items-center'>
-            <Avatar
-              size={"small"}
-              src={
-                "https://api.dicebear.com/9.x/thumbs/svg?seed=Molly&backgroundType=gradientLinear&shapeColor=0a5b83,1c799f,69d2e7,f1f4dc,f88c49,transparent"
-              }
-              alt='avatar'
-            />
-            <div>
-              <p className='font-medium'>{orderData.payin.amount}</p>
-              <p>{orderData.payin.currencyCode}</p>
-            </div>
-          </div>
-          <div className='max-sm:hidden'>
-            <RightOutlined />
-          </div>
-          <div className='w-fit flex gap-2.5 justify-center items-center max-sm:hidden'>
-            <Avatar
-              size={"small"}
-              src={
-                "https://api.dicebear.com/9.x/thumbs/svg?seed=Whiskers&backgroundType=gradientLinear&shapeColor=0a5b83,1c799f,69d2e7,f1f4dc,f88c49,transparent"
-              }
-              alt='avatar'
-            />
-            <div>
-              <p className='font-medium'>To</p>
-              <p>{orderData.payout.currencyCode}</p>
-            </div>
-          </div>
-        </div>
-        <Button size='small'>{status}</Button>
-        <div className='max-sm:hidden'>
-          <FullscreenOutlined />
-        </div>
+        <Tag
+          icon={
+            status === "processing" ? (
+              <SyncOutlined spin />
+            ) : status === "failed" ? (
+              <CloseCircleOutlined />
+            ) : status === "pending" ? (
+              <ClockCircleOutlined />
+            ) : (
+              <CheckCircleFilled />
+            )
+          }
+          color={
+            status == "processing"
+              ? "processing"
+              : status == "failed"
+              ? "error"
+              : status == "pending"
+              ? "default"
+              : "success"
+          }>
+          {status}
+        </Tag>
+        <Button
+          type='link'
+          icon={<BlockOutlined />}
+          onClick={() => setOpen(true)}>
+          View Transaction
+        </Button>
       </div>
 
       <Modal
@@ -383,7 +388,7 @@ export default function OrderInfo({
             <div className='flex justify-between items-center gap-4 mt-2 mb-12'>
               <p>Transaction Fee</p>
               <p className='font-medium'>
-                {Number(orderData.payin.amount) / 100}{" "}
+                {Number(orderData.payin.amount) * 0.0085 }{" "}
                 {orderData.payin.currencyCode} in BTC
               </p>
             </div>
@@ -430,7 +435,7 @@ export default function OrderInfo({
                   }>
                   <p className='mt-4'>
                     Transaction fee will be deducted from your Bitcoin wallet.
-                    1% of your payin amount will be deducted in BTC.
+                    0.85% of your payin amount will be deducted in BTC.
                     <br /> By clicking on the `Confirm Payment` button, you
                     agree to the deduction.
                   </p>
