@@ -89,6 +89,7 @@ export default function OrderInfo({
   const [confirmOrder, setConfirmOrder] = useState(false);
   const [isConfirmLoading, setIsConfirmLoading] = useState(false);
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
+  const [tnxFee, setTnxFee] = useState(0.00003);
   const router = useRouter();
   const statusColor: { [key: string]: string } = {
     success: "green",
@@ -217,6 +218,49 @@ export default function OrderInfo({
           });
       }
     }
+
+    // Get Conversion Rate
+    const getConversionRate = async () => {
+      if (
+        orderData.payin.currencyCode === "BTC" ||
+        orderData.payout.currencyCode === "BTC"
+      ) {
+        if (orderData.payin.currencyCode === "BTC") {
+          setTnxFee(Number(orderData.payin.amount) * 0.0085);
+        } else {
+          setTnxFee(Number(orderData.payout.amount) * 0.0085);
+        }
+      } else if (
+        orderData.payin.currencyCode === "USD" ||
+        orderData.payout.currencyCode === "USD"
+      ) {
+        axiosInstance
+          .get(
+            `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=${"usd"}`
+          )
+          .then((res) => {
+            setTnxFee(res.data.bitcoin.usd * 0.0085);
+          });
+      } else {
+        axiosInstance
+          .get(
+            `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=${orderData.payout.currencyCode
+              .toLowerCase()
+              .slice(0, 3)}`
+          )
+          .then((res) => {
+            const rate =
+              (orderData.payout.amount /
+                res.data.bitcoin[
+                  orderData.payout.currencyCode.toLowerCase().slice(0, 3)
+                ]) *
+              0.0085;
+            setTnxFee(rate);
+          });
+      }
+    };
+
+    getConversionRate();
   }, []);
   return (
     <>
@@ -270,7 +314,7 @@ export default function OrderInfo({
           type='link'
           icon={<BlockOutlined />}
           onClick={() => setOpen(true)}>
-          View Transaction
+          View Order
         </Button>
       </div>
 
@@ -328,7 +372,8 @@ export default function OrderInfo({
           <div>
             <p>To</p>
             <p className='font-medium'>
-              {orderData.payout.amount} {orderData.payout.currencyCode}
+              {parseFloat(Number(orderData.payout.amount).toFixed(7))}{" "}
+              {orderData.payout.currencyCode}
             </p>
           </div>
         </div>
@@ -387,10 +432,7 @@ export default function OrderInfo({
 
             <div className='flex justify-between items-center gap-4 mt-2 mb-12'>
               <p>Transaction Fee</p>
-              <p className='font-medium'>
-                {Number(orderData.payin.amount) * 0.0085 }{" "}
-                {orderData.payin.currencyCode} in BTC
-              </p>
+              <p className='font-medium'>{parseFloat(tnxFee.toFixed(7))} BTC</p>
             </div>
 
             {/* The CTA */}
@@ -437,7 +479,10 @@ export default function OrderInfo({
                     Transaction fee will be deducted from your Bitcoin wallet.
                     0.85% of your payin amount will be deducted in BTC.
                     <br /> By clicking on the `Confirm Payment` button, you
-                    agree to the deduction.
+                    agree to the deduction of{" "}
+                    <span className='font-medium'>
+                      {parseFloat(tnxFee.toFixed(7))} BTC.
+                    </span>
                   </p>
                   <Form
                     name='confirmPayment'
