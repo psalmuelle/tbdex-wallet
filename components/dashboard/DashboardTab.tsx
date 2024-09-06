@@ -2,8 +2,16 @@
 
 import { fetchBitcoinTnx } from "@/lib/web3/tnx.bitcoin";
 import { SendOutlined } from "@ant-design/icons";
-import { Avatar, Empty, Skeleton, Tag } from "antd";
+import {
+  Avatar,
+  Empty,
+  Skeleton,
+  Tag,
+  Pagination,
+  type PaginationProps,
+} from "antd";
 import { useEffect, useState } from "react";
+import TransactionInfo from "./TransactionInfo";
 
 interface DashboardTabProps {
   wallet: {
@@ -16,6 +24,13 @@ interface DashboardTabProps {
 export default function DashboardTab({ wallet }: DashboardTabProps) {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [tnxLoading, setTnxLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const startIndex = (currentPage - 1) * 5;
+  const currentTransactions = transactions.slice(startIndex, startIndex + 5);
+
+  const onPaginationChange: PaginationProps["onChange"] = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   useEffect(() => {
     setTnxLoading(true);
@@ -26,40 +41,41 @@ export default function DashboardTab({ wallet }: DashboardTabProps) {
         }
       });
     }
-    setTnxLoading(false)
+    setTnxLoading(false);
   }, [wallet]);
 
   return (
     <section className='mb-20 mt-8 bg-white rounded-xl p-6'>
       <h1 className='font-semibold'>Transaction History</h1>
       <div className='mt-8 flex flex-col gap-4'>
-        {transactions.length > 0 &&
-          transactions.map((tnx, i) => {
-            return (
-              <div
-                key={i}
-                className='p-4 mx-4 border rounded-xl flex justify-between gap-4 items-center cursor-pointer'>
-                <div className='flex items-center gap-1 w-fit'>
-                  <Avatar
-                    style={{ backgroundColor: "#87d068" }}
-                    icon={<SendOutlined />}
-                  />
-                  <div>
-                    <p className='font-medium'>{"Bitcoin Sent"}</p>
-                    <p>{(tnx.fee - 1000) / 100000000} BTC</p>
-                  </div>
-                </div>
-                <div className='max-lg:hidden text-gray-600'>
-                  TnxId: <Tag className=''>{tnx.txid}</Tag>
-                </div>
-                <div>
-                  <p className='text-green'>
-                    {tnx?.status?.confirmed ? "Success" : "Processing"}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
+        <div className='flex flex-col gap-4'>
+          {transactions.length > 0 &&
+            currentTransactions.map((tnx, i) => {
+              const info = tnx.vout.reduce((min: any, current: any) => {
+                return current.value < min.value ? current : min;
+              }, tnx.vout[0]);
+              return (
+                <TransactionInfo
+                  key={i}
+                  status={tnx.status.confirmed ? "success" : "processing"}
+                  tnxId={tnx.txid}
+                  amount={info.value / 100000000}
+                  type={
+                    info.scriptpubkey_address === wallet.address ? "In" : "Out"
+                  }
+                />
+              );
+            })}
+          {transactions.length > 0 && (
+            <Pagination
+              pageSize={5}
+              onChange={onPaginationChange}
+              align='end'
+              defaultCurrent={currentPage}
+              total={transactions.length}
+            />
+          )}
+        </div>
         {!tnxLoading && transactions.length === 0 && (
           <Empty description={"You do not have any transaction yet."} />
         )}
