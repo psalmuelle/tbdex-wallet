@@ -229,7 +229,7 @@ export default function OrderInfo({
             <p>{formatTo12HourTime(order[1].metadata.createdAt)}</p>
           </div>
         </div>
-        <div>
+        <div className='max-lg:hidden'>
           <Tag>{order[1].metadata.exchangeId}</Tag>
         </div>
         <div className='max-w-[185px] flex justify-center items-center gap-4'>
@@ -246,10 +246,10 @@ export default function OrderInfo({
               <p>{orderData.payin.currencyCode}</p>
             </div>
           </div>
-          <div>
+          <div className='max-sm:hidden'>
             <RightOutlined />
           </div>
-          <div className='w-fit flex gap-2.5 justify-center items-center'>
+          <div className='w-fit flex gap-2.5 justify-center items-center max-sm:hidden'>
             <Avatar
               size={"small"}
               src={
@@ -264,7 +264,9 @@ export default function OrderInfo({
           </div>
         </div>
         <Button size='small'>{status}</Button>
-        <FullscreenOutlined />
+        <div className='max-sm:hidden'>
+          <FullscreenOutlined />
+        </div>
       </div>
 
       <Modal
