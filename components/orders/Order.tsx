@@ -239,7 +239,23 @@ export default function OrderInfo({
             `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=${"usd"}`
           )
           .then((res) => {
-            setTnxFee(res.data.bitcoin.usd * 0.0085);
+            if (orderData.payin.currencyCode === "USD") {
+              const rate =
+                (orderData.payin.amount /
+                  res.data.bitcoin[
+                    orderData.payin.currencyCode.toLowerCase()
+                  ]) *
+                0.0085;
+              setTnxFee(rate);
+            } else {
+              const rate =
+                (orderData.payout.amount /
+                  res.data.bitcoin[
+                    orderData.payout.currencyCode.toLowerCase()
+                  ]) *
+                0.0085;
+              setTnxFee(rate);
+            }
           });
       } else {
         axiosInstance
