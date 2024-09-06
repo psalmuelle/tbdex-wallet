@@ -65,7 +65,13 @@ export default function Dashboard() {
           fetchBitcoinInfo({ address: parsedWalletInfo.address }).then(
             async (res: any) => {
               if (res) {
-                setBalance(res.chain_stats.funded_txo_sum / 100000000);
+                const walletBalance =
+                  res.chain_stats.funded_txo_sum / 100000000;
+                if (walletBalance <= 0) {
+                  setBalance(0.000001);
+                } else {
+                  setBalance(walletBalance);
+                }
 
                 //Api to get the current price of btc
                 await axios
@@ -73,10 +79,14 @@ export default function Dashboard() {
                     "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
                   )
                   .then((rate) => {
-                    setBalanceInUsd(
+                    const walletBalanceInUsd =
                       (res.chain_stats.funded_txo_sum / 100000000) *
-                        rate.data.bitcoin.usd
-                    );
+                      rate.data.bitcoin.usd;
+                    if (walletBalanceInUsd > 0) {
+                      setBalanceInUsd(walletBalanceInUsd);
+                    } else {
+                      setBalanceInUsd(0.0001);
+                    }
                   });
               }
             }
@@ -90,7 +100,6 @@ export default function Dashboard() {
 
     fetchWalletFromDwn();
   }, [web5]);
-
 
   return (
     <Content className='mt-8 mx-4'>
@@ -167,7 +176,7 @@ export default function Dashboard() {
             title='Send Bitcoin'
             description='Send btc tokens instantly and securely to anyone, anywhere.'
             imageSrc='/send.svg'
-            onClick={() => setSendModalOpen(true)}
+            onClick={() => wallet && setSendModalOpen(true)}
           />
           <QuickAction
             title='Swap'

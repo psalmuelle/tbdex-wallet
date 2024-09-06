@@ -53,6 +53,8 @@ async function sendBitcoin({
     };
     const encryptedData = encryptData({ data });
 
+    // `https://sendbitcoin-1.onrender.com/api/sendBtc`
+    // `http://localhost:8000/api/sendBtc`
     const response = await axios.post(
       `https://sendbitcoin-1.onrender.com/api/sendBtc`,
       {

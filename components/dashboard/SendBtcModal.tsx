@@ -48,8 +48,13 @@ export default function SendBtcModal({
         payerAddress: wallet?.address!,
       }).then((res) => {
         console.log(res);
-        setStatus("success");
-        setTxState(1);
+        if (res?.data.tx) {
+          setStatus("success");
+          setTxState(1);
+        } else {
+          setStatus("failed");
+          setTxState(1);
+        }
       });
     } catch (err) {
       console.log(err);
@@ -60,7 +65,11 @@ export default function SendBtcModal({
   return (
     <Modal
       open={open}
-      onCancel={setClose}
+      onCancel={() => {
+        setClose();
+        setSubmitting(false);
+        setTxState(0);
+      }}
       destroyOnClose
       maskClosable={false}
       footer={null}
@@ -135,8 +144,12 @@ export default function SendBtcModal({
                 extra={
                   <Button
                     size='large'
-                    onClick={() => setClose()}
-                    className='w-full bg-green-500 text-white hover:border-green-400'>
+                    onClick={() => {
+                      setClose();
+                      setSubmitting(false);
+                      setTxState(0);
+                    }}
+                    className='w-full bg-green-500 text-white'>
                     Exit
                   </Button>
                 }
@@ -148,7 +161,17 @@ export default function SendBtcModal({
                 status={"warning"}
                 title='An Error Occured While Processing the Transaction!'
                 subTitle='Please, try again later'
-                extra={<Button type='primary'>Exit</Button>}
+                extra={
+                  <Button
+                    onClick={() => {
+                      setClose();
+                      setSubmitting(false);
+                      setTxState(0);
+                    }}
+                    type='primary'>
+                    Exit
+                  </Button>
+                }
               />
             </div>
           )}

@@ -23,10 +23,10 @@ export default function DashboardTab({ wallet }: DashboardTabProps) {
       fetchBitcoinTnx({ address: wallet.address }).then((res) => {
         if (res) {
           setTransactions(res);
-          setTnxLoading(false);
         }
       });
     }
+    setTnxLoading(false)
   }, [wallet]);
 
   return (
