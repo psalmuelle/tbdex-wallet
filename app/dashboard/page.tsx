@@ -11,8 +11,9 @@ import { EyeFilled, EyeInvisibleFilled } from "@ant-design/icons";
 import DashboardTab from "@/components/dashboard/DashboardTab";
 import QuickAction from "@/components/dashboard/QuickActions";
 import { useRouter } from "next/navigation";
-import { fetchBitcoinInfo } from "@/lib/web3/tnx.bitcoin";
+import { fetchBitcoinInfo, sendBitcoin } from "@/lib/web3/tnx.bitcoin";
 import Image from "next/image";
+
 
 const { Content } = Layout;
 
@@ -60,7 +61,7 @@ export default function Dashboard() {
           setWallet(parsedWalletInfo);
           fetchBitcoinInfo({ address: parsedWalletInfo.address }).then(
             (res: any) => {
-             res && setBalance(res.chain_stats.funded_txo_sum / 100000000);
+              res && setBalance(res.chain_stats.funded_txo_sum / 100000000);
             }
           );
         } catch (err) {
@@ -73,14 +74,31 @@ export default function Dashboard() {
     fetchWalletFromDwn();
   }, [web5]);
 
+  const handleSendBitcoin = async () => {
+    try {
+      await sendBitcoin({
+        recieverAddress: "mfcCYZrefb66Fpd6byNDyDMWmCGYqT8DT7",
+         amountToSend: 0.00001,
+        privateKey: wallet?.privateKey!,
+        payerAddress: wallet?.address!,
+    }).then((res:any) => {
+        console.log(res);
+      });
+
+  
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <Content className='mt-8 mx-4'>
       <h1 className='text-base font-bold mb-4'>Hi, Welcome 👋</h1>
 
       <div>
-        <div className="mb-4 flex items-center gap-2">
-        <Image alt="bitcoin" src="/btc.svg" width={38} height={38} />
-        <h2 className='font-medium'> Decentralized Account</h2>
+        <div className='mb-4 flex items-center gap-2'>
+          <Image alt='bitcoin' src='/btc.svg' width={38} height={38} />
+          <h2 className='font-medium'> Decentralized Account</h2>
         </div>
         {accountLoading && (
           <div>
@@ -139,7 +157,7 @@ export default function Dashboard() {
             title='Send Crypto'
             description='Send crypto tokens instantly and securely to anyone, anywhere.'
             imageSrc='/send.svg'
-            onClick={() => {}}
+            onClick={handleSendBitcoin}
           />
           <QuickAction
             title='Swap'
