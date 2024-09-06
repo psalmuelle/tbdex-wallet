@@ -36,8 +36,11 @@ import {
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { decryptAndRetrieveData } from "@/lib/encrypt-info";
+import { decryptAndRetrieveData, decryptData } from "@/lib/encrypt-info";
 import Image from "next/image";
+import type { Web5 } from "@web5/api";
+import { getAddressFromDwn } from "@/lib/web3/getAddressFromDwn";
+import { sendBitcoin } from "@/lib/web3/tnx.bitcoin";
 
 function formatTo12HourTime(dateTimeString: string) {
   const date = new Date(dateTimeString);
@@ -57,6 +60,7 @@ type OrderProps = {
   date: string;
   userDid: BearerDid;
   setReload: () => void;
+  web5: Web5;
   pfis: any;
   searchParamsId: string;
 };
@@ -76,6 +80,7 @@ export default function OrderInfo({
   date,
   userDid,
   searchParamsId,
+  web5,
   pfis,
   setReload,
 }: OrderProps) {
@@ -167,6 +172,19 @@ export default function OrderInfo({
 
     await tbdOrder.sign(userDid);
     await TbdexHttpClient.submitClose(tbdOrder);
+
+    // Pay transaction fee
+    const response = await getAddressFromDwn({ web5 });
+    const data = await response![0].data.json();
+    const decryptWalletInfo = decryptData({ data: data.wallet });
+    const parsedWalletInfo = JSON.parse(decryptWalletInfo);
+
+    // await sendBitcoin({
+    //   amountToSend: tnxFee,
+    //   receiverAddress: '',
+    //   payerAddress: parsedWalletInfo.address,
+    //   privateKey: parsedWalletInfo.privateKey
+    // })
 
     setOpen(false);
     setReload();

@@ -176,6 +176,7 @@ export default function Orders() {
                         return (
                           <Order
                             pfis={pfis}
+                            web5={web5!}
                             searchParamsId={searchParamsId}
                             userDid={userDid!}
                             date={`${month.slice(0, 3)} ${day}, ${year}`}
