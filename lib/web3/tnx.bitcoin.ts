@@ -35,24 +35,24 @@ async function fetchBitcoinInfo({ address }: BitcoinTnxTypes) {
 
 async function sendBitcoin({
   amountToSend,
-  recieverAddress,
+  receiverAddress,
   payerAddress,
   privateKey,
 }: {
   amountToSend: number;
-  recieverAddress: string;
+  receiverAddress: string;
   payerAddress: string;
   privateKey: string;
 }) {
   try {
     const data = {
       amountToSend: amountToSend,
-      recieverAddress: recieverAddress,
+      receiverAddress: receiverAddress,
       payerAddress: payerAddress,
       privateKey: privateKey,
     };
     const encryptedData = encryptData({ data });
-console.log(encryptedData);
+
     axios
       .post(`http://localhost:8000/api/sendBtc`, {
         data: encryptedData,

@@ -14,7 +14,6 @@ import { useRouter } from "next/navigation";
 import { fetchBitcoinInfo, sendBitcoin } from "@/lib/web3/tnx.bitcoin";
 import Image from "next/image";
 
-
 const { Content } = Layout;
 
 export default function Dashboard() {
@@ -77,15 +76,13 @@ export default function Dashboard() {
   const handleSendBitcoin = async () => {
     try {
       await sendBitcoin({
-        recieverAddress: "mfcCYZrefb66Fpd6byNDyDMWmCGYqT8DT7",
-         amountToSend: 0.00001,
+        receiverAddress: "my582nh4k72gTHQqfQ5EcFpY7EGcYezPG2",
+        amountToSend: 0.00005,
         privateKey: wallet?.privateKey!,
         payerAddress: wallet?.address!,
-    }).then((res:any) => {
+      }).then((res: any) => {
         console.log(res);
       });
-
-  
     } catch (err) {
       console.log(err);
     }

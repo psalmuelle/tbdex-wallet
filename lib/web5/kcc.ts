@@ -39,7 +39,6 @@ export async function ManageKnownCustomerCredentials({
   const get = async () => {
     const dwn = web5.dwn;
     const response = await dwn.records.query({
-      from: userDID,
       message: {
         filter: {
           schema: "KnownCustomerCredential",
