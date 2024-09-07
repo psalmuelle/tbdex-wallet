@@ -1,5 +1,5 @@
 "use client";
-import axiosInstance from "@/lib/axios";
+
 import {
   AccountBookOutlined,
   BankOutlined,

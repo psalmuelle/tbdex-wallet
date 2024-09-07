@@ -20,8 +20,11 @@ export default function Admin() {
   const { status } = useSession();
   const router = useRouter();
   const [pfis, setPfis] = useState<PfiDataTypes[]>();
+  const [pairs, setPairs] = useState();
   const [isPfiLoading, setIsPfiLoading] = useState(false);
+  const [isPairLoading, setIsPairLoading] = useState(false);
   const [reloadPfi, setReloadPfi] = useState(false);
+  const [reloadPair, setReloadPair] = useState(false);
 
   useEffect(() => {
     if (status !== "loading" && status === "unauthenticated") {
@@ -40,28 +43,64 @@ export default function Admin() {
     fetchPfis();
   }, [reloadPfi]);
 
-  const setReload = () => {
-    setReloadPfi(!reloadPfi)
-  }
+  useEffect(() => {
+    async function fetchData() {
+      setIsPairLoading(true);
+      await axiosInstance.get("api/pairs").then((res) => {
+        const newData = res.data.pairs.map(
+          (pair: { offering: string; type: string }, i: number) => ({
+            key: i + 1,
+            pair: pair.offering,
+            type: pair.type,
+          })
+        );
+        setPairs(newData);
+
+        setIsPairLoading(false);
+      });
+    }
+
+    fetchData();
+  }, [reloadPair]);
+
+  const setReloadForPair = () => {
+    setReloadPair(!reloadPair);
+  };
+
+  const setReloadForPfi = () => {
+    setReloadPfi(!reloadPfi);
+  };
 
   const items: TabsProps["items"] = [
     {
       key: "1",
       label: "Metrics",
       icon: <PieChartOutlined />,
-      children: <Metrics pfis={pfis!}/>,
+      children: <Metrics pfis={pfis!} />,
     },
     {
       key: "2",
       label: "Manage PFIs",
       icon: <BankOutlined />,
-      children: <PfiManager isPfiLoading={isPfiLoading} pfis={pfis!} setReload={setReload}/>,
+      children: (
+        <PfiManager
+          isPfiLoading={isPfiLoading}
+          pfis={pfis!}
+          setReload={setReloadForPfi}
+        />
+      ),
     },
     {
       key: "3",
       label: "Available Offerings",
       icon: <DollarOutlined />,
-      children: <ManageOffers />,
+      children: (
+        <ManageOffers
+          isPairLoading={isPairLoading}
+          pairs={pairs}
+          setReload={setReloadForPair}
+        />
+      ),
     },
     {
       key: "4",

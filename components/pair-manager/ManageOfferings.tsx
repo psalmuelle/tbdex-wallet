@@ -80,11 +80,16 @@ const TableColumn = (confirmDelete: (pair: string) => void) => {
   return columns;
 };
 
-export default function ManageOffers() {
+export default function ManageOffers({
+  pairs,
+  setReload,
+  isPairLoading,
+}: {
+  pairs: any;
+  setReload: () => void;
+  isPairLoading: boolean;
+}) {
   const [messageApi, contextHolder] = message.useMessage();
-  const [reload, setReload] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [data, setData] = useState<DataType[]>([]);
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const msg = (content: string, type: NoticeType) => {
     messageApi.open({
@@ -96,7 +101,7 @@ export default function ManageOffers() {
   //Popconfirm Delete
   const confirmDelete = async (pair: string) => {
     try {
-     await axiosInstance
+      await axiosInstance
         .delete("api/pairs", {
           data: {
             offering: pair,
@@ -104,7 +109,7 @@ export default function ManageOffers() {
         })
         .then(() => {
           msg("Pair deleted successfully", "success");
-          setReload(!reload);
+          setReload();
         });
     } catch (error) {
       msg("Error deleting pair", "error");
@@ -114,25 +119,6 @@ export default function ManageOffers() {
   const onCancelModal = () => {
     setOpenCreateModal(false);
   };
-  //Fetch Pairs
-  useEffect(() => {
-    async function fetchData() {
-     await axiosInstance.get("api/pairs").then((res) => {
-        const newData = res.data.pairs.map(
-          (pair: { offering: string; type: string }, i: number) => ({
-            key: i + 1,
-            pair: pair.offering,
-            type: pair.type,
-          })
-        );
-        setData(newData);
-
-        setIsLoading(false);
-      });
-    }
-
-    fetchData();
-  }, [reload]);
 
   return (
     <section>
@@ -152,13 +138,13 @@ export default function ManageOffers() {
 
       <Table
         columns={TableColumn(confirmDelete)}
-        dataSource={data}
-        loading={isLoading}
+        dataSource={pairs}
+        loading={isPairLoading}
       />
       <CreatePairModal
         open={openCreateModal}
         onCancel={onCancelModal}
-        setReload={() => setReload(!reload)}
+        setReload={() => setReload()}
         setMessage={(content: string, type: NoticeType) => msg(content, type)}
       />
     </section>
