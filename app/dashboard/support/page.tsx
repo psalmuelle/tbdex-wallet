@@ -1,6 +1,6 @@
 "use client";
 import Intro from "@/components/messages/Intro";
-import { Layout } from "antd";
+import { Layout, Spin } from "antd";
 import ChatBox from "@/components/messages/ChatBox";
 import { useEffect, useState } from "react";
 import initWeb5 from "@/lib/web5/web5";
@@ -13,8 +13,10 @@ const { Content } = Layout;
 export default function Support() {
   const [showChat, setShowChat] = useState(false);
   const [convoType, setConvoType] = useState<number>();
+  const [convoOngoing, setConvoOngoing] = useState<boolean>(false);
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
   const [userDid, setUserDid] = useState<string>();
+  const [pageLoading, setPageLoading] = useState(false);
   const [web5, setWeb5] = useState<Web5>();
 
   const handleConvoType = (type: number) => {
@@ -23,17 +25,39 @@ export default function Support() {
   };
 
   useEffect(() => {
+    setPageLoading(true);
     const handleWeb5 = async () => {
       const { web5, userDID } = await initWeb5({ password: sessionKey });
       setUserDid(userDID);
       setWeb5(web5);
 
       // Install protocol if absent
-      if(web5 && userDID){
+      if (web5 && userDID) {
         await configureProtocol(web5, userDID);
+        await fetchConversation(web5);
       }
+      setPageLoading(false);
     };
+    handleWeb5()
   }, []);
+
+  const fetchConversation = async (web5: Web5) => {
+    const response = await web5.dwn.records.query({
+      message: {
+        filter: {
+          protocol: "https://wallet.chain.com/schemas/conversationSchema",
+        },
+      },
+    });
+
+    if (response.status.code === 200) {
+      console.log(response.records);
+
+      if(response.records && response.records?.length > 0){
+        setConvoOngoing(true)
+      } 
+    }
+  };
 
   const queryForProtocol = async (web5: Web5) => {
     return await web5.dwn.protocols.query({
@@ -78,9 +102,10 @@ export default function Support() {
 
   return (
     <Content className='mt-8 mx-4 mb-4'>
+      <Spin spinning={pageLoading} fullscreen/>
       <h1 className='text-base font-bold mb-4'>Customer Support</h1>
-      {!showChat && <Intro handleConvoType={handleConvoType} />}
-      {showChat && <ChatBox />}
+      {!convoOngoing && <Intro handleConvoType={handleConvoType} />}
+      {(showChat || convoOngoing) && <ChatBox />}
     </Content>
   );
 }
