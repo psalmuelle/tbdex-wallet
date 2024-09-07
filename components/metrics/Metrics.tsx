@@ -10,6 +10,7 @@ import {
 } from "@ant-design/icons";
 import { Button, Card, Rate, Statistic, Skeleton } from "antd";
 import React, { useEffect, useState } from "react";
+import { PfiDataTypes } from "../pfi/PfiManager";
 
 function MetricCard({
   value,
@@ -50,7 +51,7 @@ function MetricCard({
   );
 }
 
-export default function Metrics() {
+export default function Metrics({ pfis }: { pfis: PfiDataTypes[] }) {
   const [activePfis, setActivePfis] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
   const [highestOrder, setHighestOrder] = useState<string>();
@@ -65,56 +66,55 @@ export default function Metrics() {
 
   useEffect(() => {
     setLoading(true);
-    const fetchPfis = async () => {
+    const sortData = async () => {
+      if (!pfis) return;
       const numOrders: number[] = [];
       const orderInfo: { pfi: string; totalOrder: any[]; rating: number }[] =
         [];
-      await axiosInstance.get("api/pfis").then((res) => {
-        const active = res.data.pfi.filter(
-          (item: { isActive: boolean }) => item.isActive
-        ).length;
-        setActivePfis(active);
-        res.data.pfi.map((pfi: any) => {
-          const pfiRating = pfi.orders.map((order: any) => order.rating);
-          orderInfo.push({
-            pfi: pfi.name,
-            totalOrder: pfi.orders,
-            rating:
-              pfiRating.reduce((a: number, b: number) => a + b, 0) /
-              pfiRating.length,
-          });
-
-          numOrders.push(pfi.orders.length);
+      const active = pfis.filter(
+        (item: { isActive: boolean }) => item.isActive
+      ).length;
+      setActivePfis(active);
+      pfis.map((pfi: any) => {
+        const pfiRating = pfi.orders.map((order: any) => order.rating);
+        orderInfo.push({
+          pfi: pfi.name,
+          totalOrder: pfi.orders,
+          rating:
+            pfiRating.reduce((a: number, b: number) => a + b, 0) /
+            pfiRating.length,
         });
-        numOrders.sort((a, b) => a - b);
-        setTotalOrders(numOrders.reduce((a, b) => a + b, 0));
 
-        const higestOrder = orderInfo.find(
-          (info) => info.totalOrder.length === Math.max(...numOrders)
-        );
-        const lowestOrder = orderInfo.find(
-          (info) => info.totalOrder.length === Math.min(...numOrders)
-        );
-        const highestRated = orderInfo.reduce(
-          (max, info) => (info.rating > max.rating ? info : max),
-          orderInfo[0]
-        );
-
-        const lowestRated = orderInfo.reduce(
-          (min, info) => (info.rating < min.rating ? info : min),
-          orderInfo[0]
-        );
-
-        setHighestOrder(higestOrder?.pfi);
-        setLowestOrder(lowestOrder?.pfi);
-        setMostRated(highestRated);
-        setLeastRated(lowestRated);
-
-        setLoading(false);
+        numOrders.push(pfi.orders.length);
       });
+      numOrders.sort((a, b) => a - b);
+      setTotalOrders(numOrders.reduce((a, b) => a + b, 0));
+
+      const higestOrder = orderInfo.find(
+        (info) => info.totalOrder.length === Math.max(...numOrders)
+      );
+      const lowestOrder = orderInfo.find(
+        (info) => info.totalOrder.length === Math.min(...numOrders)
+      );
+      const highestRated = orderInfo.reduce(
+        (max, info) => (info.rating > max.rating ? info : max),
+        orderInfo[0]
+      );
+
+      const lowestRated = orderInfo.reduce(
+        (min, info) => (info.rating < min.rating ? info : min),
+        orderInfo[0]
+      );
+
+      setHighestOrder(higestOrder?.pfi);
+      setLowestOrder(lowestOrder?.pfi);
+      setMostRated(highestRated);
+      setLeastRated(lowestRated);
+
+      setLoading(false);
     };
-    fetchPfis();
-  }, []);
+    sortData();
+  }, [pfis]);
   return (
     <div className='my-6'>
       <h1 className='font-semibold mb-12'>Chain Wallet Metrics</h1>

@@ -49,7 +49,7 @@ export default function Admin() {
       key: "1",
       label: "Metrics",
       icon: <PieChartOutlined />,
-      children: <Metrics />,
+      children: <Metrics pfis={pfis!}/>,
     },
     {
       key: "2",
