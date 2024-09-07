@@ -117,7 +117,12 @@ export default function OfferingCard({
             </span>
           </p>
         </div>
-        <div className='mt-4'>
+        <div className='mt-2 font-medium'>
+          Estimated Settlement Time:{" "}
+          {offeringDetails.data.payout.methods[0].estimatedSettlementTime / 60}
+          mins
+        </div>
+        <div className='mt-2'>
           <Popover
             title='Known Customer Credentials'
             content={

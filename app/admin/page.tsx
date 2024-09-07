@@ -46,9 +46,6 @@ export default function Admin() {
   const { status } = useSession();
   const router = useRouter();
 
-  const onChange = (key: string) => {
-    console.log(key);
-  };
 
   useEffect(() => {
     if (status !== "loading" && status === "unauthenticated") {
@@ -82,7 +79,6 @@ export default function Admin() {
         <Tabs
           className='px-6 max-sm:px-0'
           defaultActiveKey='1'
-          onChange={onChange}
           items={items}
         />
       </div>
