@@ -6,39 +6,39 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   BankOutlined,
-  StarOutlined,
   UserOutlined,
   MessageOutlined,
   DollarOutlined,
+  PieChartOutlined,
 } from "@ant-design/icons";
 import PfiManager from "@/components/pfi/PfiManager";
-import axiosInstance from "@/lib/axios";
 import ManageOffers from "@/components/pair-manager/ManageOfferings";
+import Metrics from "@/components/metrics/Metrics";
 
 const items: TabsProps["items"] = [
   {
     key: "1",
+    label: "Metrics",
+    icon: <PieChartOutlined />,
+    children: <Metrics />,
+  },
+  {
+    key: "2",
     label: "Manage PFIs",
     icon: <BankOutlined />,
     children: <PfiManager />,
   },
   {
-    key: "2",
+    key: "3",
     label: "Available Offerings",
     icon: <DollarOutlined />,
     children: <ManageOffers />,
   },
   {
-    key: "3",
-    label: "Customer Ratings",
-    icon: <StarOutlined />,
-    children: "Content of Tab Pane 2",
-  },
-  {
     key: "4",
     label: "Messages",
     icon: <MessageOutlined />,
-    children: "Content of Tab Pane 3",
+    children: "Content of Tab Pane 2",
   },
 ];
 
