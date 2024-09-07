@@ -3,7 +3,7 @@ import { Button, Divider, message, Table, Tag, Popconfirm } from "antd";
 import type { TableColumnsType } from "antd";
 import type { NoticeType } from "antd/es/message/interface";
 import axiosInstance from "@/lib/axios";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import CreatePairModal from "./CreatePair";
 
 interface DataType {

@@ -15,6 +15,7 @@ import PfiManager, { PfiDataTypes } from "@/components/pfi/PfiManager";
 import ManageOffers from "@/components/pair-manager/ManageOfferings";
 import Metrics from "@/components/metrics/Metrics";
 import axiosInstance from "@/lib/axios";
+import Messages from "@/components/admin-support/Messages";
 
 export default function Admin() {
   const { status } = useSession();
@@ -106,7 +107,7 @@ export default function Admin() {
       key: "4",
       label: "Messages",
       icon: <MessageOutlined />,
-      children: "Content of Tab Pane 2",
+      children: <Messages />,
     },
   ];
 
