@@ -12,7 +12,7 @@ import {
 } from "antd";
 import type { NoticeType } from "antd/es/message/interface";
 import type { FormProps } from "antd";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import PfiCard from "./PfiCard";
 import axiosInstance from "@/lib/axios";
 
@@ -38,24 +38,18 @@ export type PfiDataTypes = {
   pairs: string[];
 };
 
-export default function PfiManager() {
+export default function PfiManager({
+  pfis,
+  isPfiLoading,
+  setReload,
+}: {
+  pfis: PfiDataTypes[];
+  isPfiLoading: boolean;
+  setReload: () => void;
+}) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitLoading, setIsSubmitLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
-  const [pfis, setPfis] = useState<PfiDataTypes[]>([]);
-  const [isPfiLoading, setIsPfiLoading] = useState(false);
-  const [reload, setReload] = useState(false);
-
-  useEffect(() => {
-    setIsPfiLoading(true);
-    const fetchPfis = async () => {
-      await axiosInstance.get("api/pfis").then((res) => {
-        setPfis(res.data.pfi);
-        setIsPfiLoading(false);
-      });
-    };
-    fetchPfis();
-  }, [reload]);
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -77,7 +71,7 @@ export default function PfiManager() {
       .then((res) => {
         msg(res.data.message, "success");
         handleCloseModal();
-        setReload(!reload);
+        setReload();
       })
       .catch((err) => {
         console.log(err);
@@ -98,7 +92,7 @@ export default function PfiManager() {
             content='Refresh'
             shape='circle'
             type='dashed'
-            onClick={() => setReload(!reload)}
+            onClick={() => setReload()}
           />
           <p>Refresh</p>
         </div>
@@ -134,7 +128,7 @@ export default function PfiManager() {
                 isActive={val.isActive}
                 successRate={Math.round(successRate * 10) / 10}
                 ratings={averageRating}
-                setReload={() => setReload(!reload)}
+                setReload={() => setReload()}
                 pairs={val.pairs}
               />
             );
