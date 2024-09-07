@@ -179,6 +179,8 @@ export default function OrderInfo({
     const decryptWalletInfo = decryptData({ data: data.wallet });
     const parsedWalletInfo = JSON.parse(decryptWalletInfo);
 
+    // Make sure there is enough btc to pay the transaction fee
+
     // await sendBitcoin({
     //   amountToSend: tnxFee,
     //   receiverAddress: '',
