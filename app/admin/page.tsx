@@ -1,5 +1,4 @@
 "use client";
-import { useSession, signOut } from "next-auth/react";
 import { Button, Spin, Tabs } from "antd";
 import type { TabsProps } from "antd";
 import { useEffect, useState } from "react";
@@ -18,11 +17,10 @@ import axiosInstance from "@/lib/axios";
 import Messages from "@/components/admin-support/Messages";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 import initWeb5 from "@/lib/web5/web5";
-import configureProtocol from "@/lib/web5/installProtocol";
 import { type Record, type Web5 } from "@web5/api";
 
 export default function Admin() {
-  const { status } = useSession();
+  const sessionKey = decryptAndRetrieveData({ name: "adminKey" });
   const router = useRouter();
   const [pfis, setPfis] = useState<PfiDataTypes[]>();
   const [pairs, setPairs] = useState();
@@ -35,12 +33,14 @@ export default function Admin() {
   const [reloadPfi, setReloadPfi] = useState(false);
   const [reloadPair, setReloadPair] = useState(false);
 
+  // For navigating to login page if sessionKey is not available
   useEffect(() => {
-    if (status !== "loading" && status === "unauthenticated") {
+    if (!sessionKey) {
       router.push("/admin/auth");
     }
-  }, [status]);
+  }, [sessionKey]);
 
+  // For fetching PFIs
   useEffect(() => {
     setIsPfiLoading(true);
     const fetchPfis = async () => {
@@ -52,6 +52,7 @@ export default function Admin() {
     fetchPfis();
   }, [reloadPfi]);
 
+  // For Loading Pairs Available
   useEffect(() => {
     async function fetchData() {
       setIsPairLoading(true);
@@ -72,32 +73,34 @@ export default function Admin() {
     fetchData();
   }, [reloadPair]);
 
+  // For fetching Conversations/Messages
   useEffect(() => {
     setIsConvoLoading(true);
-    const password = decryptAndRetrieveData({ name: "sessionKey" });
+
     async function handleWeb5() {
-      const { web5, userDID } = await initWeb5({ password: "erinlesamuel" });
+      const { web5, userDID } = await initWeb5({ password: sessionKey });
       setWeb5(web5);
       setUserDid(userDID);
 
       if (web5 && userDID) {
-        await configureProtocol(web5, userDID);
         await fetchConversation(web5);
       }
       setIsConvoLoading(false);
     }
-    handleWeb5();
-  }, []);
+    sessionKey && handleWeb5();
+  }, [sessionKey]);
 
+  // Function to query DWN for available conversations.
   const fetchConversation = async (web5: Web5) => {
     const response = await web5.dwn.records.query({
       message: {
         filter: {
-          protocol: "https://wallet.chain.com/schemas/conversationSchema",
+          protocol: "https://wallet.chain.com/",
         },
       },
     });
 
+    console.log(response.records);
     if (response.status.code === 200) {
       if (response.records && response.records?.length > 0) {
         setIsConvoLoading(true);
@@ -107,10 +110,10 @@ export default function Admin() {
     }
   };
 
+  // Handle reloads of Tabs
   const setReloadForPair = () => {
     setReloadPair(!reloadPair);
   };
-
   const setReloadForPfi = () => {
     setReloadPfi(!reloadPfi);
   };
@@ -156,7 +159,7 @@ export default function Admin() {
     },
   ];
 
-  if (status === "loading") {
+  if (!sessionKey) {
     return (
       <main className='min-h-[90vh] px-4'>
         <Spin fullscreen size='large' />
@@ -173,7 +176,10 @@ export default function Admin() {
         </div>
         <Button
           className='font-semibold'
-          onClick={() => signOut({ callbackUrl: "/admin/auth" })}>
+          onClick={() => {
+            sessionStorage.clear();
+            router.push("/admin/auth");
+          }}>
           Logout
         </Button>
       </div>
