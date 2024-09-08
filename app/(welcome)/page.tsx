@@ -1,17 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Form, Input, Spin, message } from "antd";
+import { Button, Divider, Form, Input, Spin, message } from "antd";
 import type { FormProps } from "antd";
 import {
   EyeInvisibleOutlined,
   EyeTwoTone,
   LoginOutlined,
+  QuestionCircleOutlined,
 } from "@ant-design/icons";
 import Image from "next/image";
 import initWeb5 from "@/lib/web5/web5";
 import { useRouter } from "next/navigation";
 import { encryptAndStoreData } from "@/lib/encrypt-info";
+import configureProtocol from "@/lib/web5/installProtocol";
 
 type FieldType = {
   password: string;
@@ -26,10 +28,11 @@ export default function Home() {
     setLoading(true);
 
     await initWeb5({ password: values.password })
-      .then((res) => {
+      .then(async (res) => {
         try {
           encryptAndStoreData({ name: "sessionKey", data: values.password });
           encryptAndStoreData({ name: "userDID", data: res.userDID });
+          await configureProtocol(res.web5, res.userDID);
         } catch (err) {
           console.log("Error setting userDID and web5", err);
         }
@@ -79,6 +82,11 @@ export default function Home() {
                 }
               />
             </Form.Item>
+            <Divider style={{ marginBottom: "4px" }} />
+            <p className='text-xs text-gray-500 font-semibold mb-4 text-left cursor-pointer'>
+              Do not forget your password{" "}
+              <QuestionCircleOutlined style={{ color: "red" }} />
+            </p>
 
             <Button
               type='primary'

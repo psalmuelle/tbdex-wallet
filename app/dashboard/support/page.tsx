@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import initWeb5 from "@/lib/web5/web5";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 import type { Web5 } from "@web5/api";
-import configureProtocol from "@/lib/web5/installProtocol";
 
 const { Content } = Layout;
 export default function Support() {
@@ -32,7 +31,14 @@ export default function Support() {
 
       // Install protocol if absent
       if (web5 && userDID) {
-        await configureProtocol(web5, userDID);
+        const { protocols } = await web5.dwn.protocols.query({
+          message: {
+            filter: {
+              protocol: "https://wallet.chain.com",
+            },
+          },
+        });
+        console.log('Protocols', protocols)
         await fetchConversation(web5);
       }
       setPageLoading(false);
@@ -44,7 +50,8 @@ export default function Support() {
     const response = await web5.dwn.records.query({
       message: {
         filter: {
-          protocol: "https://wallet.chain.com/schemas/conversationSchema",
+          protocol: "https://wallet.chain.com",
+          protocolPath: 'conversation',
         },
       },
     });
@@ -60,7 +67,9 @@ export default function Support() {
     <Content className='mt-8 mx-4 mb-4'>
       <Spin spinning={pageLoading} fullscreen />
       <h1 className='text-base font-bold mb-4'>Customer Support</h1>
-      {(!convoOngoing && !showChat) && <Intro handleConvoType={handleConvoType} />}
+      {!convoOngoing && !showChat && (
+        <Intro handleConvoType={handleConvoType} />
+      )}
       {(showChat || convoOngoing) && <ChatBox />}
     </Content>
   );

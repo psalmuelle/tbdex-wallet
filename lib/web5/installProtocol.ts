@@ -1,12 +1,12 @@
 import type { Web5 } from "@web5/api";
-import SupportProtocolDefinition from "./protocol";
 import type { DwnProtocolDefinition } from "@web5/agent";
+import protocolDefinition from "./protocol";
 
 const queryForProtocol = async (web5: Web5) => {
   return await web5.dwn.protocols.query({
     message: {
       filter: {
-        protocol: "https://wallet.chain.com/schemas/conversationSchema",
+        protocol: "https://wallet.chain.com",
       },
     },
   });
@@ -24,7 +24,6 @@ const installProtocolLocally = async (
 };
 
 const configureProtocol = async (web5: Web5, did: string) => {
-  const protocolDefinition = SupportProtocolDefinition;
 
   const { protocols: localProtocol, status: localProtocolStatus } =
     await queryForProtocol(web5);

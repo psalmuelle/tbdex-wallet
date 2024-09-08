@@ -1,6 +1,6 @@
 import type { DwnProtocolDefinition } from "@web5/agent";
 
-const ProtocolDefinition: DwnProtocolDefinition = {
+const protocolDefinition: DwnProtocolDefinition = {
   protocol: "https://wallet.chain.com",
   published: true,
   types: {
@@ -32,8 +32,15 @@ const ProtocolDefinition: DwnProtocolDefinition = {
     conversation: {
       $actions: [
         { who: "anyone", can: ["create"] },
-        { who: "author", of: "conversation", can: ["read", "update"] },
-        { role: "admin", can: ["read", "update", "delete"] },
+        {
+          who: "author",
+          of: "conversation",
+          can: ["create", "read", "update"],
+        },
+        {
+          role: "admin",
+          can: ["create", "read", "update", "delete"],
+        },
       ],
     },
     order: {
@@ -48,10 +55,10 @@ const ProtocolDefinition: DwnProtocolDefinition = {
     pfi: {
       $actions: [
         { role: "admin", can: ["create", "read", "update", "delete"] },
-        { who: "anyone", can: ["read", "update"] },
+        { who: "anyone", can: ["create", "read", "update"] },
       ],
     },
   },
 };
 
-export default ProtocolDefinition;
+export default protocolDefinition;
