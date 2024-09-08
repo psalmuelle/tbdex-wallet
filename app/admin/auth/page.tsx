@@ -1,25 +1,56 @@
 "use client";
 import { useState, useEffect } from "react";
-import { signIn, useSession } from "next-auth/react";
 import Image from "next/image";
-import { Button, Spin } from "antd";
-import { LoginOutlined } from "@ant-design/icons";
+import { Button, Form, FormProps, Input, message, Spin } from "antd";
+import {
+  EyeInvisibleOutlined,
+  EyeTwoTone,
+  LoginOutlined,
+} from "@ant-design/icons";
 import { useRouter } from "next/navigation";
+import initWeb5 from "@/lib/web5/web5";
+import {
+  decryptAndRetrieveData,
+  encryptAndStoreData,
+} from "@/lib/encrypt-info";
+import configureProtocol from "@/lib/web5/installProtocol";
+
+type FieldType = {
+  password: string;
+};
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
-  const { status } = useSession();
+  const [messageApi, contextHolder] = message.useMessage();
+  const sessionKey = decryptAndRetrieveData({ name: "adminKey" });
+
   const router = useRouter();
 
   useEffect(() => {
-    if (status !== "loading" && status === "authenticated") {
+    if (sessionKey) {
       router.push("/admin");
     }
-  }, [status]);
+  }, [sessionKey]);
 
-  const handleLogin = async () => {
+  const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
     setLoading(true);
-    await signIn("google", { callbackUrl: "/admin" });
+
+    await initWeb5({ password: values.password })
+      .then(async (res) => {
+        try {
+          encryptAndStoreData({ name: "adminKey", data: values.password });
+          encryptAndStoreData({ name: "userDID", data: res.userDID });
+          await configureProtocol(res.web5, res.userDID);
+        } catch (err) {
+          console.log("Error setting userDID and web5", err);
+        }
+        router.push("/admin");
+      })
+      .catch((error) => {
+        console.log("Error initializing web5", error);
+        messageApi.error(error.toString());
+        setLoading(false);
+      });
   };
 
   return (
@@ -35,19 +66,40 @@ export default function Auth() {
             alt='Access your wallet'
           />
         </div>
-        <div className='my-8'>
+        <Form
+          name='admin login'
+          layout='vertical'
+          onFinish={onFinish}
+          autoComplete='off'>
+          <Form.Item<FieldType>
+            label='Password'
+            name='password'
+            className='text-left'
+            rules={[
+              { required: true, message: "Please input your password!" },
+            ]}>
+            <Input.Password
+              size='large'
+              placeholder='input password'
+              iconRender={(visible) =>
+                visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+              }
+            />
+          </Form.Item>
+
           <Button
             type='primary'
-            onClick={handleLogin}
+            htmlType='submit'
             size='large'
             iconPosition='end'
             className='mt-4 w-full'
             icon={<LoginOutlined />}>
-            Google Sign In
+            Access
           </Button>
-        </div>
+        </Form>
       </section>
       <Spin spinning={loading} fullscreen size='large' />
+      {contextHolder}
     </main>
   );
 }

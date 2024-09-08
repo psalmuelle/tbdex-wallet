@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Divider, Form, Input, Spin, message } from "antd";
 import type { FormProps } from "antd";
 import {
@@ -12,7 +12,10 @@ import {
 import Image from "next/image";
 import initWeb5 from "@/lib/web5/web5";
 import { useRouter } from "next/navigation";
-import { encryptAndStoreData } from "@/lib/encrypt-info";
+import {
+  decryptAndRetrieveData,
+  encryptAndStoreData,
+} from "@/lib/encrypt-info";
 import configureProtocol from "@/lib/web5/installProtocol";
 
 type FieldType = {
@@ -23,6 +26,14 @@ export default function Home() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+  const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
+
+  useEffect(() => {
+    if (sessionKey) {
+      router.push("/dashboard");
+      console.log("Session....");
+    }
+  }, [sessionKey]);
 
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
     setLoading(true);
@@ -30,9 +41,9 @@ export default function Home() {
     await initWeb5({ password: values.password })
       .then(async (res) => {
         try {
+          await configureProtocol(res.web5, res.userDID);
           encryptAndStoreData({ name: "sessionKey", data: values.password });
           encryptAndStoreData({ name: "userDID", data: res.userDID });
-          await configureProtocol(res.web5, res.userDID);
         } catch (err) {
           console.log("Error setting userDID and web5", err);
         }
