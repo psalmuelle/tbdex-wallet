@@ -16,12 +16,18 @@ import ManageOffers from "@/components/pair-manager/ManageOfferings";
 import Metrics from "@/components/metrics/Metrics";
 import axiosInstance from "@/lib/axios";
 import Messages from "@/components/admin-support/Messages";
+import { decryptAndRetrieveData } from "@/lib/encrypt-info";
+import initWeb5 from "@/lib/web5/web5";
+import configureProtocol from "@/lib/web5/installProtocol";
+import type { Web5 } from "@web5/api";
 
 export default function Admin() {
   const { status } = useSession();
   const router = useRouter();
   const [pfis, setPfis] = useState<PfiDataTypes[]>();
   const [pairs, setPairs] = useState();
+  const [web5, setWeb5] = useState<Web5>();
+  const [userDid, setUserDid] = useState<string>();
   const [isPfiLoading, setIsPfiLoading] = useState(false);
   const [isPairLoading, setIsPairLoading] = useState(false);
   const [reloadPfi, setReloadPfi] = useState(false);
@@ -63,6 +69,20 @@ export default function Admin() {
 
     fetchData();
   }, [reloadPair]);
+
+  useEffect(() => {
+    const password = decryptAndRetrieveData({ name: "sessionKey" });
+    async function handleWeb5() {
+      const { web5, userDID } = await initWeb5({ password: 'erinlesamuel' });
+      setWeb5(web5);
+      setUserDid(userDID);
+
+      if (web5 && userDID) {
+        await configureProtocol(web5, userDID);
+      }
+    }
+    handleWeb5();
+  }, []);
 
   const setReloadForPair = () => {
     setReloadPair(!reloadPair);

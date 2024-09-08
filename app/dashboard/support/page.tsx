@@ -6,8 +6,7 @@ import { useEffect, useState } from "react";
 import initWeb5 from "@/lib/web5/web5";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 import type { Web5 } from "@web5/api";
-import SupportProtocolDefinition from "@/lib/web5/protocol";
-import type { DwnProtocolDefinition } from "@web5/agent";
+import configureProtocol from "@/lib/web5/installProtocol";
 
 const { Content } = Layout;
 export default function Support() {
@@ -38,7 +37,7 @@ export default function Support() {
       }
       setPageLoading(false);
     };
-    handleWeb5()
+    handleWeb5();
   }, []);
 
   const fetchConversation = async (web5: Web5) => {
@@ -51,60 +50,17 @@ export default function Support() {
     });
 
     if (response.status.code === 200) {
-      console.log(response.records);
-
-      if(response.records && response.records?.length > 0){
-        setConvoOngoing(true)
-      } 
-    }
-  };
-
-  const queryForProtocol = async (web5: Web5) => {
-    return await web5.dwn.protocols.query({
-      message: {
-        filter: {
-          protocol: "https://wallet.chain.com/schemas/conversationSchema",
-        },
-      },
-    });
-  };
-
-  const installProtocolLocally = async (
-    web5: Web5,
-    protocolDefinition: DwnProtocolDefinition
-  ) => {
-    return await web5.dwn.protocols.configure({
-      message: {
-        definition: protocolDefinition,
-      },
-    });
-  };
-
-  const configureProtocol = async (web5: Web5, did: string) => {
-    const protocolDefinition = SupportProtocolDefinition;
-
-    const { protocols: localProtocol, status: localProtocolStatus } =
-      await queryForProtocol(web5);
-    if (localProtocolStatus.code !== 200 || localProtocol.length === 0) {
-      const { protocol, status } = await installProtocolLocally(
-        web5,
-        protocolDefinition
-      );
-      console.log("Protocol installed locally", protocol, status);
-
-      if (protocol) {
-        await protocol.send(did);
+      if (response.records && response.records?.length > 0) {
+        setConvoOngoing(true);
       }
-    } else {
-      console.log("Protocol already installed");
     }
   };
 
   return (
     <Content className='mt-8 mx-4 mb-4'>
-      <Spin spinning={pageLoading} fullscreen/>
+      <Spin spinning={pageLoading} fullscreen />
       <h1 className='text-base font-bold mb-4'>Customer Support</h1>
-      {!convoOngoing && <Intro handleConvoType={handleConvoType} />}
+      {(!convoOngoing && !showChat) && <Intro handleConvoType={handleConvoType} />}
       {(showChat || convoOngoing) && <ChatBox />}
     </Content>
   );
