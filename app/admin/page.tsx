@@ -19,7 +19,7 @@ import Messages from "@/components/admin-support/Messages";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 import initWeb5 from "@/lib/web5/web5";
 import configureProtocol from "@/lib/web5/installProtocol";
-import type { Web5 } from "@web5/api";
+import { type Record, type Web5 } from "@web5/api";
 
 export default function Admin() {
   const { status } = useSession();
@@ -30,6 +30,8 @@ export default function Admin() {
   const [userDid, setUserDid] = useState<string>();
   const [isPfiLoading, setIsPfiLoading] = useState(false);
   const [isPairLoading, setIsPairLoading] = useState(false);
+  const [isConvoLoading, setIsConvoLoading] = useState(false);
+  const [conversations, setConversations] = useState<Record[]>([]);
   const [reloadPfi, setReloadPfi] = useState(false);
   const [reloadPair, setReloadPair] = useState(false);
 
@@ -71,18 +73,39 @@ export default function Admin() {
   }, [reloadPair]);
 
   useEffect(() => {
+    setIsConvoLoading(true);
     const password = decryptAndRetrieveData({ name: "sessionKey" });
     async function handleWeb5() {
-      const { web5, userDID } = await initWeb5({ password: 'erinlesamuel' });
+      const { web5, userDID } = await initWeb5({ password: "erinlesamuel" });
       setWeb5(web5);
       setUserDid(userDID);
 
       if (web5 && userDID) {
         await configureProtocol(web5, userDID);
+        await fetchConversation(web5);
       }
+      setIsConvoLoading(false);
     }
     handleWeb5();
   }, []);
+
+  const fetchConversation = async (web5: Web5) => {
+    const response = await web5.dwn.records.query({
+      message: {
+        filter: {
+          protocol: "https://wallet.chain.com/schemas/conversationSchema",
+        },
+      },
+    });
+
+    if (response.status.code === 200) {
+      if (response.records && response.records?.length > 0) {
+        setIsConvoLoading(true);
+        setConversations(response.records);
+        console.log("Conversations", response.records);
+      }
+    }
+  };
 
   const setReloadForPair = () => {
     setReloadPair(!reloadPair);
@@ -127,7 +150,9 @@ export default function Admin() {
       key: "4",
       label: "Messages",
       icon: <MessageOutlined />,
-      children: <Messages />,
+      children: (
+        <Messages loading={isConvoLoading} conversations={conversations!} />
+      ),
     },
   ];
 
