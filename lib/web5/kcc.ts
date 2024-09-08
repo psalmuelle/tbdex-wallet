@@ -1,4 +1,4 @@
-import initWeb5 from "./web5";
+import initWeb5 from "@/web5/auth/access";
 
 type KCCTypes = {
   password: string;

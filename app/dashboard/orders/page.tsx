@@ -2,7 +2,7 @@
 import Order from "@/components/orders/Order";
 import { Button, Empty, Layout, Spin } from "antd";
 import { useEffect, useState } from "react";
-import initWeb5 from "@/lib/web5/web5";
+import initWeb5 from "@/web5/auth/access";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 import { Web5PlatformAgent } from "@web5/agent";
 import { Message, TbdexHttpClient } from "@tbdex/http-client";

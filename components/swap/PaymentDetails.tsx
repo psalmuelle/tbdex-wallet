@@ -13,7 +13,7 @@ import type { Web5 } from "@web5/api";
 import { decryptAndRetrieveData, decryptData } from "@/lib/encrypt-info";
 import { useSwapForm } from "@/hooks/useSwap";
 import { PresentationExchange } from "@web5/credentials";
-import initWeb5 from "@/lib/web5/web5";
+import initWeb5 from "@/web5/auth/access";
 import { Web5PlatformAgent } from "@web5/agent";
 import { getAddressFromDwn } from "@/lib/web3/getAddressFromDwn";
 

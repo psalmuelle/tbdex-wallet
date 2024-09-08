@@ -1,6 +1,6 @@
 import type { Web5 } from "@web5/api";
 import type { DwnProtocolDefinition } from "@web5/agent";
-import protocolDefinition from "./protocol";
+import protocolDefinition from "@/lib/web5/protocol";
 
 const queryForProtocol = async (web5: Web5) => {
   return await web5.dwn.protocols.query({
@@ -24,7 +24,6 @@ const installProtocolLocally = async (
 };
 
 const configureProtocol = async (web5: Web5, did: string) => {
-
   const { protocols: localProtocol, status: localProtocolStatus } =
     await queryForProtocol(web5);
   if (localProtocolStatus.code !== 200 || localProtocol.length === 0) {

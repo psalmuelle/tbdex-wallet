@@ -2,7 +2,7 @@
 
 import { Button, Layout, Skeleton, Typography } from "antd";
 import { useEffect, useState } from "react";
-import initWeb5 from "@/lib/web5/web5";
+import initWeb5 from "@/web5/auth/access";
 import { decryptAndRetrieveData, decryptData } from "@/lib/encrypt-info";
 import type { Web5 } from "@web5/api";
 import CreateBTCModal from "@/components/dashboard/CreateBTCAcct";

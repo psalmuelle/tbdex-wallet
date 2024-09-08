@@ -3,7 +3,7 @@ import Intro from "@/components/messages/Intro";
 import { Layout, Spin } from "antd";
 import ChatBox from "@/components/messages/ChatBox";
 import { useEffect, useState } from "react";
-import initWeb5 from "@/lib/web5/web5";
+import initWeb5 from "@/web5/auth/access";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 import type { Web5 } from "@web5/api";
 
@@ -38,7 +38,7 @@ export default function Support() {
             },
           },
         });
-        console.log('Protocols', protocols)
+        console.log("Protocols", protocols);
         await fetchConversation(web5);
       }
       setPageLoading(false);
@@ -51,7 +51,7 @@ export default function Support() {
       message: {
         filter: {
           protocol: "https://wallet.chain.com",
-          protocolPath: 'conversation',
+          protocolPath: "conversation",
         },
       },
     });

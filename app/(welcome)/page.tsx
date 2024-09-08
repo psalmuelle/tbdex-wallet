@@ -10,13 +10,13 @@ import {
   QuestionCircleOutlined,
 } from "@ant-design/icons";
 import Image from "next/image";
-import initWeb5 from "@/lib/web5/web5";
+import initWeb5 from "@/web5/auth/access";
 import { useRouter } from "next/navigation";
 import {
   decryptAndRetrieveData,
   encryptAndStoreData,
 } from "@/lib/encrypt-info";
-import configureProtocol from "@/lib/web5/installProtocol";
+import configureProtocol from "@/web5/protocols/install";
 
 type FieldType = {
   password: string;
