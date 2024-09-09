@@ -29,7 +29,7 @@ export default function Support() {
         setWeb5(web5);
 
         if (web5 && userDID) {
-          await getMessages({ web5, isAdmin: false }).then((res) => {
+          await getMessages({ web5 }).then((res) => {
             if (res?.records && res?.records?.length > 0) {
               setConvoOngoing(true);
             }

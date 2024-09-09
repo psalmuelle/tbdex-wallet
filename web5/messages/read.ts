@@ -2,13 +2,9 @@ import type { Web5 } from "@web5/api";
 
 interface GetMessagesProps {
   web5: Web5;
-  isAdmin: boolean;
 }
 
-export default async function getMessages({
-  web5,
-  isAdmin,
-}: GetMessagesProps) {
+export default async function getMessages({ web5 }: GetMessagesProps) {
   try {
     const response = await web5.dwn.records.query({
       message: {
@@ -17,8 +13,9 @@ export default async function getMessages({
           protocol: "https://wallet.chain.com",
           protocolPath: "conversation",
           dataFormat: "application/json",
+          recipient:
+            "did:dht:j7ouj9uxza59k9o7m9fh4b4d5n9ukdnjfyofgyhz9zbrqaofwhky",
         },
-        protocolRole: isAdmin ? "admin" : undefined,
       },
     });
 

@@ -22,11 +22,14 @@ export default async function createMessage({
         protocol: "https://wallet.chain.com",
         protocolPath: "conversation",
         dataFormat: "application/json",
+        recipient: "did:dht:j7ouj9uxza59k9o7m9fh4b4d5n9ukdnjfyofgyhz9zbrqaofwhky",
+        published: true
       },
     });
 
     if (response) {
-      response.record?.send(userDid);
+      response.record?.send("did:dht:j7ouj9uxza59k9o7m9fh4b4d5n9ukdnjfyofgyhz9zbrqaofwhky"
+);
       return response;
     }
   } catch (error) {
