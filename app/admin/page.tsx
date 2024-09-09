@@ -21,6 +21,7 @@ import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 import initWeb5 from "@/web5/auth/access";
 import { type Record, type Web5 } from "@web5/api";
 import getMessages from "@/web5/messages/read";
+import Revenue from "@/components/admin-revenue/Revenue";
 
 export default function Admin() {
   const sessionKey = decryptAndRetrieveData({ name: "adminKey" });
@@ -150,7 +151,7 @@ export default function Admin() {
       key: "5",
       label: "Revenue",
       icon: <DollarOutlined />,
-      children: <div>This is going to be the transaction methodss</div>,
+      children: <Revenue />,
     },
   ];
 

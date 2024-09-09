@@ -94,7 +94,7 @@ export default function Metrics({
         <Typography.Text
           copyable={{ text: userDid }}
           className='p-4 font-semibold bg-white rounded-xl max-w-4xl w-fit block'>
-          Admin DID &rarr; {userDid && shortenText(userDid, 12, 4)}
+          DID &rarr; {userDid && shortenText(userDid, 12, 4)}
         </Typography.Text>
         <Card bordered={false} className='w-full min-h-[170px] col-span-2'>
           <Statistic
