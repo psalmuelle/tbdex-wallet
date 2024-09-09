@@ -1,7 +1,7 @@
 import { Button } from "antd";
 
 interface IntroProps {
-  handleConvoType: (type: number) => void;
+  handleConvoType: (title: string) => void;
 }
 
 export default function Intro({ handleConvoType }: IntroProps) {
@@ -10,10 +10,10 @@ export default function Intro({ handleConvoType }: IntroProps) {
       <h1>Hi, 👋</h1>
       <p>How can I help you?</p>
       <div className='mt-8 flex flex-col gap-4'>
-        <Button onClick={() => handleConvoType(0)} size={"large"}>
+        <Button className="text-wrap h-fit" onClick={() => handleConvoType('Transaction Issue')} size={"large"}>
           I have issues while converting currencies/token {`🤔`}
         </Button>
-        <Button onClick={() => handleConvoType(1)} size={"large"}>
+        <Button className="text-wrap h-fit" onClick={() => handleConvoType('Bug report')} size={"large"}>
           I want to report a bug {`🐞`}
         </Button>
       </div>

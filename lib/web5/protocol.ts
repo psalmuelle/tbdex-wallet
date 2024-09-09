@@ -8,8 +8,16 @@ const protocolDefinition: DwnProtocolDefinition = {
       schema: "https://wallet.chain.com/schemas/admin",
       dataFormats: ["text/plain"],
     },
+    user: {
+      schema: "https://wallet.chain.com/schemas/user",
+      dataFormats: ["text/plain"],
+    },
     conversation: {
       schema: "https://wallet.chain.com/schemas/conversationSchema",
+      dataFormats: ["application/json"],
+    },
+    message: {
+      schema: "https://wallet.chain.com/schemas/messageSchema",
       dataFormats: ["application/json"],
     },
     order: {
@@ -29,19 +37,31 @@ const protocolDefinition: DwnProtocolDefinition = {
     admin: {
       $role: true,
     },
+    user: {
+      $role: true,
+    },
     conversation: {
       $actions: [
         { who: "anyone", can: ["create"] },
         {
           who: "author",
           of: "conversation",
-          can: ["read", "update"],
+          can: ["create", "read", "update"],
         },
         {
           role: "admin",
-          can: ["create", "read", "update", "delete"],
+          can: ["create", "read", "query", "update", "delete"],
         },
       ],
+      message: {
+        $actions: [
+          { who: "author", of: "conversation", can: ["create"] },
+          {
+            role: "admin",
+            can: ["create", "query", "read", "delete", "update"],
+          },
+        ],
+      },
     },
     order: {
       $actions: [{ who: "anyone", can: ["create", "read"] }],
