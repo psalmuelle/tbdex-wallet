@@ -1,26 +1,16 @@
 import { NextResponse, NextRequest } from "next/server";
-import { getServerSession } from "next-auth/next";
 import clientPromise from "@/lib/mongodb";
-import { authOptions } from "../auth/[...nextauth]/route";
 import { PFI } from "@/lib/models";
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
   const reqBody = await req.json();
 
-  const { name, did } = reqBody;
+  const { name, did, adminDid } = reqBody;
 
   try {
-    if (!session) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
     const client = await clientPromise;
     const db = client.db();
 
-    const creator = await db.collection("users").findOne({
-      email: session.user?.email,
-    });
     const pfiRegistered = await db.collection("pfis").findOne({ did: did });
 
     if (pfiRegistered) {
@@ -33,7 +23,7 @@ export async function POST(req: NextRequest) {
         new PFI({
           name: name,
           did: did,
-          creator: creator?._id,
+          creator: adminDid,
         })
       );
     }
@@ -75,15 +65,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
   const reqBody = await req.json();
 
   const { did, isActive, pair } = reqBody;
   try {
-    if (!session) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
     const client = await clientPromise;
     const db = client.db();
 
@@ -139,12 +124,8 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const { did } = await req.json();
-  const session = await getServerSession(authOptions);
 
   try {
-    if (!session) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
     const client = await clientPromise;
     const db = client.db();
 
