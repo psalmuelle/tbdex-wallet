@@ -35,7 +35,7 @@ const protocolDefinition: DwnProtocolDefinition = {
         {
           who: "author",
           of: "conversation",
-          can: ["create", "read", "update"],
+          can: ["read", "update"],
         },
         {
           role: "admin",

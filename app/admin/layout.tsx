@@ -10,7 +10,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "CHAIN WALLET",
   description:
-    "Chain Wallet is a digital wallet designed for use with the TBDEX decentralized exchange. This wallet facilitates secure and private financial transactions, enabling users to trade and manage digital assets without relying on traditional intermediaries.",
+    "Admin dashboard for Chain Wallet. Manage your users, transactions, and more.",
 };
 
 export default function RootLayout({

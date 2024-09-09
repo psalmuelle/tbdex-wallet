@@ -14,6 +14,7 @@ import {
   encryptAndStoreData,
 } from "@/lib/encrypt-info";
 import configureProtocol from "@/web5/protocols/install";
+import createAdminRole from "@/web5/auth/role";
 
 type FieldType = {
   password: string;
@@ -40,7 +41,9 @@ export default function Auth() {
         try {
           encryptAndStoreData({ name: "adminKey", data: values.password });
           encryptAndStoreData({ name: "userDID", data: res.userDID });
-          await configureProtocol(res.web5, res.userDID);
+          await configureProtocol(res.web5, res.userDID).then(async () => {
+            await createAdminRole({ web5: res.web5, userDid: res.userDID });
+          });
         } catch (err) {
           console.log("Error setting userDID and web5", err);
         }

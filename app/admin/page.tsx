@@ -18,6 +18,7 @@ import Messages from "@/components/admin-support/Messages";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 import initWeb5 from "@/web5/auth/access";
 import { type Record, type Web5 } from "@web5/api";
+import protocolDefinition from "@/lib/web5/protocol";
 
 export default function Admin() {
   const sessionKey = decryptAndRetrieveData({ name: "adminKey" });
