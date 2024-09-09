@@ -9,6 +9,8 @@ import {
   MessageOutlined,
   DollarOutlined,
   PieChartOutlined,
+  TagsOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import PfiManager, { PfiDataTypes } from "@/components/pfi/PfiManager";
 import ManageOffers from "@/components/pair-manager/ManageOfferings";
@@ -23,6 +25,7 @@ import getMessages from "@/web5/messages/read";
 export default function Admin() {
   const sessionKey = decryptAndRetrieveData({ name: "adminKey" });
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<string>("1");
   const [pfis, setPfis] = useState<PfiDataTypes[]>();
   const [pairs, setPairs] = useState();
   const [web5, setWeb5] = useState<Web5>();
@@ -82,36 +85,9 @@ export default function Admin() {
       const { web5, userDID } = await initWeb5({ password: sessionKey });
       setWeb5(web5);
       setUserDid(userDID);
-
-      if (web5 && userDID) {
-         await fetchConversation(web5);
-        const convo = await getMessages({ web5: web5 });
-        console.log(convo);
-      }
-      setIsConvoLoading(false);
     }
     sessionKey && handleWeb5();
   }, [sessionKey]);
-
-  // Function to query DWN for available conversations.
-  const fetchConversation = async (web5: Web5) => {
-    const response = await web5.dwn.records.query({
-      message: {
-        filter: {
-          protocol: "https://wallet.chain.com/",
-        },
-      },
-    });
-
-    console.log(response.records);
-    if (response.status.code === 200) {
-      if (response.records && response.records?.length > 0) {
-        setIsConvoLoading(true);
-        setConversations(response.records);
-        console.log("Conversations", response.records);
-      }
-    }
-  };
 
   // Handle reloads of Tabs
   const setReloadForPair = () => {
@@ -121,12 +97,21 @@ export default function Admin() {
     setReloadPfi(!reloadPfi);
   };
 
+  // Tabs
   const items: TabsProps["items"] = [
     {
       key: "1",
       label: "Metrics",
       icon: <PieChartOutlined />,
-      children: <Metrics pfis={pfis!} />,
+      children: (
+        <Metrics
+          pfis={pfis!}
+          userDid={userDid!}
+          goToRevenue={() => {
+            setActiveTab("5");
+          }}
+        />
+      ),
     },
     {
       key: "2",
@@ -143,7 +128,7 @@ export default function Admin() {
     {
       key: "3",
       label: "Available Offerings",
-      icon: <DollarOutlined />,
+      icon: <TagsOutlined />,
       children: (
         <ManageOffers
           isPairLoading={isPairLoading}
@@ -159,6 +144,12 @@ export default function Admin() {
       children: (
         <Messages loading={isConvoLoading} conversations={conversations!} />
       ),
+    },
+    {
+      key: "5",
+      label: "Revenue",
+      icon: <DollarOutlined />,
+      children: <div>This is going to be the transaction methodss</div>,
     },
   ];
 
@@ -177,18 +168,30 @@ export default function Admin() {
           <Button icon={<UserOutlined />} type='dashed' shape='circle' />
           <p>Welcome 👋!</p>
         </div>
-        <Button
-          className='font-semibold'
-          onClick={() => {
-            sessionStorage.clear();
-            router.push("/admin/auth");
-          }}>
-          Logout
-        </Button>
+        {userDid && (
+          <div>
+            <Button
+              shape='circle'
+              onClick={() => {
+                sessionStorage.clear();
+                router.push("/admin/auth");
+              }}
+              danger
+              type='dashed'
+              icon={<LogoutOutlined />}
+            />
+          </div>
+        )}
       </div>
 
       <div>
-        <Tabs className='px-6 max-sm:px-0' defaultActiveKey='1' items={items} />
+        <Tabs
+          className='px-6 max-sm:px-0'
+          activeKey={activeTab}
+          defaultActiveKey='1'
+          onChange={(key) => setActiveTab(key)}
+          items={items}
+        />
       </div>
     </main>
   );

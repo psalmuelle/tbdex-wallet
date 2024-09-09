@@ -8,50 +8,21 @@ import {
   RiseOutlined,
   StarOutlined,
 } from "@ant-design/icons";
-import { Button, Card, Rate, Statistic, Skeleton } from "antd";
+import { Button, Card, Rate, Statistic, Skeleton, Typography } from "antd";
 import React, { useEffect, useState } from "react";
 import { PfiDataTypes } from "../pfi/PfiManager";
+import MetricCard from "./MetricCard";
+import shortenText from "@/lib/shortenText";
 
-function MetricCard({
-  value,
-  title,
-  rating,
-  loading,
+export default function Metrics({
+  pfis,
+  userDid,
+  goToRevenue,
 }: {
-  value: string | number;
-  title: React.ReactNode;
-  rating?: number;
-  loading: boolean;
+  pfis: PfiDataTypes[];
+  userDid: string;
+  goToRevenue: () => void;
 }) {
-  return (
-    <Card bordered={false} className='w-full  h-[170px]'>
-      {loading ? (
-        <div>
-          <Skeleton active />
-        </div>
-      ) : (
-        <div>
-          <Statistic
-            className='mx-auto w-fit text-center'
-            title={title}
-            value={value}
-            valueStyle={{ marginTop: "16px", fontWeight: "bold" }}
-          />
-          {rating && (
-            <Rate
-              className='mt-4 mx-auto block w-fit'
-              disabled
-              defaultValue={rating}
-              allowHalf
-            />
-          )}
-        </div>
-      )}
-    </Card>
-  );
-}
-
-export default function Metrics({ pfis }: { pfis: PfiDataTypes[] }) {
   const [activePfis, setActivePfis] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
   const [highestOrder, setHighestOrder] = useState<string>();
@@ -118,8 +89,13 @@ export default function Metrics({ pfis }: { pfis: PfiDataTypes[] }) {
   return (
     <div className='my-6'>
       <h1 className='font-semibold mb-12'>Chain Wallet Metrics</h1>
+      <Typography.Text
+        copyable={{ text: userDid }}
+        className='p-4 font-semibold bg-white rounded-t-xl'>
+        {userDid && shortenText(userDid, 12, 4)}
+      </Typography.Text>
       <div className='grid grid-cols-2 gap-4 max-w-4xl mx-auto'>
-        <Card bordered={false} className='w-full h-[170px] col-span-2'>
+        <Card bordered={false} className='w-full min-h-[170px] col-span-2'>
           <Statistic
             className='mx-auto w-fit text-center'
             title={
@@ -132,7 +108,10 @@ export default function Metrics({ pfis }: { pfis: PfiDataTypes[] }) {
             valueStyle={{ marginTop: "16px", fontWeight: "bold" }}
             suffix='₿'
           />
-          <Button className='mt-4 mx-auto block' type='primary'>
+          <Button
+            className='mt-4 mx-auto block'
+            type='primary'
+            onClick={goToRevenue}>
             See Transactions
           </Button>
         </Card>
