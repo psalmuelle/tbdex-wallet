@@ -4,14 +4,6 @@ const protocolDefinition: DwnProtocolDefinition = {
   protocol: "https://wallet.chain.com",
   published: true,
   types: {
-    admin: {
-      schema: "https://wallet.chain.com/schemas/admin",
-      dataFormats: ["text/plain"],
-    },
-    user: {
-      schema: "https://wallet.chain.com/schemas/user",
-      dataFormats: ["text/plain"],
-    },
     conversation: {
       schema: "https://wallet.chain.com/schemas/conversationSchema",
       dataFormats: ["application/json"],
@@ -20,26 +12,8 @@ const protocolDefinition: DwnProtocolDefinition = {
       schema: "https://wallet.chain.com/schemas/messageSchema",
       dataFormats: ["application/json"],
     },
-    order: {
-      schema: "https://wallet.chain.com/schemas/orderSchema",
-      dataFormats: ["application/json"],
-    },
-    pair: {
-      schema: "https://wallet.chain.com/schemas/pairSchema",
-      dataFormats: ["application/json"],
-    },
-    pfi: {
-      schema: "https://wallet.chain.com/schemas/pfiSchema",
-      dataFormats: ["application/json"],
-    },
   },
   structure: {
-    admin: {
-      $role: true,
-    },
-    user: {
-      $role: true,
-    },
     conversation: {
       $actions: [
         { who: "anyone", can: ["create"] },
@@ -49,34 +23,21 @@ const protocolDefinition: DwnProtocolDefinition = {
           can: ["create", "read", "update"],
         },
         {
-          role: "admin",
-          can: ["create", "read", "query", "update", "delete"],
+          who: "recipient",
+          of: "conversation",
+          can: ["create", "read", "update", "delete"],
         },
       ],
       message: {
         $actions: [
-          { who: "author", of: "conversation", can: ["create"] },
+          { who: "author", of: "conversation", can: ["create", "read"] },
           {
-            role: "admin",
-            can: ["create", "query", "read", "delete", "update"],
+            who: "recipient",
+            of: "conversation",
+            can: ["create", "read"],
           },
         ],
       },
-    },
-    order: {
-      $actions: [{ who: "anyone", can: ["create", "read"] }],
-    },
-    pair: {
-      $actions: [
-        { role: "admin", can: ["create", "read", "update", "delete"] },
-        { who: "anyone", can: ["read"] },
-      ],
-    },
-    pfi: {
-      $actions: [
-        { role: "admin", can: ["create", "read", "update", "delete"] },
-        { who: "anyone", can: ["create", "read", "update"] },
-      ],
     },
   },
 };
