@@ -7,7 +7,12 @@ interface CredentialCardProps {
   expires: string;
 }
 
-export default function CredentialCard({name, country, issuedBy, expires}: CredentialCardProps) {
+export default function CredentialCard({
+  name,
+  country,
+  issuedBy,
+  expires,
+}: CredentialCardProps) {
   return (
     <div
       style={{ backgroundImage: "url('/kcc-card.png')" }}
@@ -26,15 +31,13 @@ export default function CredentialCard({name, country, issuedBy, expires}: Crede
           <p>
             Country: <span className='font-medium'>{country}</span>
           </p>
-      
         </div>
       </div>
       <div className='flex justify-between'>
         <div />
         <div className='w-fit mt-4 max-sm:mt-2 flex flex-col'>
           <p>
-            Issued by:{" "}
-            <span className='font-medium'>{issuedBy}</span>
+            Issued by: <span className='font-medium'>{issuedBy}</span>
           </p>
           <p>Expires: {expires}</p>
         </div>
