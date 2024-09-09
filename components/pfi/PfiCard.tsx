@@ -20,6 +20,7 @@ import {
 } from "antd";
 import axiosInstance from "@/lib/axios";
 import { useEffect, useState } from "react";
+import shortenText from "@/lib/shortenText";
 
 export type PfiCardProps = {
   name: string;
@@ -148,8 +149,6 @@ export default function PfiCard({
     ),
     <CloseOutlined key='delete' onClick={showDeleteConfirm} />,
   ];
-  const shortenedDid =
-    did.substring(0, 12) + "...." + did.substring(did.length - 4);
 
   const onAddOffering = () => {
     if (newOffering) {
@@ -235,12 +234,14 @@ export default function PfiCard({
       </Modal>
       <Card.Meta
         avatar={
-          <Avatar src='https://api.dicebear.com/9.x/thumbs/svg?seed=Cuddles' />
+          <Avatar src='https://api.dicebear.com/9.x/icons/svg?seed=Miss%20kitty' />
         }
         title={name}
         description={
           <>
-            <Paragraph copyable={{ text: did }}>{shortenedDid}</Paragraph>
+            <Paragraph copyable={{ text: did }}>
+              {shortenText(did, 12, 4)}
+            </Paragraph>
             <Divider />
             <div className='text-gray-700 font-medium'>
               <Button
@@ -262,7 +263,7 @@ export default function PfiCard({
                 <span className='text-red-500'>{failedOrders}</span>
               </p>
               <p>Success Rate: {successRate ? successRate : 0}%</p>
-              <p>
+              <div>
                 <span className='text-sm font-medium'>Ratings: </span>{" "}
                 <Rate
                   disabled
@@ -270,7 +271,7 @@ export default function PfiCard({
                   allowHalf
                   className='text-base'
                 />
-              </p>
+              </div>
             </div>
           </>
         }

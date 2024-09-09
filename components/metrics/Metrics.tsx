@@ -89,12 +89,13 @@ export default function Metrics({
   return (
     <div className='my-6'>
       <h1 className='font-semibold mb-12'>Chain Wallet Metrics</h1>
-      <Typography.Text
-        copyable={{ text: userDid }}
-        className='p-4 font-semibold bg-white rounded-t-xl'>
-        {userDid && shortenText(userDid, 12, 4)}
-      </Typography.Text>
+
       <div className='grid grid-cols-2 gap-4 max-w-4xl mx-auto'>
+        <Typography.Text
+          copyable={{ text: userDid }}
+          className='p-4 font-semibold bg-white rounded-xl max-w-4xl w-fit block'>
+          Admin DID &rarr; {userDid && shortenText(userDid, 12, 4)}
+        </Typography.Text>
         <Card bordered={false} className='w-full min-h-[170px] col-span-2'>
           <Statistic
             className='mx-auto w-fit text-center'

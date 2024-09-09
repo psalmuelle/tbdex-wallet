@@ -41,8 +41,10 @@ export type PfiDataTypes = {
 export default function PfiManager({
   pfis,
   isPfiLoading,
+  userDid,
   setReload,
 }: {
+  userDid: string;
   pfis: PfiDataTypes[];
   isPfiLoading: boolean;
   setReload: () => void;
@@ -66,8 +68,13 @@ export default function PfiManager({
   };
   const onFinish: FormProps<PfiFormProps>["onFinish"] = async (values) => {
     setIsSubmitLoading(true);
+    const data = {
+      name: values.name,
+      did: values.did,
+      creator: userDid,
+    };
     await axiosInstance
-      .post("/api/pfis", values)
+      .post("/api/pfis", data)
       .then((res) => {
         msg(res.data.message, "success");
         handleCloseModal();

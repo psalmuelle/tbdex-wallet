@@ -119,6 +119,7 @@ export default function Admin() {
       icon: <BankOutlined />,
       children: (
         <PfiManager
+          userDid={userDid!}
           isPfiLoading={isPfiLoading}
           pfis={pfis!}
           setReload={setReloadForPfi}
