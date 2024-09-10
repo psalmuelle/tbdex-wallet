@@ -62,7 +62,7 @@ export default function Dashboard() {
           const decryptWalletInfo = decryptData({ data: data.wallet });
           const parsedWalletInfo = JSON.parse(decryptWalletInfo);
           setWallet(parsedWalletInfo);
-          fetchBitcoinInfo({ address: parsedWalletInfo.address }).then(
+          await fetchBitcoinInfo({ address: parsedWalletInfo.address }).then(
             async (res: any) => {
               if (res) {
                 const walletBalance =
