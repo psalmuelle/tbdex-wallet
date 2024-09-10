@@ -175,6 +175,21 @@ export default function Admin() {
       ),
     },
     {
+      key: "5",
+      label: "Revenue",
+      icon: <DollarOutlined />,
+      children: (
+        <Revenue
+          web5={web5!}
+          wallet={wallet!}
+          balance={balance!}
+          balanceInUsd={balanceInUsd!}
+          balanceLoading={btcWalletLoading}
+          setReload={() => setReloadWallet(!reloadWallet)}
+        />
+      ),
+    },
+    {
       key: "2",
       label: "Manage PFIs",
       icon: <BankOutlined />,
@@ -189,7 +204,7 @@ export default function Admin() {
     },
     {
       key: "3",
-      label: "Available Offerings",
+      label: "Manage Pairs",
       icon: <TagsOutlined />,
       children: (
         <ManageOffers
@@ -205,21 +220,6 @@ export default function Admin() {
       icon: <MessageOutlined />,
       children: (
         <Messages loading={isConvoLoading} conversations={conversations!} />
-      ),
-    },
-    {
-      key: "5",
-      label: "Revenue",
-      icon: <DollarOutlined />,
-      children: (
-        <Revenue
-          web5={web5!}
-          wallet={wallet!}
-          balance={balance!}
-          balanceInUsd={balanceInUsd!}
-          balanceLoading={btcWalletLoading}
-          setReload={() => setReloadWallet(!reloadWallet)}
-        />
       ),
     },
   ];
