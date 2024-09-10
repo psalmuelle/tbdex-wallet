@@ -17,10 +17,14 @@ import shortenText from "@/lib/shortenText";
 export default function Metrics({
   pfis,
   userDid,
+  balance,
+  balanceLoading,
   goToRevenue,
 }: {
   pfis: PfiDataTypes[];
   userDid: string;
+  balanceLoading: boolean;
+  balance: number;
   goToRevenue: () => void;
 }) {
   const [activePfis, setActivePfis] = useState(0);
@@ -97,24 +101,30 @@ export default function Metrics({
           DID &rarr; {userDid && shortenText(userDid, 12, 4)}
         </Typography.Text>
         <Card bordered={false} className='w-full min-h-[170px] col-span-2'>
-          <Statistic
-            className='mx-auto w-fit text-center'
-            title={
-              <p>
-                Total Revenue <DollarCircleOutlined />
-              </p>
-            }
-            value={11.28}
-            precision={6}
-            valueStyle={{ marginTop: "16px", fontWeight: "bold" }}
-            suffix='₿'
-          />
-          <Button
-            className='mt-4 mx-auto block'
-            type='primary'
-            onClick={goToRevenue}>
-            See Transactions
-          </Button>
+          {balanceLoading ? (
+            <Skeleton className='max-w-xs mx-auto' active />
+          ) : (
+            <div>
+              <Statistic
+                className='mx-auto w-fit text-center'
+                title={
+                  <p>
+                    Total Revenue <DollarCircleOutlined />
+                  </p>
+                }
+                value={balance ? balance : 0}
+                precision={6}
+                valueStyle={{ marginTop: "16px", fontWeight: "bold" }}
+                suffix='₿'
+              />
+              <Button
+                className='mt-4 mx-auto block'
+                type='primary'
+                onClick={goToRevenue}>
+                {balance ? "See Transactions" : "Create BTC Wallet"}
+              </Button>
+            </div>
+          )}
         </Card>
 
         <MetricCard

@@ -36,6 +36,7 @@ export default function Admin() {
   const [userDid, setUserDid] = useState<string>();
   const [isPfiLoading, setIsPfiLoading] = useState(false);
   const [isPairLoading, setIsPairLoading] = useState(false);
+  const [btcWalletLoading, setBtcWalletLoading] = useState(false);
   const [isConvoLoading, setIsConvoLoading] = useState(false);
   const [conversations, setConversations] = useState<Record[]>([]);
   const [wallet, setWallet] = useState<{
@@ -47,6 +48,7 @@ export default function Admin() {
   const [balanceInUsd, setBalanceInUsd] = useState<number>();
   const [reloadPfi, setReloadPfi] = useState(false);
   const [reloadPair, setReloadPair] = useState(false);
+  const [reloadWallet, setReloadWallet] = useState(false);
 
   // For navigating to login page if sessionKey is not available
   useEffect(() => {
@@ -90,6 +92,7 @@ export default function Admin() {
 
   // For fetching Conversations/Messages
   useEffect(() => {
+    setBtcWalletLoading(true);
     async function handleWeb5() {
       const { web5, userDID } = await initWeb5({ password: sessionKey });
       setWeb5(web5);
@@ -99,6 +102,7 @@ export default function Admin() {
   }, [sessionKey]);
 
   useEffect(() => {
+    setBtcWalletLoading(true);
     async function fetchWalletFromDwn() {
       if (!web5) return;
       try {
@@ -132,15 +136,17 @@ export default function Admin() {
                     setBalanceInUsd(0.0001);
                   }
                 });
+              setBtcWalletLoading(false);
             }
           }
         );
       } catch (err) {
         console.log(err);
+        setBtcWalletLoading(false);
       }
     }
     fetchWalletFromDwn();
-  }, [web5]);
+  }, [web5, reloadWallet]);
 
   // Handle reloads of Tabs
   const setReloadForPair = () => {
@@ -158,7 +164,9 @@ export default function Admin() {
       icon: <PieChartOutlined />,
       children: (
         <Metrics
+          balance={balance!}
           pfis={pfis!}
+          balanceLoading={btcWalletLoading}
           userDid={userDid!}
           goToRevenue={() => {
             setActiveTab("5");
@@ -203,7 +211,16 @@ export default function Admin() {
       key: "5",
       label: "Revenue",
       icon: <DollarOutlined />,
-      children: <Revenue wallet={wallet!} balance={balance!} balanceInUsd={balanceInUsd!}/>,
+      children: (
+        <Revenue
+          web5={web5!}
+          wallet={wallet!}
+          balance={balance!}
+          balanceInUsd={balanceInUsd!}
+          balanceLoading={btcWalletLoading}
+          setReload={() => setReloadWallet(!reloadWallet)}
+        />
+      ),
     },
   ];
 
