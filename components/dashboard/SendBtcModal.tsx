@@ -103,7 +103,7 @@ export default function SendBtcModal({
                         new Error("Amount must be greater than 0")
                       );
                     }
-                    if (value > amountAvailable) {
+                    if (value > amountAvailable - 0.000028) {
                       return Promise.reject(
                         new Error(`Amount cannot exceed ${amountAvailable} BTC`)
                       );
@@ -122,6 +122,10 @@ export default function SendBtcModal({
             <p className='text-gray-500 cursor-pointer text-xs font-medium -mt-6 w-fit'>
               Max: {amountAvailable}
             </p>
+
+            <div className='w-full rounded-lg py-2.5 cursor-pointer px-4 font-medium border bg-neutral-50 mt-4 mb-2'>
+              high Priority fee $1.04 ≈ 0.000028 BTC
+            </div>
 
             <Button
               icon={<SendOutlined />}

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { UserOutlined } from "@ant-design/icons";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
+import shortenText from "@/lib/shortenText";
 
 const { Header } = Layout;
 const { Paragraph } = Typography;
@@ -19,10 +20,7 @@ export default function DashboardHeader() {
   useEffect(() => {
     const userDID = decryptAndRetrieveData({ name: "userDID" });
     if (userDID) {
-      const shortenedDID =
-        userDID.substring(0, 12) +
-        "...." +
-        userDID.substring(userDID.length - 4);
+      const shortenedDID = shortenText(userDID, 12, 4)
 
       setUserDID((prevState) => ({
         ...prevState,

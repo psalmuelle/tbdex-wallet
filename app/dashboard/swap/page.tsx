@@ -6,11 +6,9 @@ import SwapPairs, { PairType } from "@/components/swap/SwapPairs";
 import { useState, useEffect } from "react";
 import Offerings from "@/components/swap/Offerings";
 import {
-  ArrowLeftOutlined,
   BankOutlined,
   CreditCardOutlined,
   LeftOutlined,
-  RetweetOutlined,
 } from "@ant-design/icons";
 import getKcc from "@/web5/kcc/read";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";

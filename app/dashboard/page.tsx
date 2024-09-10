@@ -15,6 +15,7 @@ import { fetchBitcoinInfo } from "@/lib/web3/tnx.bitcoin";
 import Image from "next/image";
 import SendBtcModal from "@/components/dashboard/SendBtcModal";
 import axios from "axios";
+import shortenText from "@/lib/shortenText";
 
 const { Content } = Layout;
 
@@ -34,11 +35,6 @@ export default function Dashboard() {
   const [open, setOpen] = useState(false);
   const [reload, setReload] = useState(false);
   const [sendModalOpen, setSendModalOpen] = useState(false);
-
-  const walletAddress =
-    wallet?.address.substring(0, 6) +
-    "...." +
-    wallet?.address.substring(wallet.address.length - 6);
 
   useEffect(() => {
     setAccountLoading(true);
@@ -157,7 +153,7 @@ export default function Dashboard() {
               <Typography.Text
                 copyable={{ text: wallet.address }}
                 className='bg-white rounded-xl px-2 py-1'>
-                {walletAddress}
+                {shortenText(wallet?.address, 6, 6)}
               </Typography.Text>
             </div>
           </>
