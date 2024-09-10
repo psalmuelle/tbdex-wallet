@@ -12,6 +12,7 @@ import { Offering } from "@tbdex/http-client";
 import { PfiDataTypes } from "../pfi/PfiManager";
 import {
   CheckCircleFilled,
+  FieldTimeOutlined,
   IdcardOutlined,
   QuestionCircleFilled,
   QuestionCircleOutlined,
@@ -60,7 +61,7 @@ export default function OfferingCard({
   };
 
   return (
-    <div className='bg-white rounded-xl max-w-sm p-6 max-sm:p-4 shadow'>
+    <div className='bg-white rounded-xl max-w-sm p-6 max-sm:p-4 border'>
       <section className='flex justify-between gap-4 max-sm:flex-col max-sm:justify-center'>
         <div className='flex justify-start items-center gap-2 w-fit'>
           <Avatar
@@ -117,12 +118,7 @@ export default function OfferingCard({
             </span>
           </p>
         </div>
-        <div className='mt-2 font-medium'>
-          Estimated Settlement Time:{" "}
-          {offeringDetails.data.payout.methods[0].estimatedSettlementTime / 60}
-          mins
-        </div>
-        <div className='mt-2'>
+        <div className='mt-3'>
           <Popover
             title='Known Customer Credentials'
             content={
@@ -168,6 +164,11 @@ export default function OfferingCard({
               </p>
             </div>
           </Popover>
+        </div>
+        <div className='mt-3 font-medium'>
+          <FieldTimeOutlined /> Estimated Settlement Time:{" "}
+          {offeringDetails.data.payout.methods[0].estimatedSettlementTime / 60}
+          mins
         </div>
       </section>
       <Divider style={{ margin: "16px 0px" }} />

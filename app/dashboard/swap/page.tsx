@@ -9,6 +9,7 @@ import {
   ArrowLeftOutlined,
   BankOutlined,
   CreditCardOutlined,
+  LeftOutlined,
   RetweetOutlined,
 } from "@ant-design/icons";
 import getKcc from "@/web5/kcc/read";
@@ -118,10 +119,12 @@ export default function Swap() {
           </div>
         )}
         {current === 1 && (
-          <div className='p-8 mt-6 mb-24 rounded-xl bg-neutral-50 border shadow'>
+          <div className='p-6 mt-8 mb-8 rounded-xl border w-full'>
             <div className='flex justify-between items-center mb-6'>
               <Button
-                icon={<ArrowLeftOutlined />}
+                shape='circle'
+                type='dashed'
+                icon={<LeftOutlined />}
                 onClick={() => setCurrent(0)}
               />
               <h1 className='font-semibold text-center'>
@@ -134,6 +137,7 @@ export default function Swap() {
             </div>
             <Offerings
               credentials={credentials}
+              pairs={pairs}
               setNextStep={() => setCurrent(2)}
             />
           </div>

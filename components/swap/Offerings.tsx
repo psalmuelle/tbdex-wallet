@@ -8,6 +8,7 @@ import { PfiDataTypes } from "../pfi/PfiManager";
 import { useSwapLoading, useSwapForm } from "@/hooks/useSwap";
 import OfferingCard from "./OfferingCard";
 import { PresentationExchange } from "@web5/credentials";
+import { PairType } from "./SwapPairs";
 
 interface OfferingInfoTypes {
   offeringDetails: Offering;
@@ -17,11 +18,13 @@ interface OfferingInfoTypes {
 
 type OfferingsProps = {
   credentials: string[];
+  pairs: PairType[];
   setNextStep: () => void;
 };
 
 export default function Offerings({
   credentials,
+  pairs,
   setNextStep,
 }: OfferingsProps) {
   const [availableOfferings, setAvaialableOfferings] = useState<
@@ -35,7 +38,6 @@ export default function Offerings({
     const handleGetOfferings = async () => {
       try {
         setLoading(true);
-        setAvaialableOfferings([]);
 
         await axiosInstance
           .get(`/api/pfis/?pair=${swapFormValues.from}/${swapFormValues.to}`)
@@ -110,7 +112,7 @@ export default function Offerings({
 
   return (
     <section className='mt-8'>
-      <div className='w-fit p-2 px-4 font-semibold bg-white rounded-r-xl border-l'>
+      <div className='w-fit p-2 px-4 font-semibold'>
         {swapFormValues.amount} {swapFormValues.from} ➩ {swapFormValues.to}
       </div>
       <div className='text-center flex items-center justify-center flex-wrap gap-6 mt-4 mb-14'>
