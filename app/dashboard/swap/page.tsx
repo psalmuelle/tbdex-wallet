@@ -137,7 +137,6 @@ export default function Swap() {
             </div>
             <Offerings
               credentials={credentials}
-              pairs={pairs}
               setNextStep={() => setCurrent(2)}
             />
           </div>

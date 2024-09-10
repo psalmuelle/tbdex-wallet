@@ -18,13 +18,11 @@ interface OfferingInfoTypes {
 
 type OfferingsProps = {
   credentials: string[];
-  pairs: PairType[];
   setNextStep: () => void;
 };
 
 export default function Offerings({
   credentials,
-  pairs,
   setNextStep,
 }: OfferingsProps) {
   const [availableOfferings, setAvaialableOfferings] = useState<
