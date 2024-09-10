@@ -2,63 +2,100 @@
 
 import { Button, Layout, Radio, Steps } from "antd";
 import SwapType from "@/components/swap/SwapType";
-import SwapPairs from "@/components/swap/SwapPairs";
+import SwapPairs, { PairType } from "@/components/swap/SwapPairs";
 import { useState, useEffect } from "react";
 import Offerings from "@/components/swap/Offerings";
 import {
   ArrowLeftOutlined,
   BankOutlined,
   CreditCardOutlined,
+  RetweetOutlined,
 } from "@ant-design/icons";
-import { ManageKnownCustomerCredentials } from "@/lib/web5/kcc";
+import getKcc from "@/web5/kcc/read";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 import { useSwapForm } from "@/hooks/useSwap";
 import PaymentDetails from "@/components/swap/PaymentDetails";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import initWeb5 from "@/web5/auth/access";
+import type { Web5 } from "@web5/api";
+import axiosInstance from "@/lib/axios";
 
 const { Content } = Layout;
 
 export default function Swap() {
   const [current, setCurrent] = useState(0);
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
+  const [web5, setWeb5] = useState<Web5>();
+  const [userDid, setUserDid] = useState<string>();
   const [credentials, setCredentials] = useState<string[]>([]);
+  const [pairs, setPairs] = useState<PairType[]>([]);
   const setSwapForm = useSwapForm((state) => state.setSwapForm);
-  const [rfqId, setRfqId] = useState('')
+  const [rfqId, setRfqId] = useState("");
   const router = useRouter();
 
+  //Initialize web5
   useEffect(() => {
-    async function fetchCredentials() {
-      (await ManageKnownCustomerCredentials({ password: sessionKey }))
-        .get()
-        .then((res) => {
-          if (res?.records && res.records.length > 0) {
-            res.records[0].data.text().then((data: string) => {
-              setCredentials([data]);
-
-              //Scenario: User has completed KYC and has offerings in local storage
-              const swapInfo = localStorage.getItem("offering");
-              if (swapInfo === null) return;
-              const { to, from, amount } = JSON.parse(swapInfo!);
-              setSwapForm({ to: to, from: from, amount: amount });
-              setCurrent(1);
-              localStorage.removeItem("offering");
-            });
-          }
-        });
+    if (!sessionKey) return;
+    async function initializeWeb5() {
+      try {
+        const { web5, userDID } = await initWeb5({ password: sessionKey });
+        setWeb5(web5);
+        setUserDid(userDID);
+      } catch (err) {
+        console.log(err);
+      }
     }
+    initializeWeb5();
 
-    fetchCredentials();
+    //Scenario: User has completed KYC and has offerings in local storage
+    const swapInfo = localStorage.getItem("offering");
+    if (swapInfo === null) return;
+    const { to, from, amount } = JSON.parse(swapInfo!);
+    setSwapForm({ to: to, from: from, amount: amount });
+    setCurrent(1);
+    localStorage.removeItem("offering");
+  }, [sessionKey]);
+
+  //Fetch Known Customer Credential
+  useEffect(() => {
+    async function fetchUserCredential() {
+      if (!web5) return;
+      try {
+        const response = await getKcc({ web5 });
+
+        if (response?.records && response.records.length > 0) {
+          await response.records[0].data.text().then((data: string) => {
+            setCredentials([data]);
+          });
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    fetchUserCredential();
+  }, [web5]);
+
+  //Get available pairs
+  useEffect(() => {
+    async function fetchPairs() {
+      await axiosInstance.get("/api/pairs").then((res) => {
+        setPairs(res.data.pairs);
+      });
+    }
+    fetchPairs();
   }, []);
 
   return (
     <Content className='mt-8 mx-4'>
       <h1 className='text-base font-bold mb-4'>Swap</h1>
-      <div className='w-fit mx-auto'>
+      <div className='w-fit mx-auto flex flex-col justify-center items-center p-8 mt-6 mb-24 rounded-xl bg-white'>
         <Steps
           progressDot
           current={current}
-          className='mt-8'
+          className='mt-6'
+          size='small'
+          responsive
           items={[
             {
               title: "Select Pair",
@@ -75,9 +112,9 @@ export default function Swap() {
           ]}
         />
         {current === 0 && (
-          <div className='flex flex-col justify-center items-center p-8 mt-6 mb-24 rounded-xl border shadow bg-neutral-50'>
+          <div className=' flex flex-col justify-center items-center p-6 mt-8 mb-6 border rounded-xl'>
             <SwapType />
-            <SwapPairs setNextStep={() => setCurrent(1)} />
+            <SwapPairs pairs={pairs} setNextStep={() => setCurrent(1)} />
           </div>
         )}
         {current === 1 && (
@@ -124,7 +161,7 @@ export default function Swap() {
               <PaymentDetails
                 credentials={credentials}
                 setNext={() => setCurrent(3)}
-                setRfqId={(id: string)=> setRfqId(id)}
+                setRfqId={(id: string) => setRfqId(id)}
               />
             </div>
           </div>

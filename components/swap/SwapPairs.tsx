@@ -3,7 +3,6 @@ import { Button, Divider, Form, InputNumber, Select } from "antd";
 import type { FormProps } from "antd";
 import { useSwapType, useSwapForm } from "@/hooks/useSwap";
 import { useEffect, useState } from "react";
-import axiosInstance from "@/lib/axios";
 
 export type SwapFormProps = {
   from: string;
@@ -11,18 +10,19 @@ export type SwapFormProps = {
   amount: string;
   swapType?: string;
 };
-type PairType = {
+export type PairType = {
   _id: string;
   offering: string;
   type: string;
 };
 
 export default function SwapPairs({
+  pairs,
   setNextStep,
 }: {
+  pairs: PairType[];
   setNextStep: () => void;
 }) {
-  const [pairs, setPairs] = useState<PairType[]>([]);
   const activeSwapType: string = useSwapType((state) => state.swapType);
   const setSwapFormValues = useSwapForm((state) => state.setSwapForm);
   const [baseCurrency, setBaseCurrency] = useState("");
@@ -36,16 +36,6 @@ export default function SwapPairs({
       form.resetFields();
     }
   }, [activeSwapType]);
-
-  //Fetching all pairs
-  useEffect(() => {
-    async function fetchCurrencies() {
-      await axiosInstance.get("/api/pairs").then((res) => {
-        setPairs(res.data.pairs);
-      });
-    }
-    fetchCurrencies();
-  }, []);
 
   const onFinish: FormProps<SwapFormProps>["onFinish"] = async (values) => {
     setSwapFormValues({
@@ -99,7 +89,7 @@ export default function SwapPairs({
           name='swap-info'
           size='large'
           onFinish={onFinish}
-          className='w-full mt-4 flex flex-col flex-wrap gap-2 border-2 p-6 rounded-xl bg-white'>
+          className='w-full mt-4 flex flex-col flex-wrap gap-2 p-4 pb-0 bg-white'>
           <div>
             <p className='font-medium mb-2'>Exchange from</p>
             <Form.Item

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Button, Tooltip } from "antd";
 import { useSwapType } from "@/hooks/useSwap";
 
@@ -50,7 +49,7 @@ export default function SwapType() {
   };
 
   return (
-    <section className='flex flex-wrap gap-4 max-sm:gap-2 border-2 p-2 rounded-xl w-fit'>
+    <section className='flex flex-wrap gap-4 max-sm:gap-2 border p-2 rounded-xl w-fit'>
       {allSwapTypes.map((val) => {
         return (
           <SwapTypeButton
