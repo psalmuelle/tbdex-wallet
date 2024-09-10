@@ -143,11 +143,13 @@ export default function Swap() {
         )}
 
         {current === 2 && (
-          <div className='p-8 mt-6 mb-24 rounded-xl bg-neutral-50 border shadow'>
+          <div className='max-w-[487px] p-6 mt-8 mb-8 rounded-xl border w-full'>
             <div className='flex justify-between items-center mb-6'>
               <Button
-                icon={<ArrowLeftOutlined />}
-                onClick={() => setCurrent(1)}
+                shape='circle'
+                type='dashed'
+                icon={<LeftOutlined />}
+                onClick={() => setCurrent(0)}
               />
               <h1 className='font-semibold text-center'>
                 <span>
@@ -165,12 +167,14 @@ export default function Swap() {
                 credentials={credentials}
                 setNext={() => setCurrent(3)}
                 setRfqId={(id: string) => setRfqId(id)}
+                web5={web5!}
+                userDid={userDid!}
               />
             </div>
           </div>
         )}
         {current === 3 && (
-          <div className='p-8 mt-6 mb-24 rounded-xl bg-neutral-50 border shadow flex flex-col justify-center items-center gap-4'>
+          <div className='p-6 mt-8 mb-8 rounded-xl bg-white border flex flex-col justify-center items-center gap-4'>
             <Image
               src={"/rocket-in-flight.png"}
               alt='Success'

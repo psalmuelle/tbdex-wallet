@@ -10,10 +10,9 @@ import validator from "@rjsf/validator-ajv8";
 import { CheckCircleFilled } from "@ant-design/icons";
 import { Rfq, TbdexHttpClient } from "@tbdex/http-client";
 import type { Web5 } from "@web5/api";
-import { decryptAndRetrieveData, decryptData } from "@/lib/encrypt-info";
+import { decryptData } from "@/lib/encrypt-info";
 import { useSwapForm } from "@/hooks/useSwap";
 import { PresentationExchange } from "@web5/credentials";
-import initWeb5 from "@/web5/auth/access";
 import { Web5PlatformAgent } from "@web5/agent";
 import { getAddressFromDwn } from "@/lib/web3/getAddressFromDwn";
 
@@ -23,12 +22,16 @@ interface PaymentDetailsProps {
   credentials: string[];
   setRfqId: (rfqId: string) => void;
   setNext: () => void;
+  web5: Web5;
+  userDid: string;
 }
 
 export default function PaymentDetails({
   credentials,
   setRfqId,
   setNext,
+  web5,
+  userDid,
 }: PaymentDetailsProps) {
   const offering = useOfferingDetails((state) => state.offering);
   const [paymentChecked, setPaymentChecked] = useState({
@@ -44,19 +47,7 @@ export default function PaymentDetails({
     payout: {},
   });
   const [formComplete, setFormComplete] = useState(false);
-  const [web5, setWeb5] = useState<Web5>();
-  const userDID: string = decryptAndRetrieveData({ name: "userDID" });
   const swapForm = useSwapForm((state) => state.swapForm);
-
-  useEffect(() => {
-    async function initialize() {
-      const { web5 } = await initWeb5({
-        password: decryptAndRetrieveData({ name: "sessionKey" }),
-      });
-      setWeb5(web5);
-    }
-    initialize();
-  }, []);
 
   useEffect(() => {
     //Select credentials based on the presentation definition
@@ -69,7 +60,7 @@ export default function PaymentDetails({
       //Create an RFQ
       const rfq = Rfq.create({
         metadata: {
-          from: userDID,
+          from: userDid,
           to: offering?.metadata.from!,
           protocol: offering?.metadata.protocol,
         },
@@ -116,7 +107,7 @@ export default function PaymentDetails({
               dataFormat: "application/json",
             },
           });
-          await record?.send(userDID);
+          await record?.send(userDid);
           setRfqId(rfq.id);
           setNext();
         } catch (err) {
