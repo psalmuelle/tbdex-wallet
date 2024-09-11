@@ -2,7 +2,9 @@
 import type { Record } from "@web5/api";
 import ConversationList from "./ConversationList";
 import { useEffect, useState } from "react";
-import { Spin } from "antd";
+import { Button, Spin } from "antd";
+import ChatBox from "../messages/ChatBox";
+import { LeftOutlined } from "@ant-design/icons";
 
 export default function Messages({
   loading,
@@ -14,6 +16,7 @@ export default function Messages({
   const [convo, setConvo] = useState<
     { user: string; text: string; time: string }[]
   >([]);
+  const [openChat, setOpenChat] = useState(false);
 
   useEffect(() => {
     function getMessages() {
@@ -25,24 +28,40 @@ export default function Messages({
             time: conversation.dateCreated,
             text: res.title,
           });
-          setConvo(temp)
+          setConvo(temp);
         });
       });
-     
     }
     getMessages();
-  },[]);
+  }, []);
 
   return (
     <div>
       <h1 className='font-semibold mt-6'>Customers Messages</h1>
       <div className='mt-8 p-4 bg-white w-full rounded-xl min-h-96'>
-        {loading ? (
-          <div className='flex justify-center items-center min-h-48'>
-            <Spin spinning={loading} size='large' />
-          </div>
+        {!openChat ? (
+          loading ? (
+            <>
+              <div className='flex justify-center items-center min-h-48'>
+                <Spin spinning={loading} size='large' />
+              </div>
+            </>
+          ) : (
+            <ConversationList
+              conversations={convo}
+              handleOpenChat={() => setOpenChat(true)}
+            />
+          )
         ) : (
-          <ConversationList conversations={convo} />
+          <div className="mb-8">
+            <Button
+              shape='circle'
+              type={"text"}
+              icon={<LeftOutlined />}
+              onClick={() => setOpenChat(false)}
+            />
+            <ChatBox />
+          </div>
         )}
       </div>
     </div>

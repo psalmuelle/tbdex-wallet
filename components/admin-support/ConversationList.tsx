@@ -35,12 +35,14 @@ function Convo({
 
 export default function ConversationList({
   conversations,
+  handleOpenChat,
 }: {
   conversations: {
     user: string;
     text: string;
     time: string;
   }[];
+  handleOpenChat: () => void;
 }) {
   return (
     <section>
@@ -71,7 +73,7 @@ export default function ConversationList({
                 userDid={convo.user}
                 text={convo.text}
                 time={formattedDate}
-                handleOpenChat={() => console.log("open chat")}
+                handleOpenChat={handleOpenChat}
               />
             );
           })}
