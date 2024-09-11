@@ -41,8 +41,9 @@ export default function ConversationList({
     user: string;
     text: string;
     time: string;
+    id: string
   }[];
-  handleOpenChat: () => void;
+  handleOpenChat: (id: string) => void;
 }) {
   return (
     <section>
@@ -73,7 +74,7 @@ export default function ConversationList({
                 userDid={convo.user}
                 text={convo.text}
                 time={formattedDate}
-                handleOpenChat={handleOpenChat}
+                handleOpenChat={()=> handleOpenChat(convo.id)}
               />
             );
           })}

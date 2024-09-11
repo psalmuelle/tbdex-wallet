@@ -241,7 +241,7 @@ export default function Admin() {
       label: "Messages",
       icon: <MessageOutlined />,
       children: (
-        <Messages loading={isConvoLoading} conversations={conversations!} />
+        <Messages web5={web5!} loading={isConvoLoading} conversations={conversations!} />
       ),
     },
   ];
