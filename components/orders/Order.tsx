@@ -5,9 +5,7 @@ import {
   ClockCircleOutlined,
   CloseCircleOutlined,
   FireOutlined,
-  FullscreenOutlined,
   RetweetOutlined,
-  RightOutlined,
   SyncOutlined,
 } from "@ant-design/icons";
 import {
@@ -19,7 +17,6 @@ import {
 import type { BearerDid } from "@web5/dids";
 import {
   Avatar,
-  Badge,
   Button,
   Checkbox,
   Divider,
@@ -40,7 +37,8 @@ import { decryptAndRetrieveData, decryptData } from "@/lib/encrypt-info";
 import Image from "next/image";
 import type { Web5 } from "@web5/api";
 import { getAddressFromDwn } from "@/lib/web3/getAddressFromDwn";
-import { sendBitcoin } from "@/lib/web3/tnx.bitcoin";
+import { fetchBitcoinInfo, sendBitcoin } from "@/lib/web3/tnx.bitcoin";
+import shortenText from "@/lib/shortenText";
 
 function formatTo12HourTime(dateTimeString: string) {
   const date = new Date(dateTimeString);
@@ -94,8 +92,9 @@ export default function OrderInfo({
   const [confirmOrder, setConfirmOrder] = useState(false);
   const [isConfirmLoading, setIsConfirmLoading] = useState(false);
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
-  const [tnxFee, setTnxFee] = useState(0.00003);
+  const [tnxFee, setTnxFee] = useState(0.00002);
   const router = useRouter();
+  const adminBtcAddress = process.env.NEXT_PUBLIC_ADMIN_BTC_WALLET;
   const statusColor: { [key: string]: string } = {
     success: "green",
     pending: "orange",
@@ -103,11 +102,6 @@ export default function OrderInfo({
     failed: "red",
   };
   const orderData: any = order[1].data;
-
-  const pfiDid =
-    order[1].from.substring(0, 12) +
-    "...." +
-    order[1].from.substring(order[1].from.length - 8);
 
   const handleOrder: FormProps<FieldType>["onFinish"] = async (e) => {
     if (e.password === sessionKey) {
@@ -120,6 +114,56 @@ export default function OrderInfo({
           protocol: "1.0",
         },
       });
+
+      // Get BTC Address from DWN.
+      const response = await getAddressFromDwn({ web5 });
+
+      if (response && response?.length === 0) {
+        messageApi.error("You do not have a Bitcoin Wallet");
+        setIsConfirmLoading(false);
+        return;
+      }
+      const data = await response![0].data.json();
+      const decryptWalletInfo = decryptData({ data: data.wallet });
+      const parsedWalletInfo = JSON.parse(decryptWalletInfo);
+
+      // Fetch Bitcoin Balance and Check if the user has enough balance to pay for the transaction fee
+
+      const bitcoinWalletInfo: any = await fetchBitcoinInfo({
+        address: parsedWalletInfo.address,
+      });
+
+      const balArray = bitcoinWalletInfo.map((tnx: { value: number }) => {
+        return tnx.value;
+      });
+      const balInSatoshi = balArray.reduce(
+        (acc: number, current: number) => acc + current,
+        0
+      );
+
+      const walletBalance = balInSatoshi / 100000000;
+      const isEnoughBalance = walletBalance >= tnxFee + 0.000008;
+
+      if (!isEnoughBalance) {
+        messageApi.error(
+          "Insufficient balance in your wallet to pay for the transaction fee"
+        );
+        setIsConfirmLoading(false);
+        return;
+      }
+
+      // Send Bitcoin to Admin Wallet to pay for the transaction fee
+      if (adminBtcAddress === undefined) {
+        return;
+      }
+      await sendBitcoin({
+        amountToSend: tnxFee,
+        receiverAddress: adminBtcAddress,
+        payerAddress: parsedWalletInfo.address,
+        privateKey: parsedWalletInfo.privateKey,
+      });
+
+      // Sign the order and submit it.
       await tbdOrder.sign(userDid);
       await TbdexHttpClient.submitOrder(tbdOrder);
 
@@ -169,24 +213,8 @@ export default function OrderInfo({
         reason: "User requested to close the order",
       },
     });
-
     await tbdOrder.sign(userDid);
     await TbdexHttpClient.submitClose(tbdOrder);
-
-    // Pay transaction fee
-    const response = await getAddressFromDwn({ web5 });
-    const data = await response![0].data.json();
-    const decryptWalletInfo = decryptData({ data: data.wallet });
-    const parsedWalletInfo = JSON.parse(decryptWalletInfo);
-
-    // Make sure there is enough btc to pay the transaction fee
-
-    // await sendBitcoin({
-    //   amountToSend: tnxFee,
-    //   receiverAddress: '',
-    //   payerAddress: parsedWalletInfo.address,
-    //   privateKey: parsedWalletInfo.privateKey
-    // })
 
     setOpen(false);
     setReload();
@@ -375,7 +403,7 @@ export default function OrderInfo({
           <div className='flex items-center gap-2'>
             <Avatar
               size={"small"}
-              src='https://api.dicebear.com/9.x/shapes/svg?seed=Sassy&backgroundColor=0a5b83,1c799f,69d2e7,f1f4dc,f88c49,b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&backgroundType=gradientLinear&shape2=ellipseFilled,line,polygonFilled,rectangleFilled,ellipse,polygon,rectangle'
+              src='https://img.icons8.com/emoji/48/bank-emoji.png'
               alt='avatar'
             />
             <p>{pfiName}</p>
@@ -388,7 +416,7 @@ export default function OrderInfo({
             <Paragraph
               style={{ marginBottom: 0 }}
               copyable={{ text: order[1].from }}>
-              {pfiDid}
+              {shortenText(order[1].from, 12, 8)}
             </Paragraph>
           </div>
         </div>
@@ -467,7 +495,7 @@ export default function OrderInfo({
             </div>
 
             <div className='flex justify-between items-center gap-4 mt-2 mb-12'>
-              <p>Transaction Fee</p>
+              <p>Service Charge</p>
               <p className='font-medium'>{parseFloat(tnxFee.toFixed(7))} BTC</p>
             </div>
 
@@ -511,14 +539,18 @@ export default function OrderInfo({
                       {orderData.payin.currencyCode} to {pfiName}.
                     </p>
                   }>
-                  <p className='mt-4'>
-                    Transaction fee will be deducted from your Bitcoin wallet.
-                    0.85% of your payin amount will be deducted in BTC.
-                    <br /> By clicking on the `Confirm Payment` button, you
-                    agree to the deduction of{" "}
-                    <span className='font-medium'>
-                      {parseFloat(tnxFee.toFixed(7))} BTC.
-                    </span>
+                  <p className='text-xs'>
+                    A 0.85% service charge will be deducted from your bitcoin
+                    wallet balance in BTC. Please, ensure you have enough
+                    balance in your wallet.
+                  </p>
+                  <p className='text-xs mt-1'>
+                    NB: Additional fees may apply based on your payment and
+                    withdrawal methods.
+                  </p>
+                  <p className='text-xs font-bold mt-1.5'>
+                    By clicking on the **Confirm Payment** button, you agree to
+                    the deduction of {parseFloat(tnxFee.toFixed(7))} BTC
                   </p>
                   <Form
                     name='confirmPayment'

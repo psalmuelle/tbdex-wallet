@@ -23,7 +23,7 @@ async function fetchBitcoinInfo({ address }: BitcoinTnxTypes) {
   let data;
   try {
     await axios
-      .get(`https://blockstream.info/testnet/api/address/${address}`)
+      .get(`https://blockstream.info/testnet/api/address/${address}/utxo`)
       .then((res) => {
         data = res.data;
       });

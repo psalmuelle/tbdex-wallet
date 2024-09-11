@@ -39,7 +39,7 @@ export default function Orders() {
 
     async function initweb5() {
       // Initialize web5
-      const { web5, userDID } = await initWeb5({ password: sessionKey });
+      const { web5 } = await initWeb5({ password: sessionKey });
       const userAgent = web5.agent as Web5PlatformAgent;
       const identities = await userAgent.identity.list();
 

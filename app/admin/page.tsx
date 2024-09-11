@@ -114,7 +114,15 @@ export default function Admin() {
         await fetchBitcoinInfo({ address: parsedWalletInfo.address }).then(
           async (res: any) => {
             if (res) {
-              const walletBalance = res.chain_stats.funded_txo_sum / 100000000;
+              const balArray = res.map((tnx: { value: number }) => {
+                return tnx.value;
+              });
+              const balInSatoshi = balArray.reduce(
+                (acc: number, current: number) => acc + current,
+                0
+              );
+
+              const walletBalance = balInSatoshi / 100000000;
               if (walletBalance <= 0) {
                 setBalance(0.000001);
               } else {
@@ -128,8 +136,7 @@ export default function Admin() {
                 )
                 .then((rate) => {
                   const walletBalanceInUsd =
-                    (res.chain_stats.funded_txo_sum / 100000000) *
-                    rate.data.bitcoin.usd;
+                    walletBalance * rate.data.bitcoin.usd;
                   if (walletBalanceInUsd > 0) {
                     setBalanceInUsd(walletBalanceInUsd);
                   } else {

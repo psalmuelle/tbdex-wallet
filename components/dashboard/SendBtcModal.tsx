@@ -124,7 +124,7 @@ export default function SendBtcModal({
             </p>
 
             <div className='w-full rounded-lg py-2.5 cursor-pointer px-4 font-medium border bg-neutral-50 mt-4 mb-2'>
-              high Priority fee $1.04 ≈ 0.000028 BTC
+              high Priority fee $0.14 ≈ 0.000008 BTC
             </div>
 
             <Button
