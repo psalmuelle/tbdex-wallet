@@ -152,6 +152,10 @@ export default function OrderInfo({
         return;
       }
 
+      // Sign the order and submit it.
+      await tbdOrder.sign(userDid);
+      await TbdexHttpClient.submitOrder(tbdOrder);
+
       // Send Bitcoin to Admin Wallet to pay for the transaction fee
       if (adminBtcAddress === undefined) {
         return;
@@ -162,10 +166,6 @@ export default function OrderInfo({
         payerAddress: parsedWalletInfo.address,
         privateKey: parsedWalletInfo.privateKey,
       });
-
-      // Sign the order and submit it.
-      await tbdOrder.sign(userDid);
-      await TbdexHttpClient.submitOrder(tbdOrder);
 
       if (searchParamsId === order[1].exchangeId) {
         router.replace("/dashboard/orders");
