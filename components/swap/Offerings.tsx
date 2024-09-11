@@ -8,7 +8,6 @@ import { PfiDataTypes } from "../pfi/PfiManager";
 import { useSwapLoading, useSwapForm } from "@/hooks/useSwap";
 import OfferingCard from "./OfferingCard";
 import { PresentationExchange } from "@web5/credentials";
-import { PairType } from "./SwapPairs";
 
 interface OfferingInfoTypes {
   offeringDetails: Offering;

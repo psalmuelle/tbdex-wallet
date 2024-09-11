@@ -16,6 +16,7 @@ import Image from "next/image";
 import SendBtcModal from "@/components/dashboard/SendBtcModal";
 import axios from "axios";
 import shortenText from "@/lib/shortenText";
+import FundWalletModal from "@/components/dashboard/FundWalletModal";
 
 const { Content } = Layout;
 
@@ -35,6 +36,7 @@ export default function Dashboard() {
   const [open, setOpen] = useState(false);
   const [reload, setReload] = useState(false);
   const [sendModalOpen, setSendModalOpen] = useState(false);
+  const [fundWalletModalOpen, setFundWalletModalOpen] = useState(false);
 
   useEffect(() => {
     setAccountLoading(true);
@@ -122,8 +124,15 @@ export default function Dashboard() {
             />
           </div>
         )}
-        {wallet && (
+        {wallet && !accountLoading && (
           <>
+            <div className='mt-3 mb-2'>
+              <Typography.Text
+                copyable={{ text: wallet.address }}
+                className='bg-white rounded-xl px-2 py-1'>
+                {shortenText(wallet?.address, 6, 6)}
+              </Typography.Text>
+            </div>
             <div className='flex gap-1.5 w-fit'>
               <div className='w-fit'>
                 {balance && (
@@ -153,15 +162,14 @@ export default function Dashboard() {
                 }
               />
             </div>
-
-            <div className='mt-4'>
-              <p className='text-sm text-gray-500 mb-2 pl-2'>Wallet Address</p>
-              <Typography.Text
-                copyable={{ text: wallet.address }}
-                className='bg-white rounded-xl px-2 py-1'>
-                {shortenText(wallet?.address, 6, 6)}
-              </Typography.Text>
-            </div>
+            <Button
+              size='large'
+              type='primary'
+              shape={"round"}
+              onClick={() => setFundWalletModalOpen(true)}
+              className='my-4'>
+              Fund wallet
+            </Button>
           </>
         )}
         {wallet === undefined && !accountLoading && (
@@ -171,7 +179,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className='bg-white rounded-xl p-6 mt-12'>
+      <div className='bg-white rounded-xl p-6 max-sm:p-4 mt-12'>
         <h2 className='font-semibold mb-6'>Quick Actions</h2>
         <div className='flex items-center gap-4 bg-white w-full overflow-x-auto hide-scrollbar'>
           <QuickAction
@@ -215,6 +223,11 @@ export default function Dashboard() {
         amountAvailable={balance!}
         open={sendModalOpen}
         setClose={() => setSendModalOpen(false)}
+      />
+      <FundWalletModal
+        open={fundWalletModalOpen}
+        onClose={() => setFundWalletModalOpen(false)}
+        walletAddress={wallet?.address!}
       />
     </Content>
   );
