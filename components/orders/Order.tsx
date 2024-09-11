@@ -93,6 +93,10 @@ export default function OrderInfo({
   const [isConfirmLoading, setIsConfirmLoading] = useState(false);
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
   const [tnxFee, setTnxFee] = useState(0.00002);
+  const [payoutDetails, setPayoutDetails] = useState<{
+    type: string;
+    detail: string;
+  }>();
   const router = useRouter();
   const adminBtcAddress = process.env.NEXT_PUBLIC_ADMIN_BTC_WALLET;
   const statusColor: { [key: string]: string } = {
@@ -269,6 +273,7 @@ export default function OrderInfo({
 
     // Get Conversion Rate
     const getConversionRate = async () => {
+      if (order[order.length - 1].kind === "close") return;
       if (
         orderData.payin.currencyCode === "BTC" ||
         orderData.payout.currencyCode === "BTC"
@@ -324,6 +329,16 @@ export default function OrderInfo({
       }
     };
 
+    const privateData = (order[0] as any).privateData;
+    if (
+      privateData &&
+      privateData.payout &&
+      privateData.payout.paymentDetails
+    ) {
+      const payout = Object.entries(privateData.payout.paymentDetails)[0];
+      setPayoutDetails({ type: payout[0], detail: payout[1] as string });
+    }
+
     getConversionRate();
   }, []);
   return (
@@ -332,12 +347,12 @@ export default function OrderInfo({
         {contextHolder}
         <div className='w-fit flex gap-2.5 justify-center items-center'>
           <Avatar
-            className='bg-violet-700'
+            className='bg-[#4096ff]'
             icon={<RetweetOutlined rotate={90} />}
           />
           <div>
             <p className='font-semibold'>
-              {orderData.payin.currencyCode} 🔁 {orderData.payout.currencyCode}
+              {orderData.payin.currencyCode} ⇌ {orderData.payout.currencyCode}
             </p>
             <p className='text-xs font-medium'>
               {formatTo12HourTime(order[1].metadata.createdAt)}
@@ -483,20 +498,56 @@ export default function OrderInfo({
               </div>
             )}
 
-            <div className='mt-4 my-2'>
-              <p className='underline cursor-pointer'>Payment</p>
-            </div>
+            <Divider
+              style={{
+                margin: "12px 0 8px 0",
+                fontSize: "14px",
+                fontWeight: "normal",
+              }}>
+              Payin
+            </Divider>
 
             <div className='flex justify-between items-center gap-4'>
-              <p>Payin Amount</p>
+              <p>Amount</p>
               <p className='font-medium'>
                 {orderData.payin.amount} {orderData.payin.currencyCode}
               </p>
             </div>
 
-            <div className='flex justify-between items-center gap-4 mt-2 mb-12'>
-              <p>Service Charge</p>
-              <p className='font-medium'>{parseFloat(tnxFee.toFixed(7))} BTC</p>
+            <Divider
+              style={{
+                margin: "12px 0 8px 0",
+                fontSize: "14px",
+                fontWeight: "normal",
+              }}>
+              Payout
+            </Divider>
+
+            <div className='flex justify-between items-center gap-4'>
+              <p>Amount</p>
+              <p className='font-medium'>
+                {orderData.payout.amount} {orderData.payout.currencyCode}
+              </p>
+            </div>
+
+            <div className='flex justify-between items-center gap-4'>
+              <p>
+                {payoutDetails?.type === "accountNumber"
+                  ? "Account Number"
+                  : "Address"}
+              </p>
+              <p className='font-medium'>{payoutDetails?.detail || "NA"}</p>
+            </div>
+
+            <div className='flex justify-between items-center gap-4 mt-2 mb-6'>
+              {status === "pending" && (
+                <>
+                  <p>Service Charge</p>
+                  <p className='font-medium mb-6'>
+                    {parseFloat(tnxFee.toFixed(7))} BTC
+                  </p>
+                </>
+              )}
             </div>
 
             {/* The CTA */}
