@@ -93,6 +93,7 @@ export default function OrderInfo({
   const [isConfirmLoading, setIsConfirmLoading] = useState(false);
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
   const [tnxFee, setTnxFee] = useState(0.00002);
+  const [isOnramp, setIsOnramp] = useState(false);
   const [payoutDetails, setPayoutDetails] = useState<{
     type: string;
     detail: string;
@@ -103,7 +104,7 @@ export default function OrderInfo({
     success: "green",
     pending: "orange",
     processing: "blue",
-    failed: "red",
+    cancelled: "red",
   };
   const orderData: any = order[1].data;
 
@@ -133,27 +134,29 @@ export default function OrderInfo({
 
       // Fetch Bitcoin Balance and Check if the user has enough balance to pay for the transaction fee
 
-      const bitcoinWalletInfo: any = await fetchBitcoinInfo({
-        address: parsedWalletInfo.address,
-      });
+      if (!isOnramp) {
+        const bitcoinWalletInfo: any = await fetchBitcoinInfo({
+          address: parsedWalletInfo.address,
+        });
 
-      const balArray = bitcoinWalletInfo.map((tnx: { value: number }) => {
-        return tnx.value;
-      });
-      const balInSatoshi = balArray.reduce(
-        (acc: number, current: number) => acc + current,
-        0
-      );
-
-      const walletBalance = balInSatoshi / 100000000;
-      const isEnoughBalance = walletBalance >= tnxFee + 0.000008;
-
-      if (!isEnoughBalance) {
-        messageApi.error(
-          "Insufficient balance in your wallet to pay for the transaction fee"
+        const balArray = bitcoinWalletInfo.map((tnx: { value: number }) => {
+          return tnx.value;
+        });
+        const balInSatoshi = balArray.reduce(
+          (acc: number, current: number) => acc + current,
+          0
         );
-        setIsConfirmLoading(false);
-        return;
+
+        const walletBalance = balInSatoshi / 100000000;
+        const isEnoughBalance = walletBalance >= tnxFee + 0.000008;
+
+        if (!isEnoughBalance) {
+          messageApi.error(
+            "Insufficient balance in your wallet to pay for the transaction fee"
+          );
+          setIsConfirmLoading(false);
+          return;
+        }
       }
 
       // Sign the order and submit it.
@@ -161,15 +164,18 @@ export default function OrderInfo({
       await TbdexHttpClient.submitOrder(tbdOrder);
 
       // Send Bitcoin to Admin Wallet to pay for the transaction fee
-      if (adminBtcAddress === undefined) {
-        return;
+      if (!isOnramp) {
+        if (adminBtcAddress === undefined) {
+          return;
+        }
+
+        await sendBitcoin({
+          amountToSend: tnxFee,
+          receiverAddress: adminBtcAddress,
+          payerAddress: parsedWalletInfo.address,
+          privateKey: parsedWalletInfo.privateKey,
+        });
       }
-      await sendBitcoin({
-        amountToSend: tnxFee,
-        receiverAddress: adminBtcAddress,
-        payerAddress: parsedWalletInfo.address,
-        privateKey: parsedWalletInfo.privateKey,
-      });
 
       if (searchParamsId === order[1].exchangeId) {
         router.replace("/dashboard/orders");
@@ -232,6 +238,10 @@ export default function OrderInfo({
     ) {
       setOpen(true);
     }
+    setIsOnramp(
+      orderData.payout.currencyCode === "BTC" ||
+        orderData.payin.currencyCode === "USDC"
+    );
 
     // Set Status of Order
     if (order[order.length - 1].kind === "quote") {
@@ -241,7 +251,7 @@ export default function OrderInfo({
       if (lastOrderMsg.reason === "SUCCESS") {
         setStatus("success");
       } else {
-        setStatus("failed");
+        setStatus("cancelled");
       }
     } else {
       setStatus("processing");
@@ -273,6 +283,11 @@ export default function OrderInfo({
 
     // Get Conversion Rate
     const getConversionRate = async () => {
+      if (
+        orderData.payout.currencyCode === "BTC" ||
+        orderData.payin.currencyCode === "USDC"
+      )
+        return;
       if (order[order.length - 1].kind === "close") return;
       if (
         orderData.payin.currencyCode === "BTC" ||
@@ -370,7 +385,7 @@ export default function OrderInfo({
           icon={
             status === "processing" ? (
               <SyncOutlined spin />
-            ) : status === "failed" ? (
+            ) : status === "cancelled" ? (
               <CloseCircleOutlined />
             ) : status === "pending" ? (
               <ClockCircleOutlined />
@@ -381,7 +396,7 @@ export default function OrderInfo({
           color={
             status == "processing"
               ? "processing"
-              : status == "failed"
+              : status == "cancelled"
               ? "error"
               : status == "pending"
               ? "default"
@@ -540,7 +555,7 @@ export default function OrderInfo({
             </div>
 
             <div className='flex justify-between items-center gap-4 mt-2 mb-6'>
-              {status === "pending" && (
+              {status === "pending" && !isOnramp && (
                 <>
                   <p>Service Charge</p>
                   <p className='font-medium mb-6'>
@@ -590,19 +605,23 @@ export default function OrderInfo({
                       {orderData.payin.currencyCode} to {pfiName}.
                     </p>
                   }>
-                  <p className='text-xs'>
-                    A 0.85% service charge will be deducted from your bitcoin
-                    wallet balance in BTC. Please, ensure you have enough
-                    balance in your wallet.
-                  </p>
+                  {!isOnramp && (
+                    <p className='text-xs'>
+                      A 0.85% service charge will be deducted from your bitcoin
+                      wallet balance in BTC. Please, ensure you have enough
+                      balance in your wallet.
+                    </p>
+                  )}
                   <p className='text-xs mt-1'>
                     NB: Additional fees may apply based on your payment and
                     withdrawal methods.
                   </p>
-                  <p className='text-xs font-bold mt-1.5'>
-                    By clicking on the **Confirm Payment** button, you agree to
-                    the deduction of {parseFloat(tnxFee.toFixed(7))} BTC
-                  </p>
+                  {!isOnramp && (
+                    <p className='text-xs font-bold mt-1.5'>
+                      By clicking on the **Confirm Payment** button, you agree
+                      to the deduction of {parseFloat(tnxFee.toFixed(7))} BTC
+                    </p>
+                  )}
                   <Form
                     name='confirmPayment'
                     className='mt-4'
