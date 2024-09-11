@@ -13,8 +13,6 @@ export default async function getMessages({ web5 }: GetMessagesProps) {
           protocol: "https://wallet.chain.com",
           protocolPath: "conversation",
           dataFormat: "application/json",
-          recipient:
-            "did:dht:j7ouj9uxza59k9o7m9fh4b4d5n9ukdnjfyofgyhz9zbrqaofwhky",
         },
       },
     });

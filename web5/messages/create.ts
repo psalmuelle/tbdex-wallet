@@ -1,7 +1,6 @@
 import type { Web5 } from "@web5/api";
 
 interface CreateMessageProps {
-  userDid: string;
   web5: Web5;
   message: {
     title: string;
@@ -11,9 +10,9 @@ interface CreateMessageProps {
 
 export default async function createMessage({
   web5,
-  userDid,
   message,
 }: CreateMessageProps) {
+  const adminDid = process.env.NEXT_PUBLIC_ADMIN_DID as string;
   try {
     const response = await web5.dwn.records.create({
       data: message,
@@ -22,14 +21,13 @@ export default async function createMessage({
         protocol: "https://wallet.chain.com",
         protocolPath: "conversation",
         dataFormat: "application/json",
-        recipient: "did:dht:j7ouj9uxza59k9o7m9fh4b4d5n9ukdnjfyofgyhz9zbrqaofwhky",
-        published: true
+        recipient: adminDid,
+        published: true,
       },
     });
 
     if (response) {
-      response.record?.send("did:dht:j7ouj9uxza59k9o7m9fh4b4d5n9ukdnjfyofgyhz9zbrqaofwhky"
-);
+      response.record?.send(adminDid);
       return response;
     }
   } catch (error) {

@@ -54,7 +54,6 @@ export default function Support() {
       const response = await createMessage({
         web5: web5!,
         message: verifiedConvo,
-        userDid: userDid!,
       });
       if (response?.record) {
         console.log(response);

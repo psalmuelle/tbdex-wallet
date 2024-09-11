@@ -4,20 +4,45 @@ import ConversationList from "./ConversationList";
 import { useEffect, useState } from "react";
 import { Spin } from "antd";
 
-export default function Messages({ loading, conversations }: { loading: boolean, conversations: Record[] }) {
+export default function Messages({
+  loading,
+  conversations,
+}: {
+  loading: boolean;
+  conversations: Record[];
+}) {
+  const [convo, setConvo] = useState<
+    { user: string; text: string; time: string }[]
+  >([]);
 
+  useEffect(() => {
+    function getMessages() {
+      const temp: { user: string; time: string; text: string }[] = [];
+      conversations.map(async (conversation) => {
+        conversation.data.json().then((res) => {
+          temp.push({
+            user: res.user,
+            time: conversation.dateCreated,
+            text: res.title,
+          });
+          setConvo(temp)
+        });
+      });
+     
+    }
+    getMessages();
+  },[]);
 
-  useEffect(() => {}, []);
   return (
     <div>
       <h1 className='font-semibold mt-6'>Customers Messages</h1>
       <div className='mt-8 p-4 bg-white w-full rounded-xl min-h-96'>
         {loading ? (
-          <div className="flex justify-center items-center min-h-48">
+          <div className='flex justify-center items-center min-h-48'>
             <Spin spinning={loading} size='large' />
           </div>
         ) : (
-          <ConversationList conversations={conversations}/>
+          <ConversationList conversations={convo} />
         )}
       </div>
     </div>

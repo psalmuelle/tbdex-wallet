@@ -90,8 +90,9 @@ export default function Admin() {
     fetchData();
   }, [reloadPair]);
 
-  // For fetching Conversations/Messages
+  // For Intializing web5
   useEffect(() => {
+    setIsConvoLoading(true);
     setBtcWalletLoading(true);
     async function handleWeb5() {
       const { web5, userDID } = await initWeb5({ password: sessionKey });
@@ -154,6 +155,20 @@ export default function Admin() {
     }
     fetchWalletFromDwn();
   }, [web5, reloadWallet]);
+
+  //Fetch conversations
+  useEffect(() => {
+    async function fetchConversations() {
+      if (web5) {
+        const response = await getMessages({ web5 });
+        if (response?.records) {
+          setConversations(response.records);
+          setIsConvoLoading(false);
+        }
+      }
+    }
+    fetchConversations();
+  }, [web5]);
 
   // Handle reloads of Tabs
   const setReloadForPair = () => {
