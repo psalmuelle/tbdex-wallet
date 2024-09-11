@@ -106,7 +106,7 @@ export default function Offerings({
       }
     };
     handleGetOfferings();
-  }, []);
+  }, [credentials]);
 
   return (
     <section className='mt-8'>
