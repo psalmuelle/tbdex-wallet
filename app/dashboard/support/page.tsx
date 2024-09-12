@@ -57,42 +57,16 @@ export default function Support() {
   }, []);
 
   useEffect(() => {
-    async function fetchChats() {
+    async function getChatsFromDwn() {
       try {
         setChatsLoading(true);
         // fetch chats for the selected user
         if (showChatBox) {
-          const chats = await getChats({
-            web5: web5!,
-            parentId: conversation![0].id,
-          });
-
-          const details: {
-            id: string;
-            msg: string;
-            time: string;
-            isUser: boolean;
-            adminName: string;
-          }[] = [];
-
-          chats?.records?.map(async (chat) => {
-            const data = await chat.data.json();
-
-            const msgDetail = {
-              id: chat.id,
-              msg: data.msg,
-              time: new Date(data.createdAt).toLocaleTimeString("en-US", {
-                hour: "numeric",
-                minute: "numeric",
-                hour12: true,
-              }),
-              isUser: chat.author === userDid,
-              adminName: "Support",
-            };
-            details.push(msgDetail);
-          });
-          setChats(details);
-          setChatsLoading(false);
+          const response = await fetchChats();
+          if (response) {
+            setChats(response);
+            setChatsLoading(false);
+          }
         }
         setPageLoading(false);
         setShowChatBox(true);
@@ -101,8 +75,46 @@ export default function Support() {
         setChatsLoading(false);
       }
     }
-    conversation && fetchChats();
+
+    conversation && getChatsFromDwn();
   }, [conversation]);
+
+  async function fetchChats() {
+    try {
+      const chats = await getChats({
+        web5: web5!,
+        parentId: conversation![0].id,
+      });
+
+      const details: {
+        id: string;
+        msg: string;
+        time: string;
+        isUser: boolean;
+        adminName: string;
+      }[] = [];
+
+      chats?.records?.map(async (chat) => {
+        const data = await chat.data.json();
+
+        const msgDetail = {
+          id: chat.id,
+          msg: data.msg,
+          time: new Date(data.createdAt).toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true,
+          }),
+          isUser: chat.author === userDid,
+          adminName: "Support",
+        };
+        details.push(msgDetail);
+      });
+      return details;
+    } catch (err) {
+      console.log(err);
+    }
+  }
 
   //function to start a conversation
   async function initiateConversation(convoType: string) {
