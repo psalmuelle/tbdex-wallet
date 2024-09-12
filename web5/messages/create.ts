@@ -39,15 +39,18 @@ export async function createChat({
   web5,
   chat,
   parentId,
+  receiverDid,
 }: {
   web5: Web5;
   parentId: string;
+  receiverDid?: string;
   chat: {
     msg: string;
     createdAt: string;
   };
 }) {
   const adminDid = process.env.NEXT_PUBLIC_ADMIN_DID as string;
+  const receivingParty = receiverDid ? receiverDid : adminDid;
   try {
     const response = await web5.dwn.records.create({
       data: chat,
@@ -56,13 +59,13 @@ export async function createChat({
         protocol: "https://wallet.chain.com",
         protocolPath: "conversation/message",
         dataFormat: "application/json",
-        recipient: adminDid,
+        recipient: receivingParty,
         parentContextId: parentId,
       },
     });
 
     if (response) {
-      await response.record?.send(adminDid);
+      await response.record?.send(receivingParty);
       await response.record?.send();
       return response;
     }

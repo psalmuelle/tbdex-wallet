@@ -24,3 +24,28 @@ export default async function getMessages({ web5 }: GetMessagesProps) {
     console.log(error);
   }
 }
+
+export async function getChats({
+  web5,
+  parentId,
+}: {
+  web5: Web5;
+  parentId: string;
+}) {
+  try {
+    const response = await web5.dwn.records.query({
+      message: {
+        filter: {
+          schema: "https://wallet.chain.com/schemas/messageSchema",
+          dataFormat: "application/json",
+          protocol: "https://wallet.chain.com",
+          protocolPath: "conversation/message",
+          parentId: parentId,
+        },
+      },
+    });
+    return response;
+  } catch (err) {
+    console.log(err);
+  }
+}

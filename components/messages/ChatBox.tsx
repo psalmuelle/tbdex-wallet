@@ -9,11 +9,13 @@ export default function ChatBox({
   messages,
   web5,
   parentId,
+  receiverDid,
   isUser,
   adminName,
 }: {
   messages: MessageProps[];
   web5: Web5;
+  receiverDid?: string;
   parentId: string;
   isUser: boolean;
   adminName?: string;
@@ -30,16 +32,17 @@ export default function ChatBox({
   }, [allMessages]);
 
   const onFinish: FormProps<{ chat: string }>["onFinish"] = async (values) => {
-    if (values.chat.length <= 0) return;
+    if (!values.chat) return;
     //Send Message
     form.resetFields();
     const sentMessage = await createChat({
       web5: web5,
       chat: { msg: values.chat, createdAt: new Date().toISOString() },
       parentId: parentId,
+      receiverDid: receiverDid || undefined,
     });
 
-    console.log(sentMessage)
+    console.log(sentMessage);
     if (sentMessage && sentMessage.record) {
       console.log(await sentMessage.record.data.json());
       setAllMessages((prev) => [
@@ -57,7 +60,6 @@ export default function ChatBox({
         },
       ]);
     }
-
   };
 
   return (

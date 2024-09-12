@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import initWeb5 from "@/web5/auth/access";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 import type { Web5, Record } from "@web5/api";
-import getMessages from "@/web5/messages/read";
+import getMessages, { getChats } from "@/web5/messages/read";
 import createMessage from "@/web5/messages/create";
 import { conversationSchema, messageSchema } from "@/lib/web5/schema";
 
@@ -39,6 +39,16 @@ export default function Support() {
   const [convoOngoing, setConvoOngoing] = useState<boolean>(false);
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
   const [conversation, setConversation] = useState<Record[]>();
+  const [chatsLoading, setChatsLoading] = useState(false);
+  const [chats, setChats] = useState<
+    {
+      msg: string;
+      time: string;
+      isUser: boolean;
+      id: string;
+      adminName?: string;
+    }[]
+  >();
   const [userDid, setUserDid] = useState<string>();
   const [pageLoading, setPageLoading] = useState(false);
   const [web5, setWeb5] = useState<Web5>();
@@ -67,6 +77,47 @@ export default function Support() {
     };
     handleWeb5();
   }, []);
+
+  useEffect(() => {
+    async function fetchChats() {
+      setChatsLoading(true);
+      // fetch chats for the selected user
+      if (conversation) {
+        const chats = await getChats({
+          web5: web5!,
+          parentId: conversation[0].id,
+        });
+
+        const details: {
+          id: string;
+          msg: string;
+          time: string;
+          isUser: boolean;
+          adminName: string;
+        }[] = [];
+
+        chats?.records?.map(async (chat) => {
+          const data = await chat.data.json();
+
+          const msgDetail = {
+            id: chat.id,
+            msg: data.msg,
+            time: new Date(data.createdAt).toLocaleTimeString("en-US", {
+              hour: "numeric",
+              minute: "numeric",
+              hour12: true,
+            }),
+            isUser: chat.author === userDid,
+            adminName: "Sam",
+          };
+          details.push(msgDetail);
+        });
+        setChats(details);
+        setChatsLoading(false);
+      }
+    }
+    fetchChats();
+  }, [conversation]);
 
   //function to start a conversation
   async function initiateConversation(convoType: string) {
@@ -101,9 +152,19 @@ export default function Support() {
       {!convoOngoing && !showChat && (
         <Intro handleConvoType={handleConvoType} />
       )}
-      {(showChat || convoOngoing) && (
-        <ChatBox isUser={true} parentId={conversation![0].id} web5={web5!} messages={test} />
-      )}
+      {(showChat || convoOngoing) &&
+        (chatsLoading ? (
+          <div className='my-16 mx-auto w-fit'>
+            <Spin spinning={chatsLoading} size='large' />
+          </div>
+        ) : (
+          <ChatBox
+            isUser={true}
+            parentId={conversation![0].id}
+            web5={web5!}
+            messages={chats!}
+          />
+        ))}
     </Content>
   );
 }

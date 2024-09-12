@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Button, Spin } from "antd";
 import ChatBox from "../messages/ChatBox";
 import { LeftOutlined } from "@ant-design/icons";
+import { getChats } from "@/web5/messages/read";
 
 const test = [
   {
@@ -62,11 +63,17 @@ export default function Messages({
     getMessages();
   }, []);
 
-  useEffect(() => {
+  useEffect(()=>{
     async function fetchChats() {
       // fetch chats for the selected user
+      if(!web5 || !currentChatId) return;
+     
+        const chats = await getChats({ web5: web5!, parentId: currentChatId });
+        console.log(chats);
+      
     }
-  }, []);
+    fetchChats();
+  },[web5, currentChatId])
 
   const handleSendMessage = async () => {
     // send message to the user
@@ -101,6 +108,7 @@ export default function Messages({
               onClick={() => setOpenChat(false)}
             />
             <ChatBox
+              receiverDid= {convo.find((c) => c.id === currentChatId)?.user!}
               isUser={false}
               adminName='Sam'
               parentId={currentChatId!}
