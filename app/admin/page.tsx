@@ -246,6 +246,7 @@ export default function Admin() {
       icon: <MessageOutlined />,
       children: (
         <Messages
+          userDid={userDid!}
           web5={web5!}
           loading={isConvoLoading}
           conversations={conversations!}

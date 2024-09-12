@@ -2,39 +2,20 @@
 import type { Record, Web5 } from "@web5/api";
 import ConversationList from "./ConversationList";
 import { useEffect, useState } from "react";
-import { Button, Spin } from "antd";
+import { Button, Spin, Typography } from "antd";
 import ChatBox from "../messages/ChatBox";
 import { LeftOutlined } from "@ant-design/icons";
 import { getChats } from "@/web5/messages/read";
-
-const test = [
-  {
-    msg: "Hi, how can I help you?",
-    time: "10:00 AM",
-    isUser: false,
-    adminName: "Abby",
-    id: "jkasfkljasofi",
-  },
-  {
-    msg: "I have issues while converting currencies/token 🤔",
-    time: "10:01 AM",
-    isUser: true,
-    id: "uiewyhieciwe",
-  },
-  {
-    msg: "I want to report a bug 🐞",
-    time: "10:02 AM",
-    isUser: true,
-    id: "c,znxmvbm,zxv",
-  },
-];
+import shortenText from "@/lib/shortenText";
 
 export default function Messages({
   loading,
   conversations,
+  userDid,
   web5,
 }: {
   loading: boolean;
+  userDid: string;
   conversations: Record[];
   web5: Web5;
 }) {
@@ -42,6 +23,15 @@ export default function Messages({
     { id: string; user: string; text: string; time: string }[]
   >([]);
   const [openChat, setOpenChat] = useState(false);
+  const [chats, setChats] = useState<
+    {
+      msg: string;
+      time: string;
+      isUser: boolean;
+      id: string;
+      adminName?: string;
+    }[]
+  >();
   const [currentChatId, setCurrentChatId] = useState<string>();
 
   useEffect(() => {
@@ -63,17 +53,40 @@ export default function Messages({
     getMessages();
   }, []);
 
-  useEffect(()=>{
+  useEffect(() => {
     async function fetchChats() {
       // fetch chats for the selected user
-      if(!web5 || !currentChatId) return;
-     
-        const chats = await getChats({ web5: web5!, parentId: currentChatId });
-        console.log(chats);
-      
+      if (!web5 || !currentChatId) return;
+
+      const details: {
+        id: string;
+        msg: string;
+        time: string;
+        isUser: boolean;
+      }[] = [];
+
+      const chats = await getChats({ web5: web5!, parentId: currentChatId });
+      console.log(chats);
+
+      chats?.records?.map(async (chat) => {
+        const data = await chat.data.json();
+
+        const msgDetail = {
+          id: chat.id,
+          msg: data.msg,
+          time: new Date(data.createdAt).toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true,
+          }),
+          isUser: chat.author === userDid,
+        };
+        details.push(msgDetail);
+        setChats(details);
+      });
     }
     fetchChats();
-  },[web5, currentChatId])
+  }, [web5, currentChatId]);
 
   const handleSendMessage = async () => {
     // send message to the user
@@ -101,20 +114,35 @@ export default function Messages({
           )
         ) : (
           <div className='mb-8'>
-            <Button
-              shape='circle'
-              type={"text"}
-              icon={<LeftOutlined />}
-              onClick={() => setOpenChat(false)}
-            />
-            <ChatBox
-              receiverDid= {convo.find((c) => c.id === currentChatId)?.user!}
-              isUser={false}
-              adminName='Sam'
-              parentId={currentChatId!}
-              web5={web5}
-              messages={test}
-            />
+            <div className='flex justify-between gap-4'>
+              <Button
+                shape='circle'
+                type={"text"}
+                icon={<LeftOutlined />}
+                onClick={() => setOpenChat(false)}
+              />
+              <Typography.Text
+                copyable={{
+                  text: convo.find((c) => c.id === currentChatId)?.user!,
+                }}
+                className='font-semibold'>
+                {shortenText(
+                  convo.find((c) => c.id === currentChatId)?.user!,
+                  12,
+                  4
+                )}
+              </Typography.Text>
+              <div />
+            </div>
+            {chats && (
+              <ChatBox
+                receiverDid={convo.find((c) => c.id === currentChatId)?.user!}
+                isUser={true}
+                parentId={currentChatId!}
+                web5={web5}
+                messages={chats}
+              />
+            )}
           </div>
         )}
       </div>
