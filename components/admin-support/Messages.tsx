@@ -8,6 +8,14 @@ import { LeftOutlined } from "@ant-design/icons";
 import { getChats } from "@/web5/messages/read";
 import shortenText from "@/lib/shortenText";
 
+type ChatProps = {
+  msg: string;
+  time: string;
+  isUser: boolean;
+  id: string;
+  adminName?: string;
+};
+
 export default function Messages({
   loading,
   conversations,
@@ -23,15 +31,9 @@ export default function Messages({
     { id: string; user: string; text: string; time: string }[]
   >([]);
   const [openChat, setOpenChat] = useState(false);
-  const [chats, setChats] = useState<
-    {
-      msg: string;
-      time: string;
-      isUser: boolean;
-      id: string;
-      adminName?: string;
-    }[]
-  >();
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chats, setChats] = useState<ChatProps[]>();
+  const [updatedChats, setUpdatedChats] = useState<ChatProps[]>();
   const [currentChatId, setCurrentChatId] = useState<string>();
 
   useEffect(() => {
@@ -54,7 +56,36 @@ export default function Messages({
   }, []);
 
   useEffect(() => {
-    async function fetchChats() {
+    async function getChats() {
+      const response = await fetchChats();
+      setChats(response);
+    }
+    getChats();
+  }, [web5, currentChatId]);
+
+  useEffect(() => {
+    async function updateChats() {
+      if (!currentChatId) return;
+      if (!openChat) return;
+      const response = await fetchChats();
+      if (response) {
+        setUpdatedChats(response);
+      }
+
+      if (updatedChats?.length !== undefined) {
+        if (updatedChats?.length > chats!.length) {
+          setChats([...updatedChats]);
+        }
+      }
+    }
+    const interval = setInterval(() => {
+      updateChats();
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [openChat, currentChatId, chats, updatedChats]);
+
+  async function fetchChats() {
+    try {
       // fetch chats for the selected user
       if (!web5 || !currentChatId) return;
 
@@ -66,7 +97,6 @@ export default function Messages({
       }[] = [];
 
       const chats = await getChats({ web5: web5!, parentId: currentChatId });
-      console.log(chats);
 
       chats?.records?.map(async (chat) => {
         const data = await chat.data.json();
@@ -82,70 +112,76 @@ export default function Messages({
           isUser: chat.author === userDid,
         };
         details.push(msgDetail);
-        setChats(details);
       });
+      return details;
+    } catch (err) {
+      console.log(err);
     }
-    fetchChats();
-  }, [web5, currentChatId]);
-
-  const handleSendMessage = async () => {
-    // send message to the user
-  };
+  }
 
   return (
     <div>
       <h1 className='font-semibold mt-6'>Customers Messages</h1>
-      <div className='mt-8 p-4 bg-white w-full rounded-xl min-h-96'>
-        {!openChat ? (
-          loading ? (
-            <>
-              <div className='flex justify-center items-center min-h-48'>
-                <Spin spinning={loading} size='large' />
-              </div>
-            </>
-          ) : (
-            <ConversationList
-              conversations={convo}
-              handleOpenChat={(id: string) => {
-                setCurrentChatId(id);
-                setOpenChat(true);
-              }}
-            />
-          )
-        ) : (
-          <div className='mb-8'>
-            <div className='flex justify-between gap-4'>
-              <Button
-                shape='circle'
-                type={"text"}
-                icon={<LeftOutlined />}
-                onClick={() => setOpenChat(false)}
-              />
-              <Typography.Text
-                copyable={{
-                  text: convo.find((c) => c.id === currentChatId)?.user!,
+      <Spin spinning={chatLoading}>
+        <div className='mt-8 p-4 bg-white w-full rounded-xl min-h-96'>
+          {!openChat ? (
+            loading ? (
+              <>
+                <div className='flex justify-center items-center min-h-48'>
+                  <Spin spinning={loading} size='large' />
+                </div>
+              </>
+            ) : (
+              <ConversationList
+                conversations={convo}
+                handleOpenChat={(id: string) => {
+                  setCurrentChatId(id);
+                  setChatLoading(true);
+                  setTimeout(() => {
+                    setOpenChat(true);
+                    setChatLoading(false);
+                  }, 500);
                 }}
-                className='font-semibold'>
-                {shortenText(
-                  convo.find((c) => c.id === currentChatId)?.user!,
-                  12,
-                  4
-                )}
-              </Typography.Text>
-              <div />
-            </div>
-            {chats && (
-              <ChatBox
-                receiverDid={convo.find((c) => c.id === currentChatId)?.user!}
-                isUser={true}
-                parentId={currentChatId!}
-                web5={web5}
-                messages={chats}
               />
-            )}
-          </div>
-        )}
-      </div>
+            )
+          ) : (
+            <div className='mb-8'>
+              <div className='flex justify-between gap-4'>
+                <Button
+                  shape='circle'
+                  type={"text"}
+                  icon={<LeftOutlined />}
+                  onClick={() => {
+                    setOpenChat(false);
+                    setCurrentChatId(undefined);
+                  }}
+                />
+                <Typography.Text
+                  copyable={{
+                    text: convo.find((c) => c.id === currentChatId)?.user!,
+                  }}
+                  className='font-semibold'>
+                  {shortenText(
+                    convo.find((c) => c.id === currentChatId)?.user!,
+                    12,
+                    4
+                  )}
+                </Typography.Text>
+                <div />
+              </div>
+              {chats && (
+                <ChatBox
+                  receiverDid={convo.find((c) => c.id === currentChatId)?.user!}
+                  isUser={true}
+                  parentId={currentChatId!}
+                  web5={web5}
+                  messages={chats}
+                />
+              )}
+            </div>
+          )}
+        </div>
+      </Spin>
     </div>
   );
 }

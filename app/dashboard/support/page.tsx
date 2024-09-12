@@ -47,6 +47,7 @@ export default function Support() {
             if (res?.records && res?.records?.length > 0) {
               setConversation(res.records);
             }
+            setPageLoading(false);
           });
         }
       } catch (err) {
@@ -178,7 +179,7 @@ export default function Support() {
 
       {chatsLoading && (
         <div className='my-16 mx-auto w-fit'>
-          <Spin spinning={chatsLoading} size='large' />
+          <Spin spinning={chatsLoading} />
         </div>
       )}
       {showChatBox && !chatsLoading && chats && (

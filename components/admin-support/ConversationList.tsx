@@ -57,7 +57,7 @@ export default function ConversationList({
           />
         </div>
       ) : (
-        <div className='mt-4 py-4 px-2 flex flex-col gap-4'>
+        <div className='mt-4 py-4 px-2 flex flex-col-reverse gap-4'>
           {conversations.map((convo, i) => {
             const dateObj = new Date(convo.time);
 
