@@ -20,7 +20,7 @@ function Message({ msg, time, isUser, adminName }: MessageProps) {
   ) : (
     <div className='flex gap-1 my-2 w-fit'>
       <Avatar
-        src='https://api.dicebear.com/9.x/notionists/svg?seed=Abby'
+        src='https://img.icons8.com/?size=100&id=Hj21JM30swCm&format=png&color=000000'
         alt='avatar'
       />
       <div className=''>

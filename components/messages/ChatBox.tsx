@@ -21,7 +21,7 @@ export default function ChatBox({
   adminName?: string;
 }) {
   const [form] = Form.useForm();
-  const [allMessages, setAllMessages] = useState<MessageProps[]>(messages);
+  const [allMessages, setAllMessages] = useState<MessageProps[]>([]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -29,7 +29,11 @@ export default function ChatBox({
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [allMessages]);
+  }, [scrollRef.current, allMessages]);
+
+  useEffect(() => {
+    setAllMessages(messages);
+  }, []);
 
   const onFinish: FormProps<{ chat: string }>["onFinish"] = async (values) => {
     if (!values.chat) return;
@@ -64,12 +68,13 @@ export default function ChatBox({
 
   return (
     <section>
-      {allMessages && allMessages.length > 0 ? (
+      {messages.length > 0 && (
         <Chat scrollRef={scrollRef} messages={allMessages} />
-      ) : (
+      )}
+      {messages.length === 0 && (
         <div className='bg-white rounded-xl p-4'>
           <Empty
-          className="my-10"
+            className='my-10'
             description='No messages yet'
             children={<p className='font-medium'>Drop a message</p>}
           />

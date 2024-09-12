@@ -8,12 +8,12 @@ import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 import type { Web5, Record } from "@web5/api";
 import getMessages, { getChats } from "@/web5/messages/read";
 import createMessage from "@/web5/messages/create";
-import { conversationSchema, messageSchema } from "@/lib/web5/schema";
+import { conversationSchema } from "@/lib/web5/schema";
 
 const { Content } = Layout;
 
 export default function Support() {
-  const [showChat, setShowChat] = useState(false);
+  const [showChatBox, setShowChatBox] = useState(false);
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
   const [conversation, setConversation] = useState<Record[]>();
   const [chatsLoading, setChatsLoading] = useState(false);
@@ -46,11 +46,9 @@ export default function Support() {
           await getMessages({ web5 }).then((res) => {
             if (res?.records && res?.records?.length > 0) {
               setConversation(res.records);
-              setShowChat(true);
             }
           });
         }
-        setPageLoading(false);
       } catch (err) {
         console.log(err);
       }
@@ -60,48 +58,54 @@ export default function Support() {
 
   useEffect(() => {
     async function fetchChats() {
-      setChatsLoading(true);
-      // fetch chats for the selected user
-      if (conversation) {
-        const chats = await getChats({
-          web5: web5!,
-          parentId: conversation[0].id,
-        });
+      try {
+        setChatsLoading(true);
+        // fetch chats for the selected user
+        if (showChatBox) {
+          const chats = await getChats({
+            web5: web5!,
+            parentId: conversation![0].id,
+          });
 
-        const details: {
-          id: string;
-          msg: string;
-          time: string;
-          isUser: boolean;
-          adminName: string;
-        }[] = [];
+          const details: {
+            id: string;
+            msg: string;
+            time: string;
+            isUser: boolean;
+            adminName: string;
+          }[] = [];
 
-        chats?.records?.map(async (chat) => {
-          const data = await chat.data.json();
+          chats?.records?.map(async (chat) => {
+            const data = await chat.data.json();
 
-          const msgDetail = {
-            id: chat.id,
-            msg: data.msg,
-            time: new Date(data.createdAt).toLocaleTimeString("en-US", {
-              hour: "numeric",
-              minute: "numeric",
-              hour12: true,
-            }),
-            isUser: chat.author === userDid,
-            adminName: "Sam",
-          };
-          details.push(msgDetail);
-        });
-        setChats(details);
+            const msgDetail = {
+              id: chat.id,
+              msg: data.msg,
+              time: new Date(data.createdAt).toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "numeric",
+                hour12: true,
+              }),
+              isUser: chat.author === userDid,
+              adminName: "Support",
+            };
+            details.push(msgDetail);
+          });
+          setChats(details);
+          setChatsLoading(false);
+        }
+        setPageLoading(false);
+        setShowChatBox(true);
+      } catch (err) {
+        console.log(err);
+        setChatsLoading(false);
       }
-      setChatsLoading(false);
     }
-    fetchChats();
+    conversation && fetchChats();
   }, [conversation]);
 
   //function to start a conversation
   async function initiateConversation(convoType: string) {
-    setChatsLoading(true);
     try {
       const convo = {
         title: convoType,
@@ -114,8 +118,7 @@ export default function Support() {
       });
       if (response?.record) {
         setConversation([response.record]);
-        setShowChat(true);
-        setChatsLoading(false);
+        setShowChatBox(true);
         return response;
       }
     } catch (err) {
@@ -125,14 +128,13 @@ export default function Support() {
 
   const handleConvoType = async (type: string) => {
     await initiateConversation(type);
-    setShowChat(true);
   };
 
   return (
     <Content className='mt-8 mx-4 mb-4'>
       <Spin spinning={pageLoading} fullscreen />
       <h1 className='text-base font-bold mb-4'>Customer Support</h1>
-      {!chatsLoading && !showChat && (
+      {!chatsLoading && !showChatBox && (
         <Intro handleConvoType={handleConvoType} />
       )}
 
@@ -141,12 +143,12 @@ export default function Support() {
           <Spin spinning={chatsLoading} size='large' />
         </div>
       )}
-      {showChat && !chatsLoading && (
+      {showChatBox && !chatsLoading && chats && (
         <ChatBox
           isUser={true}
           parentId={conversation![0].id}
           web5={web5!}
-          messages={chats!}
+          messages={chats}
         />
       )}
     </Content>
