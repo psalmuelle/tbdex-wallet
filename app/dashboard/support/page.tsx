@@ -11,21 +11,21 @@ import createMessage from "@/web5/messages/create";
 import { conversationSchema } from "@/lib/web5/schema";
 
 const { Content } = Layout;
+type ChatProps = {
+  msg: string;
+  time: string;
+  isUser: boolean;
+  id: string;
+  adminName?: string;
+};
 
 export default function Support() {
   const [showChatBox, setShowChatBox] = useState(false);
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
   const [conversation, setConversation] = useState<Record[]>();
   const [chatsLoading, setChatsLoading] = useState(false);
-  const [chats, setChats] = useState<
-    {
-      msg: string;
-      time: string;
-      isUser: boolean;
-      id: string;
-      adminName?: string;
-    }[]
-  >();
+  const [updatedChats, setUpdatedChats] = useState<ChatProps[]>();
+  const [chats, setChats] = useState<ChatProps[]>();
   const [userDid, setUserDid] = useState<string>();
   const [pageLoading, setPageLoading] = useState(false);
   const [web5, setWeb5] = useState<Web5>();
@@ -78,6 +78,32 @@ export default function Support() {
 
     conversation && getChatsFromDwn();
   }, [conversation]);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      async function refreshChats() {
+        try {
+          const response = await fetchChats();
+          if (response) {
+            setUpdatedChats(response);
+          }
+
+          if (updatedChats?.length !== undefined) {
+            if (updatedChats?.length > chats!.length) {
+              setChats([...updatedChats]);
+            }
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      }
+      conversation && (await refreshChats());
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [conversation, updatedChats, chats]);
+
+  useEffect(() => {}, [updatedChats, chats]);
 
   async function fetchChats() {
     try {
@@ -156,12 +182,14 @@ export default function Support() {
         </div>
       )}
       {showChatBox && !chatsLoading && chats && (
-        <ChatBox
-          isUser={true}
-          parentId={conversation![0].id}
-          web5={web5!}
-          messages={chats}
-        />
+        <div className='bg-white py-4 rounded-xl'>
+          <ChatBox
+            isUser={true}
+            parentId={conversation![0].id}
+            web5={web5!}
+            messages={chats}
+          />
+        </div>
       )}
     </Content>
   );

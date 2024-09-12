@@ -33,7 +33,7 @@ export default function ChatBox({
 
   useEffect(() => {
     setAllMessages(messages);
-  }, []);
+  }, [messages]);
 
   const onFinish: FormProps<{ chat: string }>["onFinish"] = async (values) => {
     if (!values.chat) return;
