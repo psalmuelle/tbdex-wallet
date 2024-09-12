@@ -133,6 +133,7 @@ export default function Support() {
       });
       if (response?.record) {
         console.log(response);
+        setConversation([response.record]);
         return response;
       }
     } catch (err) {

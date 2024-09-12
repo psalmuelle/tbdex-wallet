@@ -27,7 +27,6 @@ export default async function createMessage({
 
     if (response) {
       await response.record?.send(adminDid);
-      await response.record?.send();
       return response;
     }
   } catch (error) {
@@ -66,7 +65,6 @@ export async function createChat({
 
     if (response) {
       await response.record?.send(receivingParty);
-      await response.record?.send();
       return response;
     }
   } catch (error) {
