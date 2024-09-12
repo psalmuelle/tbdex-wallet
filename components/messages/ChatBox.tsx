@@ -1,5 +1,5 @@
 import { SendOutlined } from "@ant-design/icons";
-import { Button, Form, FormProps, Input } from "antd";
+import { Button, Empty, Form, FormProps, Input } from "antd";
 import Chat, { MessageProps } from "./Chat";
 import type { Web5 } from "@web5/api";
 import { createChat } from "@/web5/messages/create";
@@ -64,7 +64,16 @@ export default function ChatBox({
 
   return (
     <section>
-      <Chat scrollRef={scrollRef} messages={allMessages} />
+      {allMessages && allMessages.length > 0 ? (
+        <Chat scrollRef={scrollRef} messages={allMessages} />
+      ) : (
+        <div className='bg-white rounded-xl p-4 min-h-[450px]'>
+          <Empty
+            description='No messages yet'
+            children={<p className='font-medium'>Drop a message</p>}
+          />
+        </div>
+      )}
 
       {/* The input field for sending message */}
       <div>
