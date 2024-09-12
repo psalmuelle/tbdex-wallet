@@ -113,8 +113,8 @@ export default function Support() {
           details.push(msgDetail);
         });
         setChats(details);
-        setChatsLoading(false);
       }
+      setChatsLoading(false);
     }
     fetchChats();
   }, [conversation]);

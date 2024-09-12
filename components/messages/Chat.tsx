@@ -44,7 +44,7 @@ export default function Chat({
   return (
     <div
       ref={scrollRef}
-      className='bg-white rounded-xl p-4 max-h-[65vh] flex flex-col overflow-y-auto custom-scrollbar'>
+      className='bg-white rounded-xl p-4 min-h-[50vh] max-h-[65vh] flex flex-col overflow-y-auto custom-scrollbar'>
       {messages.map((message, i) => {
         return (
           <Message

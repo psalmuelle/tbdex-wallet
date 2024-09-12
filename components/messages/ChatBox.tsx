@@ -67,8 +67,9 @@ export default function ChatBox({
       {allMessages && allMessages.length > 0 ? (
         <Chat scrollRef={scrollRef} messages={allMessages} />
       ) : (
-        <div className='bg-white rounded-xl p-4 min-h-[450px]'>
+        <div className='bg-white rounded-xl p-4'>
           <Empty
+          className="my-10"
             description='No messages yet'
             children={<p className='font-medium'>Drop a message</p>}
           />
