@@ -26,7 +26,8 @@ export default async function createMessage({
     });
 
     if (response) {
-      await response.record?.send(adminDid);
+    const reps =  await response.record?.send(adminDid);
+    console.log(reps?.status, adminDid, response.record)
       return response;
     }
   } catch (error) {

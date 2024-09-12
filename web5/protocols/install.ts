@@ -34,7 +34,7 @@ const configureProtocol = async (web5: Web5, did: string) => {
     console.log("Protocol installed locally", protocol, status);
 
     if (protocol) {
-      await protocol.send(did);
+     return await protocol.send(did);
     }
   } else {
     console.log("Protocol already installed");

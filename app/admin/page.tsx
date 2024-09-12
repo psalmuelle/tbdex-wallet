@@ -95,7 +95,10 @@ export default function Admin() {
     setIsConvoLoading(true);
     setBtcWalletLoading(true);
     async function handleWeb5() {
-      const { web5, userDID } = await initWeb5({ password: sessionKey });
+      const { web5, userDID } = await initWeb5({
+        password: sessionKey,
+        sync: "5s",
+      });
       setWeb5(web5);
       setUserDid(userDID);
     }
@@ -161,6 +164,7 @@ export default function Admin() {
     async function fetchConversations() {
       if (web5) {
         const response = await getMessages({ web5 });
+        console.log(response);
         if (response?.records) {
           setConversations(response.records);
           setIsConvoLoading(false);
@@ -241,7 +245,11 @@ export default function Admin() {
       label: "Messages",
       icon: <MessageOutlined />,
       children: (
-        <Messages web5={web5!} loading={isConvoLoading} conversations={conversations!} />
+        <Messages
+          web5={web5!}
+          loading={isConvoLoading}
+          conversations={conversations!}
+        />
       ),
     },
   ];
