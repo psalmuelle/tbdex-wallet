@@ -53,7 +53,13 @@ export default function Admin() {
 
   // For navigating to login page if sessionKey is not available
   useEffect(() => {
+    const authAdmin = process.env.NEXT_PUBLIC_ADMIN_DID as string;
+    const connectedDid = decryptAndRetrieveData({name: "userDID"})
+
     if (!sessionKey) {
+      router.push("/admin/auth");
+    }
+    if (connectedDid && authAdmin !== connectedDid){
       router.push("/admin/auth");
     }
   }, [sessionKey]);

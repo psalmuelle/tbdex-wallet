@@ -23,11 +23,13 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const sessionKey = decryptAndRetrieveData({ name: "adminKey" });
+  const connectedDid = decryptAndRetrieveData({ name: "userDID" });
+  const authAdmin = process.env.NEXT_PUBLIC_ADMIN_DID as string;
 
   const router = useRouter();
 
   useEffect(() => {
-    if (sessionKey) {
+    if (sessionKey && authAdmin === connectedDid) {
       router.push("/admin");
     }
   }, [sessionKey]);
@@ -38,6 +40,11 @@ export default function Auth() {
     await initWeb5({ password: values.password })
       .then(async (res) => {
         try {
+          if (res.userDID !== authAdmin) {
+            messageApi.error("You are not authorized to access this page");
+            setLoading(false);
+            return;
+          }
           encryptAndStoreData({ name: "adminKey", data: values.password });
           encryptAndStoreData({ name: "userDID", data: res.userDID });
           await configureProtocol(res.web5, res.userDID);
