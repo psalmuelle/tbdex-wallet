@@ -39,6 +39,7 @@ export default function Admin() {
   const [btcWalletLoading, setBtcWalletLoading] = useState(false);
   const [isConvoLoading, setIsConvoLoading] = useState(false);
   const [conversations, setConversations] = useState<Record[]>([]);
+  const [conversationReload, setConversationReload] = useState(false);
   const [wallet, setWallet] = useState<{
     address: string;
     privateKey: string;
@@ -172,7 +173,7 @@ export default function Admin() {
       }
     }
     fetchConversations();
-  }, [web5]);
+  }, [web5, conversationReload]);
 
   // Handle reloads of Tabs
   const setReloadForPair = () => {
@@ -250,6 +251,7 @@ export default function Admin() {
           web5={web5!}
           loading={isConvoLoading}
           conversations={conversations!}
+          setReload={() => setConversationReload(!conversationReload)}
         />
       ),
     },

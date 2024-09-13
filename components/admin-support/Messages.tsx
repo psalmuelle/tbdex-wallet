@@ -2,9 +2,20 @@
 import type { Record, Web5 } from "@web5/api";
 import ConversationList from "./ConversationList";
 import { useEffect, useState } from "react";
-import { Button, Spin, Typography } from "antd";
+import {
+  Button,
+  message,
+  Popconfirm,
+  PopconfirmProps,
+  Spin,
+  Typography,
+} from "antd";
 import ChatBox from "../messages/ChatBox";
-import { LeftOutlined } from "@ant-design/icons";
+import {
+  CloseCircleOutlined,
+  LeftOutlined,
+  SyncOutlined,
+} from "@ant-design/icons";
 import { getChats } from "@/web5/messages/read";
 import shortenText from "@/lib/shortenText";
 
@@ -20,12 +31,14 @@ export default function Messages({
   loading,
   conversations,
   userDid,
+  setReload,
   web5,
 }: {
   loading: boolean;
   userDid: string;
   conversations: Record[];
   web5: Web5;
+  setReload: () => void;
 }) {
   const [convo, setConvo] = useState<
     { id: string; user: string; text: string; time: string }[]
@@ -35,6 +48,7 @@ export default function Messages({
   const [chats, setChats] = useState<ChatProps[]>();
   const [updatedChats, setUpdatedChats] = useState<ChatProps[]>();
   const [currentChatId, setCurrentChatId] = useState<string>();
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     function getMessages() {
@@ -53,7 +67,7 @@ export default function Messages({
       });
     }
     getMessages();
-  }, []);
+  }, [conversations]);
 
   useEffect(() => {
     async function getChats() {
@@ -119,9 +133,35 @@ export default function Messages({
     }
   }
 
+  const confirmDeleteConversation: PopconfirmProps["onConfirm"] = async () => {
+    try {
+      const response = await conversations
+        .find((c) => c.id === currentChatId)
+        ?.delete({ prune: true });
+      await conversations
+        .find((c) => c.id === currentChatId)
+        ?.send(convo.find((c) => c.id === currentChatId)?.user!);
+      console.log(response);
+      setOpenChat(false);
+      setCurrentChatId(undefined);
+      setReload();
+      messageApi.success("Conversation has been deleted!");
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <div>
-      <h1 className='font-semibold mt-6'>Customers Messages</h1>
+      <div className='flex justify-between items-center gap-4 mt-6'>
+        <h1 className='font-semibold'>Customers Messages</h1>
+        <Button
+          onClick={() => setReload()}
+          icon={<SyncOutlined />}
+          shape='circle'
+          type={"dashed"}
+        />
+      </div>
       <Spin spinning={chatLoading}>
         <div className='mt-8 p-4 bg-white w-full rounded-xl min-h-96'>
           {!openChat ? (
@@ -140,7 +180,7 @@ export default function Messages({
                   setTimeout(() => {
                     setOpenChat(true);
                     setChatLoading(false);
-                  }, 500);
+                  }, 300);
                 }}
               />
             )
@@ -154,6 +194,7 @@ export default function Messages({
                   onClick={() => {
                     setOpenChat(false);
                     setCurrentChatId(undefined);
+                    setReload();
                   }}
                 />
                 <Typography.Text
@@ -167,7 +208,19 @@ export default function Messages({
                     4
                   )}
                 </Typography.Text>
-                <div />
+                <Popconfirm
+                  title='Delete this conversation?'
+                  description='Are you sure to delete this convo?'
+                  onConfirm={confirmDeleteConversation}
+                  okText='Yes'
+                  cancelText='No'>
+                  <Button
+                    icon={<CloseCircleOutlined />}
+                    type='text'
+                    danger
+                    shape='circle'
+                  />
+                </Popconfirm>
               </div>
               {chats && (
                 <ChatBox
@@ -182,6 +235,7 @@ export default function Messages({
           )}
         </div>
       </Spin>
+      {contextHolder}
     </div>
   );
 }
