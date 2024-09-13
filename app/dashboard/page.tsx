@@ -17,8 +17,39 @@ import SendBtcModal from "@/components/dashboard/SendBtcModal";
 import axios from "axios";
 import shortenText from "@/lib/shortenText";
 import FundWalletModal from "@/components/dashboard/FundWalletModal";
+import Wallets from "@/components/dashboard/Wallets";
 
 const { Content } = Layout;
+
+const allWallets = [
+  {
+    id: "1",
+    type: "KES",
+    logo: "https://img.icons8.com/?size=100&id=RiWEw0nK1EZP&format=png&color=000000",
+  },
+  {
+    id: "2",
+    type: "USD",
+    logo: "https://img.icons8.com/?size=100&id=fIgZUHgwc76e&format=png&color=000000",
+  },
+  {
+    id: "3",
+    type: "EUR",
+    logo: "https://img.icons8.com/?size=100&id=Y76SzpmxslW4&format=png&color=000000",
+  },
+  {
+    id: "4",
+    type: "BTC",
+    logo: "https://img.icons8.com/?size=100&id=XDum8M4mrAZQ&format=png&color=000000",
+  },
+];
+
+interface BalanceProps {
+  KES: number | undefined;
+  USD: number | undefined;
+  EUR: number | undefined;
+  BTC: number | undefined;
+}
 
 export default function Dashboard() {
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
@@ -30,6 +61,7 @@ export default function Dashboard() {
   }>();
   const router = useRouter();
   const [accountLoading, setAccountLoading] = useState(false);
+  const [activeBalance, setActiveBalance] = useState("KES");
   const [balance, setBalance] = useState<number>();
   const [balanceInUsd, setBalanceInUsd] = useState<number>();
   const [balanceVisible, setBalanceVisible] = useState(true);
@@ -37,6 +69,14 @@ export default function Dashboard() {
   const [reload, setReload] = useState(false);
   const [sendModalOpen, setSendModalOpen] = useState(false);
   const [fundWalletModalOpen, setFundWalletModalOpen] = useState(false);
+  type BalanceKeys = "KES" | "USD" | "EUR" | "BTC";
+
+  const [allBalances, setAllBalances] = useState<BalanceProps>({
+    KES: undefined,
+    USD: undefined,
+    EUR: undefined,
+    BTC: undefined,
+  });
 
   useEffect(() => {
     setAccountLoading(true);
@@ -74,8 +114,10 @@ export default function Dashboard() {
                 const walletBalance = balInSatoshi / 100000000;
                 if (walletBalance <= 0) {
                   setBalance(0.000001);
+                  setAllBalances({ ...allBalances, BTC: 0.000001 });
                 } else {
                   setBalance(walletBalance);
+                  setAllBalances({ ...allBalances, BTC: walletBalance });
                 }
 
                 //Api to get the current price of btc
@@ -107,9 +149,38 @@ export default function Dashboard() {
 
   return (
     <Content className='mt-8 mx-4'>
-      <h1 className='text-base font-bold mb-4'>Hi, Welcome 👋</h1>
+      <h1 className='font-bold mb-4'>Hi, Welcome 👋</h1>
 
-      <div>
+      <Wallets
+        handleActiveBalance={(e) => setActiveBalance(e)}
+        activeBalance={activeBalance}
+        balances={allWallets}
+        loadingBalance={accountLoading}
+        balance={allBalances[activeBalance as BalanceKeys]}
+        handleFundWallet={() => {
+          if (activeBalance === "BTC") {
+            setFundWalletModalOpen(true);
+          } else {
+            //Im coming back here!
+          }
+        }}
+        handleSendMoney={() => {
+          if (activeBalance === "BTC") {
+            setSendModalOpen(true);
+          } else {
+            //Im coming back here!
+          }
+        }}
+        handleCreateAccount={() => {
+          if (activeBalance === "BTC") {
+            setOpen(true);
+          } else {
+            //Im coming back here!
+          }
+        }}
+      />
+
+      {/* <div>
         <div className='mb-4 flex items-center gap-2'>
           <Image alt='bitcoin' src='/btc.svg' width={38} height={38} />
           <h2 className='font-medium'> Decentralized Account</h2>
@@ -177,7 +248,7 @@ export default function Dashboard() {
             Create Bitcoin Wallet
           </Button>
         )}
-      </div>
+      </div> */}
 
       <div className='bg-white rounded-xl p-6 max-sm:p-4 mt-12'>
         <h2 className='font-semibold mb-6'>Quick Actions</h2>
@@ -208,7 +279,10 @@ export default function Dashboard() {
       </div>
 
       <div>
-        <DashboardTab wallet={wallet!} />
+        <DashboardTab
+          activeWallet={activeBalance as "USD" | "KES" | "EUR" | "BTC"}
+          wallet={wallet!}
+        />
       </div>
       <CreateBTCModal
         web5={web5!}

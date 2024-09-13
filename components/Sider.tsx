@@ -105,7 +105,12 @@ export default function DashboardSider() {
         </div>
       )}
 
-      <Menu mode='inline' defaultSelectedKeys={[pathName]} items={items} />
+      <Menu
+        mode='inline'
+        className='font-medium text-neutral-700'
+        defaultSelectedKeys={[pathName]}
+        items={items}
+      />
     </Sider>
   );
 }

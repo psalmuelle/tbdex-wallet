@@ -3,7 +3,7 @@ import {
   DollarCircleOutlined,
   WalletOutlined,
 } from "@ant-design/icons";
-import { Button, Divider, message, Modal, QRCode } from "antd";
+import { Avatar, Button, Divider, message, Modal, QRCode, Spin } from "antd";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -45,31 +45,44 @@ export default function FundWalletModal({
       <div className='mt-6 mb-12'>
         {steps === 0 && (
           <>
-            <Button
-              size='large'
-              type='primary'
-              icon={<WalletOutlined />}
-              iconPosition={"end"}
+            <div
               onClick={() => {
                 setPaymentMethod(0);
                 setSteps(1);
               }}
-              className='w-full'>
-              Receive from Wallet/Exchange
-            </Button>
-            <Divider className='text-sm'>Or</Divider>
-            <Button
-              icon={<DollarCircleOutlined />}
-              iconPosition={"end"}
-              size='large'
-              loading={paymentMethod === 1}
-              onClick={() => {
-                setPaymentMethod(1);
-              }}
-              type='primary'
-              className='w-full'>
-              Fund wallet with USD
-            </Button>
+              className='flex justify-center items-center gap-4 w-full mx-auto cursor-pointer border rounded-xl p-2 hover:bg-neutral-100 transition-all ease-in'>
+              <div className='min-w-8'>
+                <Avatar
+                  style={{ backgroundColor: "#1677ff" }}
+                  icon={<WalletOutlined />}
+                />
+              </div>
+              <div className='text-neutral-700'>
+                <h2 className='font-semibold'>Add via On-chain deposit</h2>
+                <p>
+                  Deposit Bitcoin to your wallet address from an external wallet
+                  or exchange.
+                </p>
+              </div>
+            </div>
+            <Spin spinning={paymentMethod === 1}>
+              <div
+                onClick={() => {
+                  setPaymentMethod(1);
+                }}
+                className='flex justify-center items-center gap-4 w-full mx-auto cursor-pointer border rounded-xl p-2 hover:bg-neutral-100 transition-all ease-in mt-4'>
+                <div className='min-w-8'>
+                  <Avatar
+                    style={{ backgroundColor: "#1677ff" }}
+                    icon={<DollarCircleOutlined />}
+                  />
+                </div>
+                <div className='text-neutral-700'>
+                  <h2 className='font-semibold'>Add via conversion</h2>
+                  <p>Convert funds from another balance to your BTC Wallet</p>
+                </div>
+              </div>
+            </Spin>
           </>
         )}
         {steps === 1 && paymentMethod === 0 && (
