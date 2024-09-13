@@ -195,12 +195,12 @@ export default function Orders() {
           <Empty
             description={
               <p className='max-w-md mx-auto'>
-                You do not have any orders. Swap currencies and tokens or send
+                You do not have any orders. Convert currencies and tokens or send
                 crypto tokens now
               </p>
             }>
-            <Button type='primary' size='large'>
-              Go to Swap page
+            <Button type='primary' href="/dashboard">
+              Go to Home page
             </Button>
           </Empty>
         )}

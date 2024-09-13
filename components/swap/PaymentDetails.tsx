@@ -226,7 +226,7 @@ export default function PaymentDetails({
                         onClick={handleSwapToWallet}
                         type='primary'
                         className='mb-4 w-full'>
-                        Swap to your wallet address
+                        Send to your wallet address
                       </Button>
                     )}
                     <Form

@@ -25,7 +25,7 @@ export default function FundWalletModal({
 
   useEffect(() => {
     if (paymentMethod === 1) {
-      router.push("/dashboard/swap");
+      router.push("/dashboard/convert");
     }
   }, [steps, paymentMethod]);
   return (

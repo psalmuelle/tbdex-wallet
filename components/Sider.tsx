@@ -37,8 +37,8 @@ const items: MenuItem[] = [
     icon: <HomeOutlined />,
   },
   {
-    key: "/dashboard/swap",
-    label: <Link href={"/dashboard/swap"}>Swap</Link>,
+    key: "/dashboard/convert",
+    label: <Link href={"/dashboard/convert"}>Convert</Link>,
     icon: <SwapOutlined />,
   },
   {

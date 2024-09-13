@@ -149,7 +149,7 @@ export default function KCC() {
   // Handle Close Modal After KCC creation
   function handleOk() {
     if (localStorage.getItem("offering")) {
-      router.push("/dashboard/swap");
+      router.push("/dashboard/convert");
     } else {
       setIsModalOpen(false);
       setReload(!reload);

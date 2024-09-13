@@ -189,11 +189,11 @@ export default function Dashboard() {
             onClick={() => wallet && setSendModalOpen(true)}
           />
           <QuickAction
-            title='Swap'
+            title='Convert'
             description='Swap between crypto, fiat, and forex seamlessly for onramp, offramp transactions.'
             imageSrc='/bill.svg'
             onClick={() => {
-              router.push("/dashboard/swap");
+              router.push("/dashboard/convert");
             }}
           />
           <QuickAction

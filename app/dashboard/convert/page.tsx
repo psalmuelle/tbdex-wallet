@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Layout, Radio, Steps } from "antd";
+import { Button, Layout, Steps } from "antd";
 import SwapType from "@/components/swap/SwapType";
 import SwapPairs, { PairType } from "@/components/swap/SwapPairs";
 import { useState, useEffect } from "react";
@@ -87,7 +87,7 @@ export default function Swap() {
 
   return (
     <Content className='mt-8 mx-4'>
-      <h1 className='text-base font-bold mb-4'>Swap</h1>
+      <h1 className='text-base font-bold mb-4'>Convert</h1>
       <div className='w-fit mx-auto flex flex-col justify-center items-center p-8 mt-6 mb-24 rounded-xl bg-white'>
         <Steps
           progressDot
