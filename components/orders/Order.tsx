@@ -683,7 +683,9 @@ export default function OrderInfo({
             {status !== "pending" && (
               <Link
                 className='underline text-blue-500'
-                href={"/dashboard/messages"}>
+                href={`/dashboard/support?exchangeId=${
+                  order[order.length - 1].exchangeId
+                }`}>
                 Report a problem
               </Link>
             )}

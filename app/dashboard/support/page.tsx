@@ -1,6 +1,6 @@
 "use client";
 import Intro from "@/components/messages/Intro";
-import { Layout, Spin } from "antd";
+import { Button, Layout, Popconfirm, PopconfirmProps, Spin } from "antd";
 import ChatBox from "@/components/messages/ChatBox";
 import { useEffect, useState } from "react";
 import initWeb5 from "@/web5/auth/access";
@@ -9,6 +9,7 @@ import type { Web5, Record } from "@web5/api";
 import getMessages, { getChats } from "@/web5/messages/read";
 import createMessage from "@/web5/messages/create";
 import { conversationSchema } from "@/lib/web5/schema";
+import { CloseCircleOutlined } from "@ant-design/icons";
 
 const { Content } = Layout;
 type ChatProps = {
@@ -104,8 +105,6 @@ export default function Support() {
     return () => clearInterval(interval);
   }, [conversation, updatedChats, chats]);
 
-  useEffect(() => {}, [updatedChats, chats]);
-
   async function fetchChats() {
     try {
       const chats = await getChats({
@@ -169,6 +168,17 @@ export default function Support() {
     await initiateConversation(type);
   };
 
+  const confirmDeleteConversation: PopconfirmProps["onConfirm"] = async () => {
+    try {
+      if (!conversation) return;
+      await conversation[0].delete({ prune: true });
+      await conversation[0].send(conversation[0].author);
+      setShowChatBox(false);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <Content className='mt-8 mx-4 mb-4'>
       <Spin spinning={pageLoading} fullscreen />
@@ -184,6 +194,20 @@ export default function Support() {
       )}
       {showChatBox && !chatsLoading && chats && (
         <div className='bg-white py-4 rounded-xl'>
+          <Popconfirm
+            title='Delete this conversation?'
+            description='Are you sure to delete this convo?'
+            onConfirm={confirmDeleteConversation}
+            okText='Yes'
+            cancelText='No'>
+            <Button
+              icon={<CloseCircleOutlined />}
+              type='text'
+              className='ml-3 mb-2'
+              danger
+              shape='circle'
+            />
+          </Popconfirm>
           <ChatBox
             isUser={true}
             parentId={conversation![0].id}
