@@ -109,6 +109,7 @@ export default function PfiManager({
           <Spin size='large' className='min-w-[300px] max-w-xs' />
         )}
         {!isPfiLoading &&
+          pfis &&
           pfis.length > 0 &&
           pfis.map((val, id) => {
             const successfulOrders = val.orders.filter(
@@ -140,7 +141,7 @@ export default function PfiManager({
               />
             );
           })}
-        {!isPfiLoading && pfis.length === 0 && (
+        {!isPfiLoading && pfis && pfis.length === 0 && (
           <Empty className='min-w-[300px] max-w-xs' />
         )}
         <Button

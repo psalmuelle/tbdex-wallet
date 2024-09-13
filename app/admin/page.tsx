@@ -29,7 +29,9 @@ import axios from "axios";
 export default function Admin() {
   const sessionKey = decryptAndRetrieveData({ name: "adminKey" });
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<string>("1");
+  const [activeTab, setActiveTab] = useState<string>(
+    sessionStorage.getItem("activeTab") as string || "1"
+  );
   const [pfis, setPfis] = useState<PfiDataTypes[]>();
   const [pairs, setPairs] = useState();
   const [web5, setWeb5] = useState<Web5>();
@@ -54,12 +56,12 @@ export default function Admin() {
   // For navigating to login page if sessionKey is not available
   useEffect(() => {
     const authAdmin = process.env.NEXT_PUBLIC_ADMIN_DID as string;
-    const connectedDid = decryptAndRetrieveData({name: "userDID"})
+    const connectedDid = decryptAndRetrieveData({ name: "userDID" });
 
     if (!sessionKey) {
       router.push("/admin/auth");
     }
-    if (connectedDid && authAdmin !== connectedDid){
+    if (connectedDid && authAdmin !== connectedDid) {
       router.push("/admin/auth");
     }
   }, [sessionKey]);
@@ -299,7 +301,10 @@ export default function Admin() {
           className='px-6 max-sm:px-0'
           activeKey={activeTab}
           defaultActiveKey='1'
-          onChange={(key) => setActiveTab(key)}
+          onChange={(key) => {
+            sessionStorage.setItem("activeTab", key);
+            setActiveTab(key);
+          }}
           items={items}
         />
       </div>
