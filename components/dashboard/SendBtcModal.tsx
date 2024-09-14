@@ -88,7 +88,7 @@ export default function SendBtcModal({
             <Form.Item<FieldType>
               name={"address"}
               label={"Receiver Bitcoin Address"}
-              rules={[{ required: true, message: "Please recipient address" }]}>
+              rules={[{ required: true, message: "Please, enter recipient address" }]}>
               <Input size='large' placeholder='Enter Bitcoin Address' />
             </Form.Item>
             <Form.Item<FieldType>

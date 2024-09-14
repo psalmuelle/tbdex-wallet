@@ -18,6 +18,7 @@ import axios from "axios";
 import shortenText from "@/lib/shortenText";
 import FundWalletModal from "@/components/dashboard/FundWalletModal";
 import Wallets from "@/components/dashboard/Wallets";
+import CreateFiatsModal from "@/components/dashboard/CreateFiatsAccount";
 
 const { Content } = Layout;
 
@@ -69,6 +70,7 @@ export default function Dashboard() {
   const [reload, setReload] = useState(false);
   const [sendModalOpen, setSendModalOpen] = useState(false);
   const [fundWalletModalOpen, setFundWalletModalOpen] = useState(false);
+  const [createFiatsModalOpen, setCreateFiatsModalOpen] = useState(false);
   type BalanceKeys = "KES" | "USD" | "EUR" | "BTC";
 
   const [allBalances, setAllBalances] = useState<BalanceProps>({
@@ -175,7 +177,7 @@ export default function Dashboard() {
           if (activeBalance === "BTC") {
             setOpen(true);
           } else {
-            //Im coming back here!
+            setCreateFiatsModalOpen(true);
           }
         }}
       />
@@ -254,10 +256,10 @@ export default function Dashboard() {
         <h2 className='font-semibold mb-6'>Quick Actions</h2>
         <div className='flex items-center gap-4 bg-white w-full overflow-x-auto hide-scrollbar'>
           <QuickAction
-            title='Send Bitcoin'
-            description='Send btc tokens instantly and securely to anyone, anywhere.'
+            title='Send Money'
+            description='Send across the globe with ease and speed using our decentralized wallet.'
             imageSrc='/send.svg'
-            onClick={() => wallet && setSendModalOpen(true)}
+            onClick={() => router.push("/dashboard/send")}
           />
           <QuickAction
             title='Convert'
@@ -266,6 +268,12 @@ export default function Dashboard() {
             onClick={() => {
               router.push("/dashboard/convert");
             }}
+          />
+          <QuickAction
+            title='Transfer BTC'
+            description='Transfer Bitcoin to other wallets or users with ease and speed.'
+            imageSrc='https://img.icons8.com/?size=100&id=7xqkdDZOH9Hv&format=png&color=000000'
+            onClick={() => wallet && setSendModalOpen(true)}
           />
           <QuickAction
             title='Orders'
@@ -291,6 +299,11 @@ export default function Dashboard() {
           setOpen(false);
           setReload(!reload);
         }}
+      />
+      <CreateFiatsModal
+        open={createFiatsModalOpen}
+        handleClose={() => setCreateFiatsModalOpen(false)}
+        activeWallet={activeBalance as "USD" | "KES" | "EUR" | "BTC"}
       />
       <SendBtcModal
         wallet={wallet!}

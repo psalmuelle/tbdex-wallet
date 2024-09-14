@@ -15,7 +15,7 @@ export default function QuickAction({
 }: QuickActionProps) {
   return (
     <div
-      className='max-w-[300px] min-w-[225px] min-h-[180px] border rounded-xl p-4 cursor-pointer hover:border-[#4096ff] text-gray-600 hover:text-gray-800'
+      className='max-w-[300px] min-w-[225px] xl:min-w-[290px] min-h-[180px] border rounded-xl p-4 cursor-pointer hover:border-[#4096ff] text-gray-600 hover:text-gray-800 transition-all ease-in-out duration-300'
       onClick={onClick}>
       <Image
         src={imageSrc}

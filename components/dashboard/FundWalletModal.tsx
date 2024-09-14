@@ -50,7 +50,7 @@ export default function FundWalletModal({
                 setPaymentMethod(0);
                 setSteps(1);
               }}
-              className='flex justify-center items-center gap-4 w-full mx-auto cursor-pointer border rounded-xl p-2 hover:bg-neutral-100 transition-all ease-in'>
+              className='flex justify-center items-center gap-4 w-full cursor-pointer border rounded-xl p-2 hover:bg-neutral-100 transition-all ease-in'>
               <div className='min-w-8'>
                 <Avatar
                   style={{ backgroundColor: "#1677ff" }}
@@ -70,7 +70,7 @@ export default function FundWalletModal({
                 onClick={() => {
                   setPaymentMethod(1);
                 }}
-                className='flex justify-center items-center gap-4 w-full mx-auto cursor-pointer border rounded-xl p-2 hover:bg-neutral-100 transition-all ease-in mt-4'>
+                className='flex items-center gap-4 w-full cursor-pointer border rounded-xl p-2 hover:bg-neutral-100 transition-all ease-in mt-4'>
                 <div className='min-w-8'>
                   <Avatar
                     style={{ backgroundColor: "#1677ff" }}
