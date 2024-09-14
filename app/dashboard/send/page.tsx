@@ -1,11 +1,15 @@
 "use client";
 
 import Destination from "@/components/send/Destination";
-import { RightOutlined } from "@ant-design/icons";
-import { Button, Form, Input, Layout, Steps } from "antd";
+import { decryptAndRetrieveData } from "@/lib/encrypt-info";
+import initWeb5 from "@/web5/auth/access";
+import { LeftOutlined } from "@ant-design/icons";
+import { Button, Form, Input, Layout, message, Select, Steps } from "antd";
 import type { GetProps } from "antd";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import type { Web5 } from "@web5/api";
+import { useRouter } from "next/navigation";
 
 const { Content } = Layout;
 
@@ -36,12 +40,27 @@ interface RecipientDetails {
   swiftCode?: string;
 }
 
+interface userAccountDetails {
+  accountType: string;
+  accountNumber: string;
+  balance: number;
+  routingNumber?: string;
+  iban?: string;
+  swiftCode?: string;
+}
+
 export default function Send() {
-  const [currentStep, setCurrentStep] = useState(0);
+  const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
+  const [currentStep, setCurrentStep] = useState(2);
+  const [web5, setWeb5] = useState<Web5>();
+  const [userDid, setUserDid] = useState<string>();
+  const [userAccounts, setUserAccounts] = useState<userAccountDetails[]>();
   const [countries, setCountries] = useState<CountryProps[]>([]);
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedCountry, setSelectedCountry] = useState<CountryProps>();
   const [recipientDetails, setRecipientDetails] = useState<RecipientDetails>();
+  const [messageApi, contextHolder] = message.useMessage();
+  const router = useRouter();
 
   const onChange: InputProps["onChange"] = (e) => {
     const value = e.target.value;
@@ -74,6 +93,53 @@ export default function Send() {
     getAllCountries();
   }, []);
 
+  useEffect(() => {
+    async function initializeWeb5() {
+      try {
+        const { web5: userWeb5, userDID } = await initWeb5({
+          password: sessionKey,
+        });
+        setWeb5(userWeb5);
+        setUserDid(userDID);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    initializeWeb5();
+  }, []);
+
+  useEffect(() => {
+    async function getAccountDetails() {
+      try {
+        if (!web5) return;
+        const response = await web5.dwn.records.query({
+          message: {
+            filter: {
+              schema: "BankAccountsInfo",
+              dataFormat: "application/json",
+            },
+          },
+        });
+
+        if (response.records === undefined) return;
+        if (response.records.length === 0) {
+          messageApi.error("Create an account to send money");
+          router.push("/dashboard");
+          return;
+        }
+        const allAccts: userAccountDetails[] = [];
+        for (const record of response.records) {
+          const data = await record.data.json();
+          allAccts.push(data);
+        }
+        setUserAccounts(allAccts);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    getAccountDetails();
+  }, [web5]);
+
   const handleSubmitRecipientDetails = (values: RecipientDetails) => {
     setRecipientDetails(values);
     setCurrentStep(currentStep + 1);
@@ -82,39 +148,40 @@ export default function Send() {
   return (
     <Content className='mt-8 mx-4'>
       <h1 className='text-base font-bold mb-4'>Send Money</h1>
-      <div className='w-fit mx-auto p-8 mt-6 mb-24 rounded-xl bg-white'>
-        <div className='flex mt-6'>
+      <div className='w-fit mx-auto p-8 mt-1 mb-24 rounded-xl bg-white'>
+        <div className='w-6 h-6 mb2 rounded-full'>
           {currentStep !== 0 && (
             <Button
-              icon={<RightOutlined />}
+              icon={<LeftOutlined />}
               shape='circle'
+              size='small'
               onClick={() => setCurrentStep(currentStep - 1)}
             />
           )}
-          <Steps
-            progressDot
-            current={currentStep}
-            size='small'
-            responsive
-            items={[
-              {
-                title: "Destination",
-              },
-              {
-                title: "Enter Bank Account Details",
-              },
-              {
-                title: "Enter Amount",
-              },
-              {
-                title: "Review Transaction",
-              },
-              {
-                title: "Authorize Payment",
-              },
-            ]}
-          />
         </div>
+        <Steps
+          progressDot
+          current={currentStep}
+          size='small'
+          responsive
+          items={[
+            {
+              title: "Destination",
+            },
+            {
+              title: "Enter Bank Account Details",
+            },
+            {
+              title: "Enter Amount",
+            },
+            {
+              title: "Review Transaction",
+            },
+            {
+              title: "Authorize Payment",
+            },
+          ]}
+        />
         <div className='w-full max-w-md mx-auto mt-4'>
           {currentStep === 0 && (
             <div className='w-full max-w-md mx-auto mt-4'>
@@ -291,10 +358,34 @@ export default function Send() {
               <h2 className='text-center font-semibold mb-4 mt-4'>
                 Enter amount to send to recipient
               </h2>
+              <div>
+                <p className='mb-1'>Amount to send</p>
+                <div className='rounded-xl py-3 px-2 hover:bg-neutral-100 transition-all ease-in duration-300 cursor-pointer border'>
+                  <div>
+                    <Select
+                      defaultValue={"USD"}
+                      onChange={() => {}}
+                      options={
+                        userAccounts &&
+                        userAccounts.map((acct) => {
+                          return {
+                            value: acct.accountType,
+                            label: acct.accountType,
+                          };
+                        })
+                      }
+                      loading={!userAccounts}
+                    />
+                    <p>{}</p>
+                  </div>
+                </div>
+                <div>Recipient will receive</div>
+              </div>
             </div>
           )}
         </div>
       </div>
+      {contextHolder}
     </Content>
   );
 }

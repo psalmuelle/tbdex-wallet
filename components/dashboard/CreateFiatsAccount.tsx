@@ -54,7 +54,7 @@ export default function CreateFiatsModal({
             accountType: activeWallet,
             accountNumber: values.accountNumber,
             [lastInput.name]: values[lastInput.name],
-            balance: 0,
+            balance: 1000,
           },
           message: {
             schema: "BankAccountsInfo",
