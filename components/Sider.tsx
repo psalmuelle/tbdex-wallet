@@ -2,10 +2,10 @@
 import {
   CommentOutlined,
   DollarOutlined,
-  HistoryOutlined,
   HomeOutlined,
   IdcardOutlined,
   LogoutOutlined,
+  SendOutlined,
   SwapOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu } from "antd";
@@ -35,6 +35,11 @@ const items: MenuItem[] = [
     key: "/dashboard",
     label: <Link href={"/dashboard"}>Home</Link>,
     icon: <HomeOutlined />,
+  },
+  {
+    key: "/dashboard/send",
+    label: <Link href={"/dashboard/send"}>Send Money</Link>,
+    icon: <SendOutlined />,
   },
   {
     key: "/dashboard/convert",

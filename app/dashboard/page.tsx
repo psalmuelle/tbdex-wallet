@@ -221,7 +221,7 @@ export default function Dashboard() {
           if (activeBalance === "BTC") {
             setSendModalOpen(true);
           } else {
-            //Im coming back here!
+            router.push(`/dashboard/send?currency=${activeBalance}`);
           }
         }}
         handleCreateAccount={() => {

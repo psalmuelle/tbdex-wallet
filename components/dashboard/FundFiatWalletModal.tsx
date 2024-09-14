@@ -26,7 +26,6 @@ export default function FundFiatModal({
     }
   }, [steps, topupMethod]);
 
-  console.log(acctInfo);
   return (
     <Modal
       footer={null}
