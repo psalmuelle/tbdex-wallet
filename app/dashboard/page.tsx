@@ -68,6 +68,7 @@ export default function Dashboard() {
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [open, setOpen] = useState(false);
   const [reload, setReload] = useState(false);
+  const [reloadWallets, setReloadWallets] = useState(false);
   const [sendModalOpen, setSendModalOpen] = useState(false);
   const [fundWalletModalOpen, setFundWalletModalOpen] = useState(false);
   const [createFiatsModalOpen, setCreateFiatsModalOpen] = useState(false);
@@ -94,60 +95,67 @@ export default function Dashboard() {
   }, [reload]);
 
   useEffect(() => {
-    const fetchWalletFromDwn = async () => {
-      if (web5) {
-        try {
-          const response = await getAddressFromDwn({ web5 });
-          const data = await response![0].data.json();
-          const decryptWalletInfo = decryptData({ data: data.wallet });
-          const parsedWalletInfo = JSON.parse(decryptWalletInfo);
-          setWallet(parsedWalletInfo);
-          await fetchBitcoinInfo({ address: parsedWalletInfo.address }).then(
-            async (res: any) => {
-              if (res) {
-                const balArray = res.map((tnx: { value: number }) => {
-                  return tnx.value;
-                });
-                const balInSatoshi = balArray.reduce(
-                  (acc: number, current: number) => acc + current,
-                  0
-                );
+    const fetchBtcWalletFromDwn = async () => {
+      if (!web5) return;
+      try {
+        const response = await getAddressFromDwn({ web5 });
+        const data = await response![0].data.json();
+        const decryptWalletInfo = decryptData({ data: data.wallet });
+        const parsedWalletInfo = JSON.parse(decryptWalletInfo);
+        setWallet(parsedWalletInfo);
+        await fetchBitcoinInfo({ address: parsedWalletInfo.address }).then(
+          async (res: any) => {
+            if (res) {
+              const balArray = res.map((tnx: { value: number }) => {
+                return tnx.value;
+              });
+              const balInSatoshi = balArray.reduce(
+                (acc: number, current: number) => acc + current,
+                0
+              );
 
-                const walletBalance = balInSatoshi / 100000000;
-                if (walletBalance <= 0) {
-                  setBalance(0.000001);
-                  setAllBalances({ ...allBalances, BTC: 0.000001 });
-                } else {
-                  setBalance(walletBalance);
-                  setAllBalances({ ...allBalances, BTC: walletBalance });
-                }
-
-                //Api to get the current price of btc
-                await axios
-                  .get(
-                    "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
-                  )
-                  .then((rate) => {
-                    const walletBalanceInUsd =
-                      (balInSatoshi / 100000000) * rate.data.bitcoin.usd;
-                    if (walletBalanceInUsd > 0) {
-                      setBalanceInUsd(walletBalanceInUsd);
-                    } else {
-                      setBalanceInUsd(0.0001);
-                    }
-                  });
+              const walletBalance = balInSatoshi / 100000000;
+              if (walletBalance <= 0) {
+                setAllBalances({ ...allBalances, BTC: 0.000001 });
+              } else {
+                setAllBalances({ ...allBalances, BTC: walletBalance });
               }
             }
-          );
-        } catch (err) {
-          console.log(err);
-        }
-        setAccountLoading(false);
+          }
+        );
+      } catch (err) {
+        console.log(err);
       }
+      setAccountLoading(false);
     };
 
-    fetchWalletFromDwn();
+    fetchBtcWalletFromDwn();
   }, [web5]);
+
+  useEffect(() => {
+    async function fetchFiatAccounts() {
+      if (!web5) return;
+      try {
+        const response = await web5.dwn.records.query({
+          message: {
+            filter: {
+              schema: "BankAccountsInfo",
+              dataFormat: "application/json",
+            },
+          },
+        });
+        //Come here
+        if (!response.records) return;
+        response.records.map(async (record: any) => {
+          const data = await record.data.json();
+          console.log(data);
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    fetchFiatAccounts();
+  }, [web5, reloadWallets]);
 
   return (
     <Content className='mt-8 mx-4'>
@@ -303,7 +311,9 @@ export default function Dashboard() {
       <CreateFiatsModal
         open={createFiatsModalOpen}
         handleClose={() => setCreateFiatsModalOpen(false)}
+        reloadWallets={() => setReloadWallets(!reloadWallets)}
         activeWallet={activeBalance as "USD" | "KES" | "EUR" | "BTC"}
+        web5={web5!}
       />
       <SendBtcModal
         wallet={wallet!}

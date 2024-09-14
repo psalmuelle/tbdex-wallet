@@ -64,7 +64,7 @@ export default function Wallets({
     <section className='p-4 mt-4 bg-white rounded-xl w-full'>
       <h1 className='font-semibold my-4'>My Balances</h1>
       <div className='border rounded-xl p-4 mt-4 min-h-[275px]'>
-        <div className='w-fit flex justify-center items-center gap-2.5 mt-4 rounded-xl bg-neutral-100 p-1 mx-auto'>
+        <div className='w-fit flex flex-wrap justify-center items-center gap-2.5 mt-4 rounded-xl bg-neutral-100 p-1 mx-auto'>
           {balances.map((balance) => (
             <AccountType
               key={balance.id}
