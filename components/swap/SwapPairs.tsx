@@ -116,6 +116,7 @@ export default function SwapPairs({
                         activeSwapType === "off-ramp" ? "Token" : "Currency"
                       }
                       options={handleSelectOptions("base", activeSwapType)}
+                      loading={!pairs}
                     />
                   </Form.Item>
                 }
@@ -145,6 +146,7 @@ export default function SwapPairs({
                       activeSwapType,
                       baseCurrency
                     )}
+                    loading={!pairs}
                   />
                 </Form.Item>
               }

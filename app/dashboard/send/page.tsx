@@ -4,12 +4,21 @@ import Destination from "@/components/send/Destination";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 import initWeb5 from "@/web5/auth/access";
 import { LeftOutlined } from "@ant-design/icons";
-import { Button, Form, Input, Layout, message, Select, Steps } from "antd";
+import {
+  Button,
+  Form,
+  Input,
+  InputNumber,
+  Layout,
+  message,
+  Select,
+  Steps,
+} from "antd";
 import type { GetProps } from "antd";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import type { Web5 } from "@web5/api";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const { Content } = Layout;
 
@@ -59,8 +68,16 @@ export default function Send() {
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedCountry, setSelectedCountry] = useState<CountryProps>();
   const [recipientDetails, setRecipientDetails] = useState<RecipientDetails>();
+  const [amountToSend, setAmountToSend] = useState<number>();
   const [messageApi, contextHolder] = message.useMessage();
+  const [debitAccount, setDebitAccount] = useState<userAccountDetails>();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const acctSymbols = {
+    USD: "$",
+    EUR: "€",
+    KES: "Ksh",
+  };
 
   const onChange: InputProps["onChange"] = (e) => {
     const value = e.target.value;
@@ -107,6 +124,18 @@ export default function Send() {
     }
     initializeWeb5();
   }, []);
+
+  useEffect(() => {
+    const urlParam = searchParams.get("currency");
+    if (urlParam && userAccounts) {
+      const account = userAccounts.find(
+        (acct) => acct.accountType === urlParam
+      );
+      if (account) {
+        setDebitAccount(account);
+      }
+    }
+  }, [userAccounts]);
 
   useEffect(() => {
     async function getAccountDetails() {
@@ -360,25 +389,63 @@ export default function Send() {
               </h2>
               <div>
                 <p className='mb-1'>Amount to send</p>
-                <div className='rounded-xl py-3 px-2 hover:bg-neutral-100 transition-all ease-in duration-300 cursor-pointer border'>
-                  <div>
-                    <Select
-                      defaultValue={"USD"}
-                      onChange={() => {}}
-                      options={
-                        userAccounts &&
-                        userAccounts.map((acct) => {
-                          return {
-                            value: acct.accountType,
-                            label: acct.accountType,
-                          };
-                        })
+                <div className='rounded-xl py-3 px-2 hover:bg-neutral-50 transition-all ease-in duration-300 cursor-pointer border'>
+                  <div className='flex justify-between items-start gap-4'>
+                    <div>
+                      <Select
+                        defaultValue={searchParams.get("currency") || ""}
+                        className='w-[70px]'
+                        onChange={(e) =>
+                          setDebitAccount(
+                            userAccounts?.find((acct) => acct.accountType === e)
+                          )
+                        }
+                        options={
+                          userAccounts &&
+                          userAccounts.map((acct) => {
+                            return {
+                              value: acct.accountType,
+                              label: acct.accountType,
+                            };
+                          })
+                        }
+                        loading={!userAccounts}
+                      />
+                      <p className='text-sm font-medium text-neutral-500 mt-1'>
+                        Bal: {debitAccount?.balance || "0.00"}
+                      </p>
+                    </div>
+                    <InputNumber
+                      prefix={
+                        acctSymbols[
+                          debitAccount?.accountType as keyof typeof acctSymbols
+                        ] || "Ksh"
                       }
-                      loading={!userAccounts}
+                      parser={(value) =>
+                        value?.replace(/\$\s?|(,*)/g, "") as unknown as number
+                      }
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      style={{ border: "none" }}
+                      size='large'
+                      className="w-28"
+                      onChange={(value) =>
+                        value !== null && setAmountToSend(value)
+                      }
                     />
-                    <p>{}</p>
                   </div>
                 </div>
+                <p className='text-red-400 mt-1'>
+                  {debitAccount &&
+                    amountToSend &&
+                    debitAccount.balance < amountToSend &&
+                    "Insufficient funds in wallet"}
+                </p>
+
+                <div>
+                  
+                  </div>
                 <div>Recipient will receive</div>
               </div>
             </div>
