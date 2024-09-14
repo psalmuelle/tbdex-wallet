@@ -19,6 +19,7 @@ import shortenText from "@/lib/shortenText";
 import FundWalletModal from "@/components/dashboard/FundWalletModal";
 import Wallets from "@/components/dashboard/Wallets";
 import CreateFiatsModal from "@/components/dashboard/CreateFiatsAccount";
+import FundFiatModal from "@/components/dashboard/FundFiatWalletModal";
 
 const { Content } = Layout;
 
@@ -70,8 +71,10 @@ export default function Dashboard() {
   const [open, setOpen] = useState(false);
   const [reload, setReload] = useState(false);
   const [reloadWallets, setReloadWallets] = useState(false);
+  const [fiatAcctInfo, setFiatAcctInfo] = useState<any>();
   const [sendModalOpen, setSendModalOpen] = useState(false);
   const [fundWalletModalOpen, setFundWalletModalOpen] = useState(false);
+  const [fiatWalletModalOpen, setFiatWalletModalOpen] = useState(false);
   const [createFiatsModalOpen, setCreateFiatsModalOpen] = useState(false);
   type BalanceKeys = "KES" | "USD" | "EUR" | "BTC";
 
@@ -110,8 +113,10 @@ export default function Dashboard() {
         });
 
         if (response.records === undefined) return;
+        const allFiatAccts: any = [];
         for (const record of response.records) {
           const data = await record.data.json();
+          allFiatAccts.push(data);
           if (data.accountType === "USD") {
             setAllBalances((prev) => {
               return {
@@ -137,6 +142,7 @@ export default function Dashboard() {
             });
           }
         }
+        setFiatAcctInfo(allFiatAccts);
         setFiatAcctLoading(false);
       } catch (err) {
         setFiatAcctLoading(false);
@@ -208,7 +214,7 @@ export default function Dashboard() {
           if (activeBalance === "BTC") {
             setFundWalletModalOpen(true);
           } else {
-            //Im coming back here!
+            setFiatWalletModalOpen(true);
           }
         }}
         handleSendMoney={() => {
@@ -362,6 +368,12 @@ export default function Dashboard() {
         open={fundWalletModalOpen}
         onClose={() => setFundWalletModalOpen(false)}
         walletAddress={wallet?.address!}
+      />
+      <FundFiatModal
+        open={fiatWalletModalOpen}
+        activeWallet={activeBalance as "USD" | "KES" | "EUR" | "BTC"}
+        handleClose={() => setFiatWalletModalOpen(false)}
+        acctInfo={fiatAcctInfo}
       />
     </Content>
   );

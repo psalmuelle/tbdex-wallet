@@ -1,9 +1,5 @@
-import {
-  CopyFilled,
-  DollarCircleOutlined,
-  WalletOutlined,
-} from "@ant-design/icons";
-import { Avatar, Button, Divider, message, Modal, QRCode, Spin } from "antd";
+import { CopyFilled, SyncOutlined, WalletOutlined } from "@ant-design/icons";
+import { Avatar, Button, message, Modal, QRCode, Spin } from "antd";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -25,13 +21,13 @@ export default function FundWalletModal({
 
   useEffect(() => {
     if (paymentMethod === 1) {
-      router.push("/dashboard/convert");
+      router.push("/dashboard/convert?to=BTC");
     }
   }, [steps, paymentMethod]);
   return (
     <Modal
       destroyOnClose
-      title={"Fund Wallet"}
+      title={"Fund BTC Wallet"}
       footer={null}
       open={open}
       onCancel={() => {
@@ -50,7 +46,7 @@ export default function FundWalletModal({
                 setPaymentMethod(0);
                 setSteps(1);
               }}
-              className='flex justify-center items-center gap-4 w-full cursor-pointer border rounded-xl p-2 hover:bg-neutral-100 transition-all ease-in'>
+              className='flex justify-center items-center gap-4 w-full cursor-pointer border rounded-xl p-2 hover:bg-neutral-100 transition-all ease-in min-h-[84px]'>
               <div className='min-w-8'>
                 <Avatar
                   style={{ backgroundColor: "#1677ff" }}
@@ -70,11 +66,11 @@ export default function FundWalletModal({
                 onClick={() => {
                   setPaymentMethod(1);
                 }}
-                className='flex items-center gap-4 w-full cursor-pointer border rounded-xl p-2 hover:bg-neutral-100 transition-all ease-in mt-4'>
+                className='flex items-center gap-4 w-full cursor-pointer border rounded-xl p-2 hover:bg-neutral-100 transition-all ease-in mt-4 min-h-[84px]'>
                 <div className='min-w-8'>
                   <Avatar
                     style={{ backgroundColor: "#1677ff" }}
-                    icon={<DollarCircleOutlined />}
+                    icon={<SyncOutlined />}
                   />
                 </div>
                 <div className='text-neutral-700'>
