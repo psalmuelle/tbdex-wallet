@@ -26,11 +26,22 @@ interface CountryProps {
   };
 }
 
+interface RecipientDetails {
+  bankAccount: string;
+  country: string;
+  currency: string;
+  routingNumber?: string;
+  iban?: string;
+  sortCode?: string;
+  swiftCode?: string;
+}
+
 export default function Send() {
   const [currentStep, setCurrentStep] = useState(0);
   const [countries, setCountries] = useState<CountryProps[]>([]);
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedCountry, setSelectedCountry] = useState<CountryProps>();
+  const [recipientDetails, setRecipientDetails] = useState<RecipientDetails>();
 
   const onChange: InputProps["onChange"] = (e) => {
     const value = e.target.value;
@@ -62,6 +73,11 @@ export default function Send() {
     }
     getAllCountries();
   }, []);
+
+  const handleSubmitRecipientDetails = (values: RecipientDetails) => {
+    setRecipientDetails(values);
+    setCurrentStep(currentStep + 1);
+  };
 
   return (
     <Content className='mt-8 mx-4'>
@@ -156,30 +172,125 @@ export default function Send() {
           {currentStep === 1 && (
             <div className='w-full max-w-md mx-auto mt-8'>
               <h2 className='text-center font-semibold mb-4 mt-4'>
-                Enter recipient detials
+                Enter recipient details
               </h2>
-              <div>
-                <label htmlFor='country'>Recipient Country</label>
-                <Input
-                  name='country'
-                  value={selectedCountry?.name.common}
-                  disabled
-                  className='mt-1.5'
-                  size='large'
-                />
-              </div>
+              <Form
+                layout='vertical'
+                requiredMark={false}
+                onFinish={handleSubmitRecipientDetails}>
+                <Form.Item
+                  name={"country"}
+                  initialValue={selectedCountry?.name.common}
+                  label={"Recipient Country"}>
+                  <Input disabled className='mt-1.5' size='large' />
+                </Form.Item>
 
-              <div className='mt-4'>
-                <p>Bank Account</p>
-                <Input size='large' className='mt-1.5' />
-              </div>
+                <Form.Item
+                  className='mt-4'
+                  name={"bankAccount"}
+                  label={"Bank Account"}
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please input your recipient bank account",
+                    },
+                  ]}>
+                  <Input
+                    size='large'
+                    placeholder='Recipient bank account'
+                    className='mt-1.5'
+                  />
+                </Form.Item>
 
-              <div className='mt-4'>
-                <p>Bank Account</p>
-                <Input size='large' className='mt-1.5' />
-              </div>
+                {selectedCountry &&
+                  Object.keys(selectedCountry.currencies)[0] === "USD" && (
+                    <Form.Item
+                      name={"routingNumber"}
+                      className='mt-4'
+                      label={"Routing Number"}
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please input recipient routing number",
+                        },
+                      ]}>
+                      <Input
+                        size='large'
+                        placeholder='Routing Number'
+                        className='mt-1.5'
+                      />
+                    </Form.Item>
+                  )}
 
-              <Button className="w-full mt-8 mb-6" type="primary" size="large">Continue</Button>
+                {selectedCountry &&
+                  (Object.keys(selectedCountry.currencies)[0] === "EUR" ||
+                    Object.keys(selectedCountry.currencies)[0] === "NGN") && (
+                    <Form.Item
+                      className='mt-4'
+                      label={"IBAN"}
+                      name={"iban"}
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please input recipient IBAN",
+                        },
+                      ]}>
+                      <Input
+                        size='large'
+                        placeholder='IBAN'
+                        className='mt-1.5'
+                      />
+                    </Form.Item>
+                  )}
+
+                {selectedCountry &&
+                  Object.keys(selectedCountry.currencies)[0] === "GBP" && (
+                    <Form.Item
+                      className='mt-4'
+                      name={"sortCode"}
+                      label={"Sort Code"}
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please input recipient sort code",
+                        },
+                      ]}>
+                      <Input name='sortCode' size='large' className='mt-1.5' />
+                    </Form.Item>
+                  )}
+
+                {selectedCountry &&
+                  Object.keys(selectedCountry.currencies)[0] === "KES" && (
+                    <Form.Item
+                      className='mt-4'
+                      name={"swiftCode"}
+                      label={"Swift Code"}
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please input recipient Swift Code",
+                        },
+                      ]}>
+                      <Input name='swiftCode' size='large' className='mt-1.5' />
+                    </Form.Item>
+                  )}
+
+                <Button
+                  htmlType='submit'
+                  className='w-full mt-8 mb-6'
+                  type='primary'
+                  size='large'>
+                  Continue
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          {currentStep === 2 && (
+            <div className='w-full max-w-md mx-auto mt-8'>
+              <h2 className='text-center font-semibold mb-4 mt-4'>
+                Enter amount to send to recipient
+              </h2>
             </div>
           )}
         </div>
