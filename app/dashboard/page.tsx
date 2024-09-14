@@ -62,6 +62,7 @@ export default function Dashboard() {
   }>();
   const router = useRouter();
   const [accountLoading, setAccountLoading] = useState(false);
+  const [fiatAcctLoading, setFiatAcctLoading] = useState(false);
   const [activeBalance, setActiveBalance] = useState("KES");
   const [balance, setBalance] = useState<number>();
   const [balanceInUsd, setBalanceInUsd] = useState<number>();
@@ -83,6 +84,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     setAccountLoading(true);
+    setFiatAcctLoading(true);
     async function connectToWeb5() {
       try {
         const { web5: userWeb5 } = await initWeb5({ password: sessionKey });
@@ -93,6 +95,56 @@ export default function Dashboard() {
     }
     connectToWeb5();
   }, [reload]);
+
+  useEffect(() => {
+    async function fetchFiatAccounts() {
+      if (!web5) return;
+      try {
+        const response = await web5.dwn.records.query({
+          message: {
+            filter: {
+              schema: "BankAccountsInfo",
+              dataFormat: "application/json",
+            },
+          },
+        });
+
+        if (response.records === undefined) return;
+        for (const record of response.records) {
+          const data = await record.data.json();
+          if (data.accountType === "USD") {
+            setAllBalances((prev) => {
+              return {
+                ...prev,
+                USD: data.balance,
+              };
+            });
+          }
+          if (data.accountType === "KES") {
+            setAllBalances((prev) => {
+              return {
+                ...prev,
+                KES: data.balance,
+              };
+            });
+          }
+          if (data.accountType === "EUR") {
+            setAllBalances((prev) => {
+              return {
+                ...prev,
+                EUR: data.balance,
+              };
+            });
+          }
+        }
+        setFiatAcctLoading(false);
+      } catch (err) {
+        setFiatAcctLoading(false);
+        console.log(err);
+      }
+    }
+    fetchFiatAccounts();
+  }, [web5, reloadWallets]);
 
   useEffect(() => {
     const fetchBtcWalletFromDwn = async () => {
@@ -116,9 +168,19 @@ export default function Dashboard() {
 
               const walletBalance = balInSatoshi / 100000000;
               if (walletBalance <= 0) {
-                setAllBalances({ ...allBalances, BTC: 0.000001 });
+                setAllBalances((prev) => {
+                  return {
+                    ...prev,
+                    BTC: 0.000001,
+                  };
+                });
               } else {
-                setAllBalances({ ...allBalances, BTC: walletBalance });
+                setAllBalances((prev) => {
+                  return {
+                    ...prev,
+                    BTC: walletBalance,
+                  };
+                });
               }
             }
           }
@@ -132,31 +194,6 @@ export default function Dashboard() {
     fetchBtcWalletFromDwn();
   }, [web5]);
 
-  useEffect(() => {
-    async function fetchFiatAccounts() {
-      if (!web5) return;
-      try {
-        const response = await web5.dwn.records.query({
-          message: {
-            filter: {
-              schema: "BankAccountsInfo",
-              dataFormat: "application/json",
-            },
-          },
-        });
-        //Come here
-        if (!response.records) return;
-        response.records.map(async (record: any) => {
-          const data = await record.data.json();
-          console.log(data);
-        });
-      } catch (err) {
-        console.log(err);
-      }
-    }
-    fetchFiatAccounts();
-  }, [web5, reloadWallets]);
-
   return (
     <Content className='mt-8 mx-4'>
       <h1 className='font-bold mb-4'>Hi, Welcome 👋</h1>
@@ -165,7 +202,7 @@ export default function Dashboard() {
         handleActiveBalance={(e) => setActiveBalance(e)}
         activeBalance={activeBalance}
         balances={allWallets}
-        loadingBalance={accountLoading}
+        loadingBalance={fiatAcctLoading && accountLoading}
         balance={allBalances[activeBalance as BalanceKeys]}
         handleFundWallet={() => {
           if (activeBalance === "BTC") {
@@ -317,7 +354,7 @@ export default function Dashboard() {
       />
       <SendBtcModal
         wallet={wallet!}
-        amountAvailable={balance!}
+        amountAvailable={allBalances.BTC!}
         open={sendModalOpen}
         setClose={() => setSendModalOpen(false)}
       />

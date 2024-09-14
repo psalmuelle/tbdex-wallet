@@ -5,6 +5,7 @@ import {
   SendOutlined,
 } from "@ant-design/icons";
 import { Avatar, Button, Spin } from "antd";
+import { useEffect, useState } from "react";
 
 function AccountType({
   type,
@@ -65,13 +66,13 @@ export default function Wallets({
       <h1 className='font-semibold my-4'>My Balances</h1>
       <div className='border rounded-xl p-4 mt-4 min-h-[275px]'>
         <div className='w-fit flex flex-wrap justify-center items-center gap-2.5 mt-4 rounded-xl bg-neutral-100 p-1 mx-auto'>
-          {balances.map((balance) => (
+          {balances.map((bal) => (
             <AccountType
-              key={balance.id}
-              type={balance.type}
-              logo={balance.logo}
-              handleClick={() => handleActiveBalance(balance.type)}
-              isActive={balance.type === activeBalance}
+              key={bal.id}
+              type={bal.type}
+              logo={bal.logo}
+              handleClick={() => handleActiveBalance(bal.type)}
+              isActive={bal.type === activeBalance}
             />
           ))}
         </div>
@@ -82,7 +83,7 @@ export default function Wallets({
           </div>
         )}
 
-        {!loadingBalance && balance === undefined ? (
+        {!loadingBalance && balance === undefined && (
           <div className='mt-6'>
             <h2 className='text-center mt-2 font-medium text-neutral-500'>
               You've not created your {activeBalance} Account
@@ -104,39 +105,38 @@ export default function Wallets({
               Create {activeBalance} Account
             </Button>
           </div>
-        ) : (
-          !loadingBalance &&
-          balance !== undefined && (
-            <div className='mt-6'>
-              <h2 className='text-center mt-2 font-medium text-neutral-500'>
-                Available {activeBalance} Balance <CheckCircleOutlined />
-              </h2>
-              <div>
-                <p className='font-bold text-3xl text-neutral-900 text-center my-2'>
-                  {balanceSigns[activeBalance]} {balance}{" "}
-                  {activeBalance === "BTC" && "₿"}
-                </p>
-              </div>
-              <div className='w-fit mx-auto text-medium mt-8 mb-4 flex justify-center items-center gap-3'>
-                <Button
-                  className='text-sm'
-                  size='large'
-                  onClick={handleFundWallet}
-                  iconPosition={"end"}
-                  icon={<PlusCircleOutlined />}>
-                  Fund Wallet
-                </Button>
-                <Button
-                  onClick={handleSendMoney}
-                  className='text-sm'
-                  size='large'
-                  iconPosition={"end"}
-                  icon={<SendOutlined />}>
-                  Send Money
-                </Button>
-              </div>
+        )}
+
+        {!loadingBalance && balance !== undefined && (
+          <div className='mt-6'>
+            <h2 className='text-center mt-2 font-medium text-neutral-500'>
+              Available {activeBalance} Balance <CheckCircleOutlined />
+            </h2>
+            <div>
+              <p className='font-bold text-3xl text-neutral-900 text-center my-2'>
+                {balanceSigns[activeBalance]} {balance}{" "}
+                {activeBalance === "BTC" && "₿"}
+              </p>
             </div>
-          )
+            <div className='w-fit mx-auto text-medium mt-8 mb-4 flex justify-center items-center gap-3'>
+              <Button
+                className='text-sm'
+                size='large'
+                onClick={handleFundWallet}
+                iconPosition={"end"}
+                icon={<PlusCircleOutlined />}>
+                Fund Wallet
+              </Button>
+              <Button
+                onClick={handleSendMoney}
+                className='text-sm'
+                size='large'
+                iconPosition={"end"}
+                icon={<SendOutlined />}>
+                Send Money
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     </section>
