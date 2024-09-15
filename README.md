@@ -28,7 +28,7 @@ A cross-border payment platform built on Tbdex and web5
 
 ## Introduction
 
-![Chain wallet dashboard]('/chain-wallet-dashboard.png')
+![Chain wallet dashboard]('chain-wallet-dashboard.png')
 
 Chain wallet is a web app that utilizes the tbdex protocol and the web5 sdk to enable users to make fiat payments. Chain wallet users are able to send money to different countries, convert their funds from one currency to another, and carry out on-chain btc transactions. Chain wallet enables safe and secure delivery of funds without having to forfeit privacy and personal data. Users are in control of their identity and data on chain wallet.
 
