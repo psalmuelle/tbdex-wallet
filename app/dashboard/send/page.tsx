@@ -3,7 +3,11 @@
 import Destination from "@/components/send/Destination";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 import initWeb5 from "@/web5/auth/access";
-import { ClockCircleOutlined, LeftOutlined } from "@ant-design/icons";
+import {
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  LeftOutlined,
+} from "@ant-design/icons";
 import {
   Button,
   Divider,
@@ -12,6 +16,7 @@ import {
   InputNumber,
   Layout,
   message,
+  Modal,
   Select,
   Spin,
   Steps,
@@ -22,7 +27,11 @@ import { useEffect, useState } from "react";
 import type { Web5 } from "@web5/api";
 import { useRouter, useSearchParams } from "next/navigation";
 import getPfiOfferings from "@/web5/send/offering";
-import type { Offering } from "@tbdex/http-client";
+import { Rfq, TbdexHttpClient, type Offering } from "@tbdex/http-client";
+import TnxList from "@/components/send/TnxList";
+import getKcc from "@/web5/kcc/read";
+import { PresentationExchange } from "@web5/credentials";
+import { Web5PlatformAgent } from "@web5/agent";
 
 const { Content } = Layout;
 
@@ -76,8 +85,13 @@ export default function Send() {
   const [isLoadingOfferings, setIsLoadingOfferings] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [debitAccount, setDebitAccount] = useState<userAccountDetails>();
-  const [offerings, setOfferings] = useState<Offering[]>();
+  const [offerings, setOfferings] = useState<Offering[]>([]);
   const [offeringRate, setOfferingRate] = useState<number>();
+  const [credentials, setCredentials] = useState<string[]>();
+  const [credentialModal, setCredentialModal] = useState(false);
+  const [quoteRequest, setQuoteRequest] = useState<Rfq>();
+  const [loadingRfq, setLoadingRfq] = useState(false);
+  const [notAvailableModal, setNotAvailableModal] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const acctSymbols = {
@@ -105,7 +119,6 @@ export default function Send() {
                 (Object.keys(country.currencies)[0] === "EUR" ||
                   Object.keys(country.currencies)[0] === "USD" ||
                   Object.keys(country.currencies)[0] === "GBP" ||
-                  Object.keys(country.currencies)[0] === "AUD" ||
                   Object.keys(country.currencies)[0] === "KES")
             );
             setCountries(filteredResult);
@@ -205,10 +218,8 @@ export default function Send() {
         const from: Offering[] = response["usdSend"].from;
         const to: Offering[] = response["usdSend"].to;
 
-        console.log(from, to);
-
         if (from.length === 1) {
-          setOfferings(from);
+          setOfferings((prev) => [...from, ...prev]);
           setOfferingRate(+from[0].data.payoutUnitsPerPayinUnit);
         } else {
           const bestFromOffer = from.reduce((max, val) =>
@@ -216,21 +227,23 @@ export default function Send() {
               ? val
               : max
           );
-          setOfferings([bestFromOffer])
+          setOfferings((prev) => [bestFromOffer, ...prev]);
           setOfferingRate(+bestFromOffer.data.payoutUnitsPerPayinUnit);
         }
 
-        if(to.length === 1){
-          setOfferings(to);
+        if (to.length === 1) {
+          setOfferings((prev) => [...to, ...prev]);
           setOfferingRate(+to[0].data.payoutUnitsPerPayinUnit);
-        }else{
+        } else {
           const bestToOffer = to.reduce((max, val) =>
             val.data.payoutUnitsPerPayinUnit > max.data.payoutUnitsPerPayinUnit
               ? val
               : max
           );
-          setOfferings([bestToOffer])
-          setOfferingRate((prev)=> prev && +bestToOffer.data.payoutUnitsPerPayinUnit * prev);
+          setOfferings((prev) => [bestToOffer, ...prev]);
+          setOfferingRate(
+            (prev) => prev && +bestToOffer.data.payoutUnitsPerPayinUnit * prev
+          );
         }
       }
 
@@ -238,10 +251,8 @@ export default function Send() {
         const from: Offering[] = response["eurSend"].from;
         const to: Offering[] = response["eurSend"].to;
 
-        console.log(from, to);
-
         if (from.length === 1) {
-          setOfferings(from);
+          setOfferings((prev) => [...from, ...prev]);
           setOfferingRate(+from[0].data.payoutUnitsPerPayinUnit);
         } else {
           const bestFromOffer = from.reduce((max, val) =>
@@ -249,21 +260,23 @@ export default function Send() {
               ? val
               : max
           );
-          setOfferings([bestFromOffer])
+          setOfferings((prev) => [bestFromOffer, ...prev]);
           setOfferingRate(+bestFromOffer.data.payoutUnitsPerPayinUnit);
         }
 
-        if(to.length === 1){
-          setOfferings(to);
+        if (to.length === 1) {
+          setOfferings((prev) => [...to, ...prev]);
           setOfferingRate(+to[0].data.payoutUnitsPerPayinUnit);
-        }else{
+        } else {
           const bestToOffer = to.reduce((max, val) =>
             val.data.payoutUnitsPerPayinUnit > max.data.payoutUnitsPerPayinUnit
               ? val
               : max
           );
-          setOfferings([bestToOffer])
-          setOfferingRate((prev)=> prev && +bestToOffer.data.payoutUnitsPerPayinUnit * prev);
+          setOfferings((prev) => [bestToOffer, ...prev]);
+          setOfferingRate(
+            (prev) => prev && +bestToOffer.data.payoutUnitsPerPayinUnit * prev
+          );
         }
       }
 
@@ -275,6 +288,136 @@ export default function Send() {
   const handleSubmitRecipientDetails = (values: RecipientDetails) => {
     setRecipientDetails(values);
     setCurrentStep(currentStep + 1);
+  };
+
+  const handleCreateRfq = async () => {
+    if (
+      !web5 ||
+      !userDid ||
+      !recipientDetails ||
+      !debitAccount ||
+      !amountToSend ||
+      !offerings
+    )
+      return;
+    setLoadingRfq(true);
+    try {
+      const response = await getKcc({ web5 });
+      if (!response?.records || response.records.length === 0) {
+        messageApi.error("No Known Customer Credential fount");
+        setCredentialModal(true);
+        return;
+      }
+      const customerCredential = await response.records[0].data.text();
+      setCredentials([customerCredential]);
+
+      const payinDetails = {
+        ...(debitAccount.accountNumber && {
+          accountNumber: debitAccount.accountNumber,
+        }),
+        ...(debitAccount.routingNumber && {
+          routingNumber: debitAccount.routingNumber,
+        }),
+        ...(debitAccount.swiftCode && { swiftCode: debitAccount.swiftCode }),
+        ...(debitAccount.iban && { IBAN: debitAccount.iban }),
+      };
+      const payoutDetails = {
+        ...(recipientDetails.bankAccount && {
+          accountNumber: recipientDetails.bankAccount,
+        }),
+        ...(recipientDetails.routingNumber && {
+          routingNumber: recipientDetails.routingNumber,
+        }),
+        ...(recipientDetails.swiftCode && {
+          swiftCode: recipientDetails.swiftCode,
+        }),
+        ...(recipientDetails.sortCode && { IBAN: recipientDetails.sortCode }),
+        ...(recipientDetails.iban && { IBAN: recipientDetails.iban }),
+      };
+
+      //For direct send
+      if (offerings.length === 1) {
+        const offering = offerings[0];
+
+        // Check credential for offering
+        const presentationDefinition = offering.data.requiredClaims;
+        try {
+          PresentationExchange.satisfiesPresentationDefinition({
+            vcJwts: [customerCredential],
+            presentationDefinition: presentationDefinition!,
+          });
+        } catch (err) {
+          messageApi.error("Credential does not satisfy required claims");
+          return;
+        }
+
+        const selectedCredentials = PresentationExchange.selectCredentials({
+          vcJwts: [customerCredential],
+          presentationDefinition: offering?.data.requiredClaims!,
+        });
+
+        const rfq = Rfq.create({
+          metadata: {
+            from: userDid,
+            to: offering?.metadata.from!,
+            protocol: offering?.metadata.protocol,
+          },
+          data: {
+            offeringId: offering?.id!,
+            payin: {
+              kind: offering?.data.payin.methods[0].kind!,
+              amount: amountToSend.toString(),
+              paymentDetails: payinDetails,
+            },
+            payout: {
+              kind: offering?.data.payout.methods[0].kind!,
+              paymentDetails: payoutDetails,
+            },
+            claims: selectedCredentials,
+          },
+        });
+
+        //Verify the offering requirements
+        try {
+          await rfq.verifyOfferingRequirements(offering!);
+        } catch (error) {
+          console.log(error);
+        }
+
+        //sign rfq
+        const agent = web5.agent as Web5PlatformAgent;
+        const identities = await agent.identity.list();
+        await rfq.sign(identities[0].did);
+
+        //Create an exchange
+        await TbdexHttpClient.createExchange(rfq);
+        setQuoteRequest(rfq);
+
+        // Save Offering Details to DWN
+        // const { record } = await web5.dwn.records.create({
+        //   data: {
+        //     exchangeId: rfq.id,
+        //     pfiDID: offering?.metadata.from,
+        //   },
+        //   message: {
+        //     schema: "UserExchange",
+        //     dataFormat: "application/json",
+        //   },
+        // });
+        // await record?.send(userDid);
+        setCurrentStep(currentStep + 1);
+        setLoadingRfq(false);
+      }
+
+      if (offerings.length > 1) {
+        setNotAvailableModal(true);
+        setLoadingRfq(false);
+        return;
+      }
+    } catch (err) {
+      console.log(err);
+      setLoadingRfq(false);
+    }
   };
 
   return (
@@ -498,11 +641,12 @@ export default function Send() {
                       <Select
                         defaultValue={searchParams.get("currency") || ""}
                         className='w-[70px]'
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          setOfferings([]);
                           setDebitAccount(
                             userAccounts?.find((acct) => acct.accountType === e)
-                          )
-                        }
+                          );
+                        }}
                         options={
                           userAccounts &&
                           userAccounts.map((acct) => {
@@ -569,7 +713,7 @@ export default function Send() {
                             debitAccount?.accountType as keyof typeof acctSymbols
                           ]
                         }
-                        {amountToSend && amountToSend * 0.0208}
+                        {amountToSend && (amountToSend * 0.0208).toFixed(2)}
                       </p>
                     </div>
                     <Divider />
@@ -614,14 +758,168 @@ export default function Send() {
                   className='my-4 w-full'
                   size='large'
                   type='primary'
-                  disabled={amountToSend === undefined}>
+                  loading={loadingRfq}
+                  onClick={handleCreateRfq}
+                  disabled={
+                    amountToSend === undefined || offerings === undefined
+                  }>
                   Continue
                 </Button>
               </div>
             </div>
           )}
+
+          {currentStep === 3 && (
+            <div className='w-full max-w-md mx-auto mt-8'>
+              <h2 className='text-center font-semibold mb-6 mt-4'>
+                Review Transaction
+              </h2>
+              <div className='border rounded-xl p-4'>
+                <TnxList
+                  title={"Country"}
+                  value={(selectedCountry && selectedCountry.name.common) || ""}
+                />
+
+                <TnxList
+                  title={"Bank Account"}
+                  value={
+                    (recipientDetails && recipientDetails.bankAccount) || ""
+                  }
+                />
+
+                {selectedCountry &&
+                  Object.keys(selectedCountry.currencies)[0] === "USD" && (
+                    <TnxList
+                      title={"Routing Number"}
+                      value={
+                        (recipientDetails && recipientDetails.routingNumber) ||
+                        ""
+                      }
+                    />
+                  )}
+
+                {selectedCountry &&
+                  Object.keys(selectedCountry.currencies)[0] === "EUR" && (
+                    <TnxList
+                      title={"IBAN"}
+                      value={(recipientDetails && recipientDetails.iban) || ""}
+                    />
+                  )}
+
+                {selectedCountry &&
+                  Object.keys(selectedCountry.currencies)[0] === "GBP" && (
+                    <TnxList
+                      title={"Sort Code"}
+                      value={
+                        (recipientDetails && recipientDetails.sortCode) || ""
+                      }
+                    />
+                  )}
+
+                {selectedCountry &&
+                  Object.keys(selectedCountry.currencies)[0] === "KES" && (
+                    <TnxList
+                      title={"Swift Code"}
+                      value={
+                        (recipientDetails && recipientDetails.swiftCode) || ""
+                      }
+                    />
+                  )}
+
+                <Divider className='max-w-sm mx-auto' />
+
+                <TnxList
+                  title={"Amount Tendered"}
+                  value={
+                    `${
+                      acctSymbols[
+                        debitAccount?.accountType as keyof typeof acctSymbols
+                      ]
+                    }${amountToSend}` || "$2.00"
+                  }
+                />
+
+                <TnxList
+                  title={"Total Fees"}
+                  value={
+                    `${
+                      acctSymbols[
+                        debitAccount?.accountType as keyof typeof acctSymbols
+                      ]
+                    }${amountToSend && (amountToSend * 0.0308).toFixed(2)}` ||
+                    "$5.00"
+                  }
+                />
+
+                <TnxList
+                  title={"Recipient will receive"}
+                  value={`${
+                    selectedCountry &&
+                    Object.values(selectedCountry.currencies)[0].symbol
+                  } ${
+                    offeringRate &&
+                    amountToSend &&
+                    (offeringRate * amountToSend * 0.9692).toFixed(2)
+                  }`}
+                />
+
+                <Button
+                  className='w-full max-w-sm mx-auto mt-6 block'
+                  size='large'
+                  onClick={() => setCurrentStep(currentStep + 1)}
+                  type='primary'>
+                  Send Money
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 4 && (
+            <div className='w-full max-w-md mx-auto mt-8'>
+              <h2 className='text-center font-semibold mb-6 mt-4'>
+                Enter your password to authorize transaction
+              </h2>
+
+              <div>
+                <p>Input your password</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      <Modal
+        open={credentialModal}
+        onCancel={() => setCredentialModal(false)}
+        footer={null}
+        className=''
+        title='No KYC Found'>
+        <CloseCircleOutlined className='text-red-600 text-4xl block mx-auto mt-4' />
+        <p className='text-center mt-4 mb-8'>
+          You do not have a known customer credential to complete this
+          transaction
+        </p>
+        <Button href='/dashboard/kcc' className='block mx-auto mb-4 primary'>
+          Create a Known Customer Credential
+        </Button>
+      </Modal>
+      <Modal
+        onCancel={() => setNotAvailableModal(false)}
+        onOk={() => setNotAvailableModal(false)}
+        open={notAvailableModal}
+        title={"Payment Option Not Available"}>
+        <p className='mt-8 font-medium'>
+          Sorry, we can't process transaction from{" "}
+          {debitAccount && debitAccount?.accountType} to{" "}
+          {selectedCountry && Object.keys(selectedCountry?.currencies)[0]} right
+          now.
+        </p>
+        <p className='mt-4'>
+          Try sending with a different balance than the{" "}
+          {debitAccount && debitAccount.accountType} wallet, or contact support
+          for more information.
+        </p>
+      </Modal>
       {contextHolder}
     </Content>
   );

@@ -6,14 +6,6 @@ interface getOfferingProps {
   to: string;
 }
 
-interface PfiProps {
-  _id: string;
-  name: string;
-  did: string;
-  isActive: boolean;
-  pairs: string[];
-}
-
 export default async function getPfiOfferings({ from, to }: getOfferingProps) {
   console.log(from, "/", to);
   try {
