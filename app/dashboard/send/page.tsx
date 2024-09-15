@@ -3,15 +3,17 @@
 import Destination from "@/components/send/Destination";
 import { decryptAndRetrieveData } from "@/lib/encrypt-info";
 import initWeb5 from "@/web5/auth/access";
-import { LeftOutlined } from "@ant-design/icons";
+import { ClockCircleOutlined, LeftOutlined } from "@ant-design/icons";
 import {
   Button,
+  Divider,
   Form,
   Input,
   InputNumber,
   Layout,
   message,
   Select,
+  Spin,
   Steps,
 } from "antd";
 import type { GetProps } from "antd";
@@ -19,6 +21,8 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import type { Web5 } from "@web5/api";
 import { useRouter, useSearchParams } from "next/navigation";
+import getPfiOfferings from "@/web5/send/offering";
+import type { Offering } from "@tbdex/http-client";
 
 const { Content } = Layout;
 
@@ -60,7 +64,7 @@ interface userAccountDetails {
 
 export default function Send() {
   const sessionKey = decryptAndRetrieveData({ name: "sessionKey" });
-  const [currentStep, setCurrentStep] = useState(2);
+  const [currentStep, setCurrentStep] = useState(0);
   const [web5, setWeb5] = useState<Web5>();
   const [userDid, setUserDid] = useState<string>();
   const [userAccounts, setUserAccounts] = useState<userAccountDetails[]>();
@@ -69,8 +73,11 @@ export default function Send() {
   const [selectedCountry, setSelectedCountry] = useState<CountryProps>();
   const [recipientDetails, setRecipientDetails] = useState<RecipientDetails>();
   const [amountToSend, setAmountToSend] = useState<number>();
+  const [isLoadingOfferings, setIsLoadingOfferings] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [debitAccount, setDebitAccount] = useState<userAccountDetails>();
+  const [offerings, setOfferings] = useState<Offering[]>();
+  const [offeringRate, setOfferingRate] = useState<number>();
   const router = useRouter();
   const searchParams = useSearchParams();
   const acctSymbols = {
@@ -98,7 +105,7 @@ export default function Send() {
                 (Object.keys(country.currencies)[0] === "EUR" ||
                   Object.keys(country.currencies)[0] === "USD" ||
                   Object.keys(country.currencies)[0] === "GBP" ||
-                  Object.keys(country.currencies)[0] === "NGN" ||
+                  Object.keys(country.currencies)[0] === "AUD" ||
                   Object.keys(country.currencies)[0] === "KES")
             );
             setCountries(filteredResult);
@@ -168,6 +175,102 @@ export default function Send() {
     }
     getAccountDetails();
   }, [web5]);
+
+  useEffect(() => {
+    async function fetchOfferings() {
+      if (!debitAccount || !selectedCountry) return;
+      setIsLoadingOfferings(true);
+      const response = await getPfiOfferings({
+        from: debitAccount?.accountType,
+        to: Object.keys(selectedCountry?.currencies)[0],
+      });
+
+      if (Object.keys(response)[0] === "directSend") {
+        const offer: Offering[] = response.directSend;
+        if (offer.length === 1) {
+          setOfferings(offer);
+          setOfferingRate(+offer[0].data.payoutUnitsPerPayinUnit);
+        } else {
+          const bestOffer = offer.reduce((max, val) =>
+            val.data.payoutUnitsPerPayinUnit > max.data.payoutUnitsPerPayinUnit
+              ? val
+              : max
+          );
+          setOfferings([bestOffer]);
+          setOfferingRate(+bestOffer.data.payoutUnitsPerPayinUnit);
+        }
+      }
+
+      if (Object.keys(response)[0] === "usdSend") {
+        const from: Offering[] = response["usdSend"].from;
+        const to: Offering[] = response["usdSend"].to;
+
+        console.log(from, to);
+
+        if (from.length === 1) {
+          setOfferings(from);
+          setOfferingRate(+from[0].data.payoutUnitsPerPayinUnit);
+        } else {
+          const bestFromOffer = from.reduce((max, val) =>
+            val.data.payoutUnitsPerPayinUnit > max.data.payoutUnitsPerPayinUnit
+              ? val
+              : max
+          );
+          setOfferings([bestFromOffer])
+          setOfferingRate(+bestFromOffer.data.payoutUnitsPerPayinUnit);
+        }
+
+        if(to.length === 1){
+          setOfferings(to);
+          setOfferingRate(+to[0].data.payoutUnitsPerPayinUnit);
+        }else{
+          const bestToOffer = to.reduce((max, val) =>
+            val.data.payoutUnitsPerPayinUnit > max.data.payoutUnitsPerPayinUnit
+              ? val
+              : max
+          );
+          setOfferings([bestToOffer])
+          setOfferingRate((prev)=> prev && +bestToOffer.data.payoutUnitsPerPayinUnit * prev);
+        }
+      }
+
+      if (Object.keys(response)[0] === "eurSend") {
+        const from: Offering[] = response["eurSend"].from;
+        const to: Offering[] = response["eurSend"].to;
+
+        console.log(from, to);
+
+        if (from.length === 1) {
+          setOfferings(from);
+          setOfferingRate(+from[0].data.payoutUnitsPerPayinUnit);
+        } else {
+          const bestFromOffer = from.reduce((max, val) =>
+            val.data.payoutUnitsPerPayinUnit > max.data.payoutUnitsPerPayinUnit
+              ? val
+              : max
+          );
+          setOfferings([bestFromOffer])
+          setOfferingRate(+bestFromOffer.data.payoutUnitsPerPayinUnit);
+        }
+
+        if(to.length === 1){
+          setOfferings(to);
+          setOfferingRate(+to[0].data.payoutUnitsPerPayinUnit);
+        }else{
+          const bestToOffer = to.reduce((max, val) =>
+            val.data.payoutUnitsPerPayinUnit > max.data.payoutUnitsPerPayinUnit
+              ? val
+              : max
+          );
+          setOfferings([bestToOffer])
+          setOfferingRate((prev)=> prev && +bestToOffer.data.payoutUnitsPerPayinUnit * prev);
+        }
+      }
+
+      setIsLoadingOfferings(false);
+    }
+    fetchOfferings();
+  }, [debitAccount, selectedCountry]);
 
   const handleSubmitRecipientDetails = (values: RecipientDetails) => {
     setRecipientDetails(values);
@@ -320,7 +423,7 @@ export default function Send() {
 
                 {selectedCountry &&
                   (Object.keys(selectedCountry.currencies)[0] === "EUR" ||
-                    Object.keys(selectedCountry.currencies)[0] === "NGN") && (
+                    Object.keys(selectedCountry.currencies)[0] === "AUD") && (
                     <Form.Item
                       className='mt-4'
                       label={"IBAN"}
@@ -384,7 +487,7 @@ export default function Send() {
 
           {currentStep === 2 && (
             <div className='w-full max-w-md mx-auto mt-8'>
-              <h2 className='text-center font-semibold mb-4 mt-4'>
+              <h2 className='text-center font-semibold mb-6 mt-4'>
                 Enter amount to send to recipient
               </h2>
               <div>
@@ -429,9 +532,11 @@ export default function Send() {
                       }
                       style={{ border: "none" }}
                       size='large'
-                      className="w-28"
+                      className='w-28'
                       onChange={(value) =>
-                        value !== null && setAmountToSend(value)
+                        value === null
+                          ? setAmountToSend(undefined)
+                          : setAmountToSend(value)
                       }
                     />
                   </div>
@@ -443,10 +548,75 @@ export default function Send() {
                     "Insufficient funds in wallet"}
                 </p>
 
-                <div>
-                  
+                <Spin spinning={isLoadingOfferings} tip='Loading offerings'>
+                  <div className='bg-neutral-50 rounded-xl p-4 mt-8'>
+                    <div className='flex justify-between items-center gap-4 py-2'>
+                      <p className='text-neutral-500'>Conversion Fee</p>
+                      <p className='text-neutral-700'>
+                        {
+                          acctSymbols[
+                            debitAccount?.accountType as keyof typeof acctSymbols
+                          ]
+                        }
+                        {amountToSend && amountToSend * 0.01}
+                      </p>
+                    </div>
+                    <div className='flex justify-between items-center gap-4 py-2'>
+                      <p className='text-neutral-500'>Send Fee</p>
+                      <p className='text-neutral-700'>
+                        {
+                          acctSymbols[
+                            debitAccount?.accountType as keyof typeof acctSymbols
+                          ]
+                        }
+                        {amountToSend && amountToSend * 0.0208}
+                      </p>
+                    </div>
+                    <Divider />
+                    <div className='flex justify-between items-center gap-4 py-2'>
+                      <p className='text-neutral-500'>Amount we'll send</p>
+                      <p className='text-neutral-700 font-medium'>
+                        ~
+                        {
+                          acctSymbols[
+                            debitAccount?.accountType as keyof typeof acctSymbols
+                          ]
+                        }
+                        {amountToSend && (amountToSend * 0.9692).toFixed(2)}
+                      </p>
+                    </div>
+                    <div className='flex justify-between items-center gap-4 py-2'>
+                      <p className='text-neutral-500'>Rate</p>
+                      <p className='text-neutral-700'>
+                        &times;
+                        {offeringRate && offeringRate.toFixed(2)}
+                      </p>
+                    </div>
                   </div>
-                <div>Recipient will receive</div>
+                </Spin>
+
+                <p className='mb-1 mt-8'>Recipient will receive</p>
+                <div className='w-full rounded-xl border text-center font-semibold text-base cursor-pointer py-3'>
+                  <p>
+                    {selectedCountry &&
+                      Object.values(selectedCountry.currencies)[0].symbol}
+                    {offeringRate &&
+                      amountToSend &&
+                      (offeringRate * amountToSend * 0.9692).toFixed(2)}
+                  </p>
+                </div>
+
+                <p className='text-center text-gray-400 mt-4 mb-2'>
+                  <ClockCircleOutlined /> Usually arrives in 120 minutes
+                </p>
+
+                <Button
+                  className='my-4 w-full'
+                  size='large'
+                  type='primary'
+                  disabled={amountToSend === undefined}>
+                  Continue
+                </Button>
               </div>
             </div>
           )}
