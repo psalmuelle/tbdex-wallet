@@ -15,6 +15,7 @@ A cross-border payment platform built on Tbdex and web5
       - [Run In Development Mode](#run-in-development-mode)
       - [Setup Admin Dashboard](#setup-admin-dashboard)
       - [Restart Your App](#restart-your-app)
+      - [NB](#nb)
     - [Statement of Problem](#statement-of-problem)
     - [Objectives](#objectives)
   - [Chain Wallet Technology](#chain-wallet-technology)
@@ -74,6 +75,10 @@ If you would like to access the admin dashboard page, login as a normal user and
 #### Restart Your App
 
 Close the terminal and restart the app by running `npm run dev`.
+
+#### NB
+
+To carry out conversion on the app, you would need testnet BTC. You can get some from [https://coinfaucet.eu/en/btc-testnet/](https://coinfaucet.eu/en/btc-testnet/)
 
 ### Statement of Problem
 
