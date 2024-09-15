@@ -65,6 +65,8 @@ Create a `.env` file and add the following to the code in the docs file below:
     npm run dev
 ```
 
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
 #### Setup Admin Dashboard
 
 If you would like to access the admin dashboard page, login as a normal user and copy the `Did`. Go to the `.env` file and replace the `******` in `NEXT_PUBLIC_ADMIN_DID= '********'` with your DID. Create a BTC account on the app and add the wallet address to `.env` file. You will find `NEXT_PUBLIC_ADMIN_BTC_WALLET= '********'` in the env file.
