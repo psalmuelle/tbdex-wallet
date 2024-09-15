@@ -27,11 +27,19 @@ import { useEffect, useState } from "react";
 import type { Web5 } from "@web5/api";
 import { useRouter, useSearchParams } from "next/navigation";
 import getPfiOfferings from "@/web5/send/offering";
-import { Rfq, TbdexHttpClient, type Offering } from "@tbdex/http-client";
+import {
+  Close,
+  Order,
+  Quote,
+  Rfq,
+  TbdexHttpClient,
+  type Offering,
+} from "@tbdex/http-client";
 import TnxList from "@/components/send/TnxList";
 import getKcc from "@/web5/kcc/read";
 import { PresentationExchange } from "@web5/credentials";
 import { Web5PlatformAgent } from "@web5/agent";
+import Image from "next/image";
 
 const { Content } = Layout;
 
@@ -87,11 +95,14 @@ export default function Send() {
   const [debitAccount, setDebitAccount] = useState<userAccountDetails>();
   const [offerings, setOfferings] = useState<Offering[]>([]);
   const [offeringRate, setOfferingRate] = useState<number>();
-  const [credentials, setCredentials] = useState<string[]>();
   const [credentialModal, setCredentialModal] = useState(false);
   const [quoteRequest, setQuoteRequest] = useState<Rfq>();
   const [loadingRfq, setLoadingRfq] = useState(false);
   const [notAvailableModal, setNotAvailableModal] = useState(false);
+  const [loadingExchange, setLoadingExchange] = useState(false);
+  const [order, setOrder] = useState<Order>();
+  const [loadingAuthorize, setLoadingAuthorize] = useState(false);
+  const [openSuccessModal, setOpenSuccessModal] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const acctSymbols = {
@@ -309,7 +320,6 @@ export default function Send() {
         return;
       }
       const customerCredential = await response.records[0].data.text();
-      setCredentials([customerCredential]);
 
       const payinDetails = {
         ...(debitAccount.accountNumber && {
@@ -366,7 +376,7 @@ export default function Send() {
             offeringId: offering?.id!,
             payin: {
               kind: offering?.data.payin.methods[0].kind!,
-              amount: amountToSend.toString(),
+              amount: (amountToSend * 0.9692).toFixed(2).toString(),
               paymentDetails: payinDetails,
             },
             payout: {
@@ -393,18 +403,6 @@ export default function Send() {
         await TbdexHttpClient.createExchange(rfq);
         setQuoteRequest(rfq);
 
-        // Save Offering Details to DWN
-        // const { record } = await web5.dwn.records.create({
-        //   data: {
-        //     exchangeId: rfq.id,
-        //     pfiDID: offering?.metadata.from,
-        //   },
-        //   message: {
-        //     schema: "UserExchange",
-        //     dataFormat: "application/json",
-        //   },
-        // });
-        // await record?.send(userDid);
         setCurrentStep(currentStep + 1);
         setLoadingRfq(false);
       }
@@ -417,6 +415,90 @@ export default function Send() {
     } catch (err) {
       console.log(err);
       setLoadingRfq(false);
+    }
+  };
+
+  const handleGetExchange = async () => {
+    if (!quoteRequest || !web5) return;
+
+    try {
+      setLoadingExchange(true);
+      const agent = web5.agent as Web5PlatformAgent;
+      const identities = await agent.identity.list();
+
+      let quote;
+      let close;
+
+      //Wait for Quote message to appear in the exchange
+      while (!quote) {
+        const exchange = await TbdexHttpClient.getExchange({
+          pfiDid: quoteRequest.metadata.to,
+          did: identities[0].did,
+          exchangeId: quoteRequest.exchangeId,
+        });
+
+        quote = exchange.find((msg) => msg instanceof Quote);
+
+        if (!quote) {
+          // Make sure the exchange is still open
+          close = exchange.find((msg) => msg instanceof Close);
+
+          if (close) {
+            break;
+          } else {
+            // Wait 2 seconds before making another request
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+          }
+        }
+      }
+
+      const order = Order.create({
+        metadata: {
+          from: userDid!,
+          to: quote!.metadata.from,
+          exchangeId: quote!.exchangeId,
+          protocol: "1.0",
+        },
+      });
+
+      await order.sign(identities[0].did);
+
+      setOrder(order);
+      setCurrentStep(currentStep + 1);
+      setLoadingExchange(false);
+    } catch (err) {
+      console.log(err);
+      setLoadingExchange(false);
+    }
+  };
+
+  const onFinish = async (values: { password: string }) => {
+    try {
+      if (!web5 || !quoteRequest || !order) return;
+      setLoadingAuthorize(true);
+      if (sessionKey !== values.password) {
+        messageApi.error("Incorrect password");
+        setLoadingAuthorize(false);
+        return;
+      }
+      await TbdexHttpClient.submitOrder(order);
+
+      //  Save Offering Details to DWN
+      const { record } = await web5.dwn.records.create({
+        data: {
+          exchangeId: order.exchangeId,
+          pfiDID: order?.metadata.to,
+        },
+        message: {
+          schema: "UserExchange",
+          dataFormat: "application/json",
+        },
+      });
+      await record?.send(userDid);
+      setLoadingAuthorize(false);
+      setOpenSuccessModal(true);
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -866,7 +948,8 @@ export default function Send() {
                 <Button
                   className='w-full max-w-sm mx-auto mt-6 block'
                   size='large'
-                  onClick={() => setCurrentStep(currentStep + 1)}
+                  loading={loadingExchange}
+                  onClick={handleGetExchange}
                   type='primary'>
                   Send Money
                 </Button>
@@ -879,10 +962,32 @@ export default function Send() {
               <h2 className='text-center font-semibold mb-6 mt-4'>
                 Enter your password to authorize transaction
               </h2>
-
-              <div>
-                <p>Input your password</p>
-              </div>
+              <Form
+                name='create account'
+                layout='vertical'
+                onFinish={onFinish}
+                className='mt-4'
+                autoComplete='off'>
+                <Form.Item<{ password: string }>
+                  label='Password'
+                  name='password'
+                  className='text-left'
+                  rules={[
+                    { required: true, message: "Please input your password!" },
+                  ]}>
+                  <Input.Password size='large' type='large' />
+                </Form.Item>
+                <Form.Item>
+                  <Button
+                    htmlType='submit'
+                    type='primary'
+                    size='large'
+                    loading={loadingAuthorize}
+                    className='w-full mt-5'>
+                    Authorize Transaction
+                  </Button>
+                </Form.Item>
+              </Form>
             </div>
           )}
         </div>
@@ -919,6 +1024,30 @@ export default function Send() {
           {debitAccount && debitAccount.accountType} wallet, or contact support
           for more information.
         </p>
+      </Modal>
+      <Modal
+        footer={null}
+        open={openSuccessModal}
+        title={"Transaction Successful"}>
+        <Image
+          src={"/rocket-in-flight.png"}
+          width={150}
+          height={150}
+          className='mt-6 mb-4 mx-auto'
+          alt='rocket in flight'
+        />
+        <p>
+          Your money is been sent 🤑. Kindly check order page to confirm the
+          status of the transaction.
+        </p>
+
+        <Button
+          href='/dashboard/orders'
+          size='large'
+          type='primary'
+          className='w-full mt-8 mb-4 mx-auto'>
+          Go to Order Page
+        </Button>
       </Modal>
       {contextHolder}
     </Content>
