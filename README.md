@@ -78,7 +78,7 @@ Close the terminal and restart the app by running `npm run dev`.
 
 #### NB
 
-To carry out conversion on the app, you would need testnet BTC. You can get some from [https://coinfaucet.eu/en/btc-testnet/](https://coinfaucet.eu/en/btc-testnet/)
+To carry out conversion on the app, you will need testnet BTC. You can get some from [https://coinfaucet.eu/en/btc-testnet/](https://coinfaucet.eu/en/btc-testnet/)
 
 ### Statement of Problem
 
